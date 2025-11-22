@@ -22,8 +22,16 @@ public class ContentController {
     
     @GetMapping("/{id}")
     public ResponseEntity<Content> getContentById(@PathVariable Long id) {
-        return contentRepository.findById(id)
+        ResponseEntity<Content> content = contentRepository.findById(id)
             .map(ResponseEntity::ok)
             .orElse(ResponseEntity.notFound().build());
+        
+        if (content.getStatusCode().is2xxSuccessful()) {
+            return content;
+        } else {
+            return ResponseEntity.notFound()
+                .header("X-Message", "Contenido no encontrado con ID: " + id)
+                .build();
+        }
     }
 }

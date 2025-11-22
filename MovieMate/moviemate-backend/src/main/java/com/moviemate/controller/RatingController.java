@@ -25,14 +25,12 @@ public class RatingController {
             @AuthenticationPrincipal CustomUserDetails userDetails,
             @Valid @RequestBody RatingRequest request) {
         User user = userDetails.getUser();
-        System.out.println("Usuario autenticado: " + user);
         return ResponseEntity.ok(ratingService.createOrUpdateRating(user, request));
     }
     
     @GetMapping("/my-ratings")
     public ResponseEntity<List<RatingResponse>> getUserRatings(@AuthenticationPrincipal CustomUserDetails userDetails) {
         User user = userDetails.getUser();
-        System.out.println("Usuario autenticado: " + user);
         return ResponseEntity.ok(ratingService.getUserRatings(user));
     }
 }
