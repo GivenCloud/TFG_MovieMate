@@ -106,7 +106,7 @@ public class ListService {
             .collect(Collectors.toList());
     }
     
-    private ListResponse mapToListResponse(List list) {
+    public ListResponse mapToListResponse(List list) {
         return ListResponse.builder()
             .id(list.getId())
             .name(list.getName())

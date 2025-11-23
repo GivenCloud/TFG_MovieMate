@@ -1,11 +1,15 @@
 package com.moviemate.dto;
-
-import lombok.Builder;
+import lombok.AllArgsConstructor;
+import lombok.NoArgsConstructor;
 import lombok.Data;
+import lombok.experimental.SuperBuilder;
+
 import java.time.LocalDateTime;
 
+@SuperBuilder
+@NoArgsConstructor
+@AllArgsConstructor
 @Data
-@Builder
 public class UserResponse {
     private Long id;
     private String username;

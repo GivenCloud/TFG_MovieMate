@@ -17,6 +17,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.web.util.pattern.PathPatternParser;
 
 @Configuration
 @EnableWebSecurity
@@ -47,12 +48,18 @@ public class SecurityConfig {
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http, JwtAuthenticationFilter jwtAuthenticationFilter) throws Exception {
+        http.setSharedObject(PathPatternParser.class, new PathPatternParser());
+        
         http
             .csrf(csrf -> csrf.disable())
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers("/api/auth/**",
                                  "/api/content/**",
-                                 "/api/lists/public"
+                                 "/api/lists/public",
+                                 "/api/users/search",
+                                 "/api/users/{userId:[0-9]+}",
+                                 "/api/users/{userId:[0-9]+}/profile",
+                                 "/api/users/username/**"
                 ).permitAll()
                 .anyRequest().authenticated()
             )

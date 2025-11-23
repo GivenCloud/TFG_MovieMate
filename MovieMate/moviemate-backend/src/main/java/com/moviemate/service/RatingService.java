@@ -62,7 +62,7 @@ public class RatingService {
             .collect(Collectors.toList());
     }
     
-    private RatingResponse mapToRatingResponse(Rating rating) {
+    public RatingResponse mapToRatingResponse(Rating rating) {
         return RatingResponse.builder()
             .id(rating.getId())
             .rating(rating.getRating())
