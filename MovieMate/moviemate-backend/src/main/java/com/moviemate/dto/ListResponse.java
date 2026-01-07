@@ -17,5 +17,5 @@ public class ListResponse {
     private Integer itemCount;
     private LocalDateTime createdAt;
     private UserResponse user;
-    private java.util.List<ContentSimpleResponse> contents;
+    private java.util.List<ContentResponse> contents;
 }

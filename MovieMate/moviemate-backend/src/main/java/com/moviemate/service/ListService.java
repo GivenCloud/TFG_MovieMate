@@ -3,10 +3,11 @@ package com.moviemate.service;
 import com.moviemate.dto.ListRequest;
 import com.moviemate.dto.ListResponse;
 import com.moviemate.dto.UserResponse;
-import com.moviemate.dto.ContentSimpleResponse;
+import com.moviemate.dto.ContentResponse;
 import com.moviemate.entity.List;
 import com.moviemate.entity.ListContent;
 import com.moviemate.entity.User;
+import com.moviemate.exception.DuplicateListNameException;
 import com.moviemate.entity.Content;
 import com.moviemate.repository.ListRepository;
 import com.moviemate.repository.ListContentRepository;
@@ -27,6 +28,10 @@ public class ListService {
     
     @Transactional
     public ListResponse createList(User user, ListRequest request) {
+        if (listRepository.existsByUserAndName(user, request.getName())) {
+            throw new DuplicateListNameException(request.getName());
+        }
+        
         // Verificar si ya existe una lista del mismo tipo para el usuario
         if (request.getListType() != List.ListType.CUSTOM) {
             listRepository.findByUserAndListType(user, request.getListType())
@@ -121,11 +126,19 @@ public class ListService {
                 .avatarUrl(list.getUser().getAvatarUrl())
                 .build())
             .contents(list.getContents() != null ? list.getContents().stream()
-                .map(listContent -> ContentSimpleResponse.builder()
+                .map(listContent -> ContentResponse.builder()
                     .id(listContent.getContent().getId())
+                    .tmdbId(listContent.getContent().getTmdbId())
                     .title(listContent.getContent().getTitle())
-                    .posterUrl(listContent.getContent().getPosterUrl())
                     .contentType(listContent.getContent().getContentType())
+                    .releaseDate(listContent.getContent().getReleaseDate().toString())
+                    .posterUrl(listContent.getContent().getPosterUrl())
+                    .backdropUrl(listContent.getContent().getBackdropUrl())
+                    .synopsis(listContent.getContent().getSynopsis())
+                    .genres(listContent.getContent().getGenres())
+                    .averageRating(listContent.getContent().getAverageRating())
+                    .voteCount(listContent.getContent().getVoteCount())
+                    .lastSync(listContent.getContent().getLastSync().toString())
                     .build())
                 .collect(Collectors.toList()) : java.util.Collections.emptyList())
             .build();

@@ -1,11 +1,20 @@
 package com.moviemate.controller;
 
+import com.moviemate.dto.UpdateProfileRequest;
 import com.moviemate.dto.UserProfileResponse;
 import com.moviemate.dto.UserResponse;
+import com.moviemate.dto.UserStatsResponse;
 import com.moviemate.entity.User;
+import com.moviemate.entity.UserStats;
+import com.moviemate.repository.UserRepository;
 import com.moviemate.security.CustomUserDetails;
 import com.moviemate.service.FollowerService;
 import com.moviemate.service.UserService;
+import com.moviemate.service.UserStatsService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -17,38 +26,46 @@ import java.util.List;
 @RequestMapping("/api/users")
 @RequiredArgsConstructor
 public class UserController {
-    
+
     private final UserService userService;
     private final FollowerService followerService;
-    
+    private final UserStatsService userStatsService;
+    private final UserRepository userRepository;
+
+    @Operation(summary = "Obtener el usuario actual")
     @GetMapping("/me")
     public ResponseEntity<UserResponse> getCurrentUser(@AuthenticationPrincipal CustomUserDetails userDetails) {
         User user = userDetails.getUser();
         UserResponse userResponse = userService.mapToUserResponse(user);
         return ResponseEntity.ok(userResponse);
     }
-    
+
+    @Operation(summary = "Obtener un usuario por ID")
     @GetMapping("/{userId}")
-    public ResponseEntity<UserResponse> getUserById(@PathVariable Long userId) {
+    public ResponseEntity<UserResponse> getUserById(
+            @Parameter(description = "ID del usuario") @PathVariable Long userId) {
         User user = userService.findUserById(userId);
         UserResponse userResponse = userService.mapToUserResponse(user);
         return ResponseEntity.ok(userResponse);
     }
-    
+
+    @Operation(summary = "Obtener un usuario por nombre de usuario")
     @GetMapping("/username/{username}")
-    public ResponseEntity<UserResponse> getUserByUsername(@PathVariable String username) {
+    public ResponseEntity<UserResponse> getUserByUsername(
+            @Parameter(description = "Nombre de usuario") @PathVariable String username) {
         User user = userService.findUserByUsername(username);
         UserResponse userResponse = userService.mapToUserResponse(user);
         return ResponseEntity.ok(userResponse);
     }
-    
+
+    @Operation(summary = "Obtener perfil de un usuario")
     @GetMapping("/{userId}/profile")
     public ResponseEntity<UserProfileResponse> getUserProfile(
             @AuthenticationPrincipal CustomUserDetails userDetails,
-            @PathVariable Long userId) {
+            @Parameter(description = "ID del usuario") @PathVariable Long userId) {
         User targetUser = userService.findUserById(userId);
         User currentUser = userDetails.getUser();
-        
+
         UserProfileResponse profile = new UserProfileResponse();
         profile.setId(targetUser.getId());
         profile.setUsername(targetUser.getUsername());
@@ -56,46 +73,57 @@ public class UserController {
         profile.setAvatarUrl(targetUser.getAvatarUrl());
         profile.setBio(targetUser.getBio());
         profile.setCreatedAt(targetUser.getCreatedAt());
-        
-        // Estadísticas de seguidores
         profile.setFollowersCount(followerService.getFollowersCount(targetUser));
         profile.setFollowingCount(followerService.getFollowingCount(targetUser));
         profile.setIsFollowing(followerService.isFollowing(currentUser, targetUser));
-        
+
         return ResponseEntity.ok(profile);
     }
-    
+
+    @Operation(
+        summary = "Actualizar perfil de usuario",
+        requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(
+            description = "Datos para actualizar el perfil",
+            required = true,
+            content = @Content(
+                schema = @Schema(implementation = UpdateProfileRequest.class),
+                examples = @io.swagger.v3.oas.annotations.media.ExampleObject(
+                    value = "{\"bio\":\"Nueva bio\",\"avatarUrl\":\"https://miavatar.com/avatar.png\"}"
+                )
+            )
+        )
+    )
     @PutMapping("/profile")
     public ResponseEntity<UserResponse> updateProfile(
             @AuthenticationPrincipal CustomUserDetails userDetails,
-            @RequestBody UpdateProfileRequest request) {
+            @org.springframework.web.bind.annotation.RequestBody UpdateProfileRequest request) {
+
         User user = userDetails.getUser();
         UserResponse updatedUser = userService.updateUserProfile(user, request.getBio(), request.getAvatarUrl());
         return ResponseEntity.ok(updatedUser);
     }
-    
+
+    @Operation(summary = "Buscar usuarios por query")
     @GetMapping("/search")
-    public ResponseEntity<List<UserResponse>> searchUsers(@RequestParam String q) {
+    public ResponseEntity<List<UserResponse>> searchUsers(
+            @Parameter(description = "Query de búsqueda") @RequestParam String q) {
         List<UserResponse> users = userService.searchUsers(q);
         return ResponseEntity.ok(users);
     }
-    
+
+    @Operation(summary = "Obtener usuarios sugeridos")
     @GetMapping("/suggested")
     public ResponseEntity<List<UserResponse>> getSuggestedUsers(@AuthenticationPrincipal CustomUserDetails userDetails) {
         User currentUser = userDetails.getUser();
         List<UserResponse> suggestedUsers = userService.getSuggestedUsers(currentUser);
         return ResponseEntity.ok(suggestedUsers);
     }
-    
-    // DTO para actualizar perfil
-    public static class UpdateProfileRequest {
-        private String bio;
-        private String avatarUrl;
-        
-        // Getters y setters
-        public String getBio() { return bio; }
-        public void setBio(String bio) { this.bio = bio; }
-        public String getAvatarUrl() { return avatarUrl; }
-        public void setAvatarUrl(String avatarUrl) { this.avatarUrl = avatarUrl; }
+
+    @Operation(summary = "Obtener estadísticas de un usuario")
+    @GetMapping("/{userId}/stats")
+    public ResponseEntity<UserStatsResponse> getUserStats(
+            @Parameter(description = "ID del usuario") @PathVariable Long userId) {
+        UserStatsResponse stats = userStatsService.getOrCreateAndUpdateStats(userId);
+        return ResponseEntity.ok(stats);
     }
 }

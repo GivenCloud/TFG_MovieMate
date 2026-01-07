@@ -1,65 +1,159 @@
+// com.moviemate.service.ActivityService.java
 package com.moviemate.service;
 
 import com.moviemate.dto.ActivityResponse;
-import com.moviemate.entity.User;
+import com.moviemate.entity.*;
+import com.moviemate.entity.List;
 import com.moviemate.repository.FollowerRepository;
 import com.moviemate.repository.RatingRepository;
 import com.moviemate.repository.ListRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.time.LocalDateTime;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
 public class ActivityService {
-    
+
     private final FollowerRepository followerRepository;
     private final RatingRepository ratingRepository;
     private final ListRepository listRepository;
     private final RatingService ratingService;
     private final ListService listService;
     private final UserService userService;
-    
+
     @Transactional(readOnly = true)
-    public List<ActivityResponse> getFeed(User user) {
-        // Obtener los usuarios que sigue
-        List<User> following = followerRepository.findByFollower(user).stream()
-            .map(follower -> follower.getFollowed())
-            .collect(Collectors.toList());
-        
-        List<ActivityResponse> activities = new ArrayList<>();
-        
+    public Page<ActivityResponse> getUserFeed(User user, Pageable pageable) {
+        // Obtener usuarios que el usuario actual sigue
+        java.util.List<User> followedUsers = followerRepository.findByFollower(user)
+                .stream()
+                .map(Follower::getFollowed)
+                .collect(Collectors.toList());
+
+        if (followedUsers.isEmpty()) {
+                System.out.println("El usuario no sigue a nadie.");
+                return Page.empty(pageable);
+        }
+
+        System.out.println("Usuarios seguidos: " + followedUsers.size());
+
+        // Obtener actividades de los usuarios seguidos
+       java.util.List<ActivityResponse> allActivities = new ArrayList<>();
+
         // Actividades de valoraciones
-        following.forEach(followedUser -> {
-            ratingRepository.findByUser(followedUser).forEach(rating -> {
-                activities.add(ActivityResponse.builder()
-                    .type("RATING")
-                    .user(userService.mapToUserResponse(followedUser))
-                    .createdAt(rating.getCreatedAt())
-                    .rating(ratingService.mapToRatingResponse(rating))
-                    .build());
-            });
-        });
+        Page<Rating> recentRatings = ratingRepository.findByUserInOrderByCreatedAtDesc(
+                followedUsers, 
+                PageRequest.of(0, 50)
+        );
         
-        // Actividades de creación de listas
-        following.forEach(followedUser -> {
-            listRepository.findByUser(followedUser).forEach(list -> {
-                activities.add(ActivityResponse.builder()
-                    .type("LIST_CREATION")
-                    .user(userService.mapToUserResponse(followedUser))
-                    .createdAt(list.getCreatedAt())
-                    .list(listService.mapToListResponse(list))
-                    .build());
-            });
-        });
+        allActivities.addAll(recentRatings.stream()
+                .map(rating -> ActivityResponse.builder()
+                        .type(ActivityType.RATING_CREATED)
+                        .user(userService.mapToUserResponse(rating.getUser()))
+                        .rating(ratingService.mapToRatingResponse(rating))
+                        .createdAt(rating.getCreatedAt())
+                        .build())
+                .collect(Collectors.toList()));
+
+        // Actividades de listas creadas
+        Page<List> recentLists = listRepository.findByUserInAndIsPublicTrueOrderByCreatedAtDesc(
+                followedUsers,
+                PageRequest.of(0, 30)
+        );
         
-        // Ordenar por fecha (más reciente primero)
-        activities.sort((a1, a2) -> a2.getCreatedAt().compareTo(a1.getCreatedAt()));
+        allActivities.addAll(recentLists.stream()
+                .map(list -> ActivityResponse.builder()
+                        .type(ActivityType.LIST_CREATED)
+                        .user(userService.mapToUserResponse(list.getUser()))
+                        .list(listService.mapToListResponse(list))
+                        .createdAt(list.getCreatedAt())
+                        .build())
+                .collect(Collectors.toList()));
+
+        // Actividades de seguimientos (solo seguimientos recientes)
+        Page<Follower> recentFollows = followerRepository.findByFollowerInAndCreatedAtAfterOrderByCreatedAtDesc(
+                followedUsers,
+                LocalDateTime.now().minusDays(7),
+                PageRequest.of(0, 20)
+        );
         
-        return activities;
+        allActivities.addAll(recentFollows.stream()
+                .map(follow -> ActivityResponse.builder()
+                        .type(ActivityType.FOLLOW)
+                        .user(userService.mapToUserResponse(follow.getFollower()))
+                        .targetUser(userService.mapToUserResponse(follow.getFollowed()))
+                        .createdAt(follow.getCreatedAt())
+                        .build())
+                .collect(Collectors.toList()));
+
+        // Ordenar por fecha descendente
+        allActivities.sort(Comparator.comparing(ActivityResponse::getCreatedAt).reversed());
+
+        // Paginar
+        int start = (int) pageable.getOffset();
+        int end = Math.min((start + pageable.getPageSize()), allActivities.size());
+        
+        if (start > allActivities.size()) {
+            return Page.empty(pageable);
+        }
+
+        return new PageImpl<>(
+                allActivities.subList(start, end),
+                pageable,
+                allActivities.size()
+        );
+    }
+
+    @Transactional(readOnly = true)
+    public Page<ActivityResponse> getGlobalActivity(Pageable pageable) {
+        // Actividades recientes públicas de todos los usuarios
+        java.util.List<ActivityResponse> allActivities = new ArrayList<>();
+
+        // Valoraciones recientes
+        Page<Rating> recentRatings = ratingRepository.findAllByOrderByCreatedAtDesc(pageable);
+        allActivities.addAll(recentRatings.stream()
+                .map(rating -> ActivityResponse.builder()
+                        .type(ActivityType.RATING_CREATED)
+                        .user(userService.mapToUserResponse(rating.getUser()))
+                        .rating(ratingService.mapToRatingResponse(rating))
+                        .createdAt(rating.getCreatedAt())
+                        .build())
+                .collect(Collectors.toList()));
+
+        // Listas públicas recientes
+        Page<List> recentLists = listRepository.findByIsPublicTrueOrderByCreatedAtDesc(pageable);
+        allActivities.addAll(recentLists.stream()
+                .map(list -> ActivityResponse.builder()
+                        .type(ActivityType.LIST_CREATED)
+                        .user(userService.mapToUserResponse(list.getUser()))
+                        .list(listService.mapToListResponse(list))
+                        .createdAt(list.getCreatedAt())
+                        .build())
+                .collect(Collectors.toList()));
+
+        // Ordenar por fecha descendente
+        allActivities.sort(Comparator.comparing(ActivityResponse::getCreatedAt).reversed());
+
+        // Paginar
+        int start = (int) pageable.getOffset();
+        int end = Math.min((start + pageable.getPageSize()), allActivities.size());
+        
+        if (start > allActivities.size()) {
+            return Page.empty(pageable);
+        }
+
+        return new PageImpl<>(
+                allActivities.subList(start, end),
+                pageable,
+                allActivities.size()
+        );
     }
 }

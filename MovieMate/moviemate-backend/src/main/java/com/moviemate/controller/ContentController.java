@@ -1,7 +1,8 @@
 package com.moviemate.controller;
 
-import com.moviemate.entity.Content;
-import com.moviemate.repository.ContentRepository;
+import com.moviemate.dto.ContentResponse;
+import com.moviemate.service.ContentService;
+
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -13,25 +14,15 @@ import java.util.List;
 @RequiredArgsConstructor
 public class ContentController {
     
-    private final ContentRepository contentRepository;
+    private final ContentService contentService;
     
     @GetMapping
-    public ResponseEntity<List<Content>> getAllContent() {
-        return ResponseEntity.ok(contentRepository.findAll());
+    public ResponseEntity<List<ContentResponse>> getAllContent() {
+        return ResponseEntity.ok(contentService.getAllContent());
     }
     
     @GetMapping("/{id}")
-    public ResponseEntity<Content> getContentById(@PathVariable Long id) {
-        ResponseEntity<Content> content = contentRepository.findById(id)
-            .map(ResponseEntity::ok)
-            .orElse(ResponseEntity.notFound().build());
-        
-        if (content.getStatusCode().is2xxSuccessful()) {
-            return content;
-        } else {
-            return ResponseEntity.notFound()
-                .header("X-Message", "Contenido no encontrado con ID: " + id)
-                .build();
-        }
+    public ResponseEntity<ContentResponse> getContentById(@PathVariable Long id) {
+        return ResponseEntity.ok(contentService.getContentById(id));
     }
 }

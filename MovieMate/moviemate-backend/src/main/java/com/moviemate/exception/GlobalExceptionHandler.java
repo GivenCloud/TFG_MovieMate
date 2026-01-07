@@ -76,5 +76,13 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
     }
     
-
+    @ExceptionHandler(DuplicateListNameException.class)
+    public ResponseEntity<ErrorResponse> handleDuplicateListName(DuplicateListNameException ex) {
+        ErrorResponse errorResponse = new ErrorResponse(
+                "LIST_NAME_ALREADY_EXISTS",
+                ex.getMessage(),
+                HttpStatus.CONFLICT.value()
+        );
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(errorResponse);
+    }
 }

@@ -10,13 +10,19 @@ import java.util.ArrayList;
 
 @Data
 @Entity
-@Table(name = "lists")
+@Table(
+    name = "lists",
+    uniqueConstraints = @UniqueConstraint(
+        name = "uk_lists_user_name",
+        columnNames = {"user_id", "name"}
+    )
+)
 public class List {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(optional = false, fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 

@@ -1,5 +1,6 @@
 package com.moviemate.dto;
 
+import com.moviemate.entity.Content;
 import com.moviemate.entity.Rating;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
@@ -11,9 +12,12 @@ import java.time.LocalDate;
 
 @Data
 public class RatingRequest {
-    @NotNull(message = "El ID del contenido es obligatorio")
-    private Long contentId;
+    @NotNull(message = "El ID del TMDB es obligatorio")
+    private Long tmdbId;
+
+    private Content.ContentType contentType;
     
+    @NotNull(message = "La puntuación es obligatoria")
     @Min(value = 1, message = "La puntuación debe ser al menos 1")
     @Max(value = 5, message = "La puntuación debe ser como máximo 5")
     private Integer rating;

@@ -3,6 +3,9 @@ package com.moviemate.repository;
 import com.moviemate.entity.Rating;
 import com.moviemate.entity.User;
 import com.moviemate.entity.Content;
+
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -21,4 +24,10 @@ public interface RatingRepository extends JpaRepository<Rating, Long> {
     
     @Query("SELECT COUNT(r) FROM Rating r WHERE r.content.id = :contentId")
     Integer countRatingsByContent(@Param("contentId") Long contentId);
+
+    @Query("SELECT r FROM Rating r WHERE r.user IN :users ORDER BY r.createdAt DESC")
+    Page<Rating> findByUserInOrderByCreatedAtDesc(@Param("users") List<User> users, Pageable pageable);
+    
+    @Query("SELECT r FROM Rating r ORDER BY r.createdAt DESC")
+    Page<Rating> findAllByOrderByCreatedAtDesc(Pageable pageable);
 }

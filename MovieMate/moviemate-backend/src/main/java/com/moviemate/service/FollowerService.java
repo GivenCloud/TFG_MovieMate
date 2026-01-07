@@ -44,16 +44,19 @@ public class FollowerService {
     }
     
     @Transactional(readOnly = true)
-    public List<UserResponse> getFollowers(User user) {
+    public List<UserResponse> getFollowers(Long userId) {
+        User user = userService.findUserById(userId);
         return followerRepository.findByFollowed(user).stream()
             .map(f -> userService.mapToUserResponse(f.getFollower()))
             .collect(Collectors.toList());
     }
     
     @Transactional(readOnly = true)
-    public List<User> getFollowing(User user) {
+    public List<UserResponse> getFollowing(Long userId) {
+        User user = userService.findUserById(userId);
         return followerRepository.findByFollower(user).stream()
             .map(Follower::getFollowed)
+            .map(userService::mapToUserResponse)
             .collect(Collectors.toList());
     }
     

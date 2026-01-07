@@ -5,13 +5,19 @@ import lombok.Data;
 
 import java.time.LocalDateTime;
 
+import com.moviemate.entity.ActivityType;
+
 @Data
 @Builder
 public class ActivityResponse {
-    private String type; // "RATING", "LIST_CREATION", "FOLLOW"
+
+    private ActivityType type;
     private UserResponse user;
     private LocalDateTime createdAt;
-    private RatingResponse rating; // Si el tipo es RATING
-    private ListResponse list; // Si el tipo es LIST_CREATION
-    private UserResponse targetUser; // Si el tipo es FOLLOW
+    
+    // Solo uno de estos será no nulo dependiendo del tipo
+    private RatingResponse rating;
+    private ListResponse list;
+    private UserResponse targetUser; // Para FOLLOW
+    private ContentResponse content; // Para CONTENT_ADDED_TO_LIST
 }

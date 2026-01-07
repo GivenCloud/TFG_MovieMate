@@ -35,7 +35,6 @@ public class UserService {
     
     public List<UserResponse> getSuggestedUsers(User currentUser) {
         // Lógica simple: devolver usuarios recientemente registrados (excepto el actual)
-        // En una versión más avanzada, podrías implementar recomendaciones basadas en intereses
         return userRepository.findTop10ByOrderByCreatedAtDesc()
             .stream()
             .filter(user -> !user.getId().equals(currentUser.getId()))

@@ -1,6 +1,10 @@
-package com.moviemate.security;
+package com.moviemate.config;
 
 import com.moviemate.repository.UserRepository;
+import com.moviemate.security.CustomUserDetails;
+import com.moviemate.security.JwtAuthenticationFilter;
+import com.moviemate.security.JwtService;
+
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -53,13 +57,23 @@ public class SecurityConfig {
         http
             .csrf(csrf -> csrf.disable())
             .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/api/auth/**",
+                .requestMatchers("/swagger-ui.html",
+                                 "/swagger-ui/**",
+                                 "/v3/api-docs",
+                                 "/v3/api-docs/**",
+                                 "/swagger-resources/**",
+                                 "/webjars/**",
+                                 "/api/auth/**",
                                  "/api/content/**",
                                  "/api/lists/public",
                                  "/api/users/search",
                                  "/api/users/{userId:[0-9]+}",
                                  "/api/users/{userId:[0-9]+}/profile",
-                                 "/api/users/username/**"
+                                 "/api/users/username/**",
+                                 "/api/ratings/{ratingId:[0-9]+}/likes",
+                                 "/api/tmdb/search/**",
+                                 "/api/tmdb/tv/popular",
+                                 "/api/tmdb/movies/popular"
                 ).permitAll()
                 .anyRequest().authenticated()
             )

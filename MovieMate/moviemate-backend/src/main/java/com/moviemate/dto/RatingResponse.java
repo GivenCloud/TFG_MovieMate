@@ -18,5 +18,5 @@ public class RatingResponse {
     private LocalDate watchedDate;
     private LocalDateTime createdAt;
     private UserResponse user;
-    private ContentSimpleResponse content;
+    private ContentResponse content;
 }

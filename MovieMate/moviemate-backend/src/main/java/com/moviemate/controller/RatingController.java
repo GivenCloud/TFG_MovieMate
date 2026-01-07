@@ -5,13 +5,23 @@ import com.moviemate.dto.RatingResponse;
 import com.moviemate.entity.User;
 import com.moviemate.security.CustomUserDetails;
 import com.moviemate.service.RatingService;
+import com.moviemate.service.ReviewLikeService;
+
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.ExampleObject;
+import io.swagger.v3.oas.annotations.parameters.RequestBody;
+
 import java.util.List;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+
 
 @RestController
 @RequestMapping("/api/ratings")
@@ -19,18 +29,77 @@ import java.util.List;
 public class RatingController {
     
     private final RatingService ratingService;
-    
+    private final ReviewLikeService reviewLikeService;
+
+    @Operation(
+            summary = "Crear o actualizar una puntuación",
+            requestBody = @RequestBody(
+                    content = @Content(
+                            examples = @ExampleObject(
+                                    name = "Ejemplo rating",
+                                    value = """
+                                    {
+                                      "tmdbId": 1084242,
+                                      "contentType": "MOVIE",
+                                      "rating": 4,
+                                      "reviewText": "Gran película.",
+                                      "emotionalTag": "INCREIBLE",
+                                      "status": "VISTA",
+                                      "watchedDate": "2025-12-02"
+                                    }
+                                    """
+                            )
+                    )
+            )
+    )
     @PostMapping
     public ResponseEntity<RatingResponse> createOrUpdateRating(
             @AuthenticationPrincipal CustomUserDetails userDetails,
-            @Valid @RequestBody RatingRequest request) {
+            @Valid @org.springframework.web.bind.annotation.RequestBody RatingRequest request) {
         User user = userDetails.getUser();
         return ResponseEntity.ok(ratingService.createOrUpdateRating(user, request));
     }
-    
+
+    @Operation(summary = "Eliminar una puntuación existente")
+    @DeleteMapping("/{ratingId}")
+    public ResponseEntity<Void> deleteRating(@AuthenticationPrincipal CustomUserDetails userDetails, @PathVariable Long ratingId) {
+        User user = userDetails.getUser();
+        ratingService.deleteRating(user, ratingId);
+        return ResponseEntity.noContent().build();
+    }
+
+    @Operation(summary = "Obtener todas las puntuaciones del usuario actual")
     @GetMapping("/my-ratings")
-    public ResponseEntity<List<RatingResponse>> getUserRatings(@AuthenticationPrincipal CustomUserDetails userDetails) {
+    public ResponseEntity<List<RatingResponse>> getUserRatings(
+            @AuthenticationPrincipal CustomUserDetails userDetails) {
         User user = userDetails.getUser();
         return ResponseEntity.ok(ratingService.getUserRatings(user));
+    }
+
+    @Operation(summary = "Dar o quitar like a una puntuación")
+    @PostMapping("/{ratingId}/like")
+    public ResponseEntity<Void> toggleLike(
+            @AuthenticationPrincipal CustomUserDetails userDetails,
+            @PathVariable Long ratingId) {
+
+        User user = userDetails.getUser();
+        reviewLikeService.toggleLike(user, ratingId);
+        return ResponseEntity.ok().build();
+    }
+
+    @Operation(summary = "Obtener la cantidad de likes de una puntuación")
+    @GetMapping("/{ratingId}/likes")
+    public ResponseEntity<Integer> getLikesCount(@PathVariable Long ratingId) {
+        return ResponseEntity.ok(reviewLikeService.getLikesCount(ratingId));
+    }
+
+    @Operation(summary = "Comprobar si el usuario ha dado like a una puntuación")
+    @GetMapping("/{ratingId}/has-liked")
+    public ResponseEntity<Boolean> hasLiked(
+            @AuthenticationPrincipal CustomUserDetails userDetails,
+            @PathVariable Long ratingId) {
+
+        User user = userDetails.getUser();
+        return ResponseEntity.ok(reviewLikeService.hasLiked(user, ratingId));
     }
 }

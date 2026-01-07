@@ -1,13 +1,12 @@
 package com.moviemate.service;
 
-import com.moviemate.dto.ContentSimpleResponse;
+import com.moviemate.dto.ContentResponse;
 import com.moviemate.dto.RatingRequest;
 import com.moviemate.dto.RatingResponse;
 import com.moviemate.dto.UserResponse;
 import com.moviemate.entity.Content;
 import com.moviemate.entity.Rating;
 import com.moviemate.entity.User;
-import com.moviemate.repository.ContentRepository;
 import com.moviemate.repository.RatingRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -21,12 +20,11 @@ import java.util.stream.Collectors;
 public class RatingService {
     
     private final RatingRepository ratingRepository;
-    private final ContentRepository contentRepository;
+    private final ContentService contentService;
     
     @Transactional
     public RatingResponse createOrUpdateRating(User user, RatingRequest request) {
-        Content content = contentRepository.findById(request.getContentId())
-            .orElseThrow(() -> new RuntimeException("Contenido no encontrado"));
+        Content content = contentService.getOrSyncByTmdb(request.getTmdbId().intValue(), request.getContentType());
             
         Rating rating = ratingRepository.findByUserAndContent(user, content)
             .orElse(new Rating());
@@ -46,6 +44,20 @@ public class RatingService {
         
         return mapToRatingResponse(savedRating);
     }
+
+    public void deleteRating(User user, Long ratingId) {
+        Rating rating = ratingRepository.findById(ratingId)
+                .orElseThrow(() -> new RuntimeException("Valoración no encontrada"));
+
+        if (!rating.getUser().getId().equals(user.getId())) {
+            throw new RuntimeException("No tienes permisos para modificar esta valoración");
+        }
+
+        Content content = rating.getContent();
+        ratingRepository.delete(rating);
+
+        updateContentStatistics(content);
+    }
     
     private void updateContentStatistics(Content content) {
         Double averageRating = ratingRepository.calculateAverageRatingByContent(content.getId());
@@ -53,7 +65,7 @@ public class RatingService {
         
         content.setAverageRating(averageRating != null ? averageRating : 0.0);
         content.setVoteCount(voteCount);
-        contentRepository.save(content);
+        contentService.addContent(content);
     }
     
     public List<RatingResponse> getUserRatings(User user) {
@@ -76,11 +88,19 @@ public class RatingService {
                 .username(rating.getUser().getUsername())
                 .avatarUrl(rating.getUser().getAvatarUrl())
                 .build())
-            .content(ContentSimpleResponse.builder()
+            .content(ContentResponse.builder()
                 .id(rating.getContent().getId())
+                .tmdbId(rating.getContent().getTmdbId())
                 .title(rating.getContent().getTitle())
-                .posterUrl(rating.getContent().getPosterUrl())
                 .contentType(rating.getContent().getContentType())
+                .releaseDate(rating.getContent().getReleaseDate().toString())
+                .posterUrl(rating.getContent().getPosterUrl())
+                .backdropUrl(rating.getContent().getBackdropUrl())
+                .synopsis(rating.getContent().getSynopsis())
+                .genres(rating.getContent().getGenres())
+                .averageRating(rating.getContent().getAverageRating())
+                .voteCount(rating.getContent().getVoteCount())
+                .lastSync(rating.getContent().getLastSync().toString())
                 .build())
             .build();
     }

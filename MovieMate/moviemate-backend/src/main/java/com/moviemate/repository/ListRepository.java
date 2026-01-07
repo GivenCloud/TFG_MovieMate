@@ -2,6 +2,9 @@ package com.moviemate.repository;
 
 import com.moviemate.entity.List;
 import com.moviemate.entity.User;
+
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -20,6 +23,18 @@ public interface ListRepository extends JpaRepository<List, Long> {
     java.util.List<List> findByUserAndIsPublic(User user, Boolean isPublic);
     Optional<List> findByUserAndListType(User user, List.ListType listType);
     
+    boolean existsByUserAndName(User user, String name);
+
     @Query("SELECT l FROM List l WHERE l.isPublic = true ORDER BY l.createdAt DESC")
     java.util.List<List> findPublicLists();
+
+    Page<List> findByUserInAndIsPublicTrueOrderByCreatedAtDesc(
+        java.util.List<User> users,
+        Pageable pageable
+    );
+
+    Page<List> findByIsPublicTrueOrderByCreatedAtDesc(Pageable pageable);
+
+    @Query("SELECT COUNT(l) FROM List l WHERE l.user = :user")
+    Integer countByUser(@Param("user") User user);
 }

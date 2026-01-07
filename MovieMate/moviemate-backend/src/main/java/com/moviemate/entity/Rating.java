@@ -1,6 +1,8 @@
 package com.moviemate.entity;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
 import lombok.Data;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
@@ -26,6 +28,8 @@ public class Rating {
     @JoinColumn(name = "content_id", nullable = false)
     private Content content;
 
+    @Min(1) @Max(5)
+    @Column(nullable = false)
     private Integer rating; // 1-5
 
     @Column(columnDefinition = "TEXT")
