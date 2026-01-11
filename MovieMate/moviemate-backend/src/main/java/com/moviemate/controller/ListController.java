@@ -104,7 +104,7 @@ public class ListController {
             summary = "Obtener las listas del usuario autenticado",
             description = "Devuelve todas las listas creadas por el usuario."
     )
-    @GetMapping("/my-lists")
+    @GetMapping("/me/lists")
     public ResponseEntity<List<ListResponse>> getUserLists(
             @AuthenticationPrincipal CustomUserDetails userDetails) {
         User user = userDetails.getUser();

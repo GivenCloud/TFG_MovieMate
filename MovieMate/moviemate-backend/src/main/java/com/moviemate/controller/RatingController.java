@@ -19,7 +19,6 @@ import io.swagger.v3.oas.annotations.media.ExampleObject;
 import io.swagger.v3.oas.annotations.parameters.RequestBody;
 
 import java.util.List;
-import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 
 
@@ -94,7 +93,7 @@ public class RatingController {
     }
 
     @Operation(summary = "Comprobar si el usuario ha dado like a una puntuación")
-    @GetMapping("/{ratingId}/has-liked")
+    @GetMapping("/{ratingId}/like-status")
     public ResponseEntity<Boolean> hasLiked(
             @AuthenticationPrincipal CustomUserDetails userDetails,
             @PathVariable Long ratingId) {

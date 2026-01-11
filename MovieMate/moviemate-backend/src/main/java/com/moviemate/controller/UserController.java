@@ -5,8 +5,6 @@ import com.moviemate.dto.UserProfileResponse;
 import com.moviemate.dto.UserResponse;
 import com.moviemate.dto.UserStatsResponse;
 import com.moviemate.entity.User;
-import com.moviemate.entity.UserStats;
-import com.moviemate.repository.UserRepository;
 import com.moviemate.security.CustomUserDetails;
 import com.moviemate.service.FollowerService;
 import com.moviemate.service.UserService;
@@ -30,7 +28,6 @@ public class UserController {
     private final UserService userService;
     private final FollowerService followerService;
     private final UserStatsService userStatsService;
-    private final UserRepository userRepository;
 
     @Operation(summary = "Obtener el usuario actual")
     @GetMapping("/me")
@@ -93,7 +90,7 @@ public class UserController {
             )
         )
     )
-    @PutMapping("/profile")
+    @PutMapping("/me/profile")
     public ResponseEntity<UserResponse> updateProfile(
             @AuthenticationPrincipal CustomUserDetails userDetails,
             @org.springframework.web.bind.annotation.RequestBody UpdateProfileRequest request) {
@@ -104,7 +101,7 @@ public class UserController {
     }
 
     @Operation(summary = "Buscar usuarios por query")
-    @GetMapping("/search")
+    @GetMapping
     public ResponseEntity<List<UserResponse>> searchUsers(
             @Parameter(description = "Query de búsqueda") @RequestParam String q) {
         List<UserResponse> users = userService.searchUsers(q);

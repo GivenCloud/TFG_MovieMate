@@ -66,14 +66,13 @@ public class SecurityConfig {
                                  "/api/auth/**",
                                  "/api/content/**",
                                  "/api/lists/public",
-                                 "/api/users/search",
+                                 "/api/users",
                                  "/api/users/{userId:[0-9]+}",
                                  "/api/users/{userId:[0-9]+}/profile",
                                  "/api/users/username/**",
                                  "/api/ratings/{ratingId:[0-9]+}/likes",
-                                 "/api/tmdb/search/**",
-                                 "/api/tmdb/tv/popular",
-                                 "/api/tmdb/movies/popular"
+                                 "/api/tmdb/tv/**",
+                                 "/api/tmdb/movies/**"
                 ).permitAll()
                 .anyRequest().authenticated()
             )

@@ -27,7 +27,7 @@ public class FollowerController {
             summary = "Seguir a un usuario",
             description = "Permite que el usuario autenticado siga a otro usuario."
     )
-    @PostMapping("/{userId}/follow")
+    @PostMapping("/{userId}")
     public ResponseEntity<Void> followUser(
             @AuthenticationPrincipal CustomUserDetails userDetails,
             @Parameter(description = "ID del usuario al que se quiere seguir", example = "1")
@@ -44,7 +44,7 @@ public class FollowerController {
             summary = "Dejar de seguir a un usuario",
             description = "Permite que el usuario autenticado deje de seguir a otro usuario."
     )
-    @DeleteMapping("/{userId}/unfollow")
+    @DeleteMapping("/{userId}")
     public ResponseEntity<Void> unfollowUser(
             @AuthenticationPrincipal CustomUserDetails userDetails,
             @Parameter(description = "ID del usuario al que se quiere dejar de seguir", example = "1")
@@ -87,7 +87,7 @@ public class FollowerController {
             summary = "Comprobar si el usuario autenticado sigue a otro usuario",
             description = "Devuelve true o false dependiendo de si el usuario autenticado sigue al usuario objetivo."
     )
-    @GetMapping("/{userId}/is-following")
+    @GetMapping("/{userId}/following-status")
     public ResponseEntity<Boolean> isFollowing(
             @AuthenticationPrincipal CustomUserDetails userDetails,
             @Parameter(description = "ID del usuario objetivo a comprobar", example = "2")

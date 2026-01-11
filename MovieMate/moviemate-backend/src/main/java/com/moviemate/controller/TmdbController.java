@@ -23,7 +23,7 @@ public class TmdbController {
             summary = "Buscar películas por nombre",
             description = "Realiza una búsqueda de películas usando la API de TMDB."
     )
-    @GetMapping("/search/movies")
+    @GetMapping("/movies")
     public ResponseEntity<List<Content>> searchMovies(
             @Parameter(
                     description = "Texto de búsqueda",
@@ -59,7 +59,7 @@ public class TmdbController {
             summary = "Buscar series por nombre",
             description = "Realiza una búsqueda de series usando la API de TMDB."
     )
-    @GetMapping("/search/tv")
+    @GetMapping("/tv")
     public ResponseEntity<List<Content>> searchTvShows(
             @Parameter(
                     description = "Texto de búsqueda",
@@ -95,7 +95,7 @@ public class TmdbController {
             summary = "Sincronizar película desde TMDB",
             description = "Obtiene información detallada de una película desde TMDB y la guarda en la base de datos."
     )
-    @PostMapping("/sync/movie/{tmdbId}")
+    @PostMapping("/sync/movies/{tmdbId}")
     public ResponseEntity<Content> syncMovie(
             @Parameter(
                     description = "ID de película en TMDB",
