@@ -27,7 +27,7 @@ public class FollowerController {
             summary = "Seguir a un usuario",
             description = "Permite que el usuario autenticado siga a otro usuario."
     )
-    @PostMapping("/{userId}")
+    @PostMapping("/{userId}/followers")
     public ResponseEntity<Void> followUser(
             @AuthenticationPrincipal CustomUserDetails userDetails,
             @Parameter(description = "ID del usuario al que se quiere seguir", example = "1")
@@ -44,7 +44,7 @@ public class FollowerController {
             summary = "Dejar de seguir a un usuario",
             description = "Permite que el usuario autenticado deje de seguir a otro usuario."
     )
-    @DeleteMapping("/{userId}")
+    @DeleteMapping("/{userId}/followers")
     public ResponseEntity<Void> unfollowUser(
             @AuthenticationPrincipal CustomUserDetails userDetails,
             @Parameter(description = "ID del usuario al que se quiere dejar de seguir", example = "1")

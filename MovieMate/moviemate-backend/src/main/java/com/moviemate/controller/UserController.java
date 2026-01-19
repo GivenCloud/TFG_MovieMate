@@ -1,5 +1,7 @@
 package com.moviemate.controller;
 
+import com.moviemate.dto.ListResponse;
+import com.moviemate.dto.RatingResponse;
 import com.moviemate.dto.UpdateProfileRequest;
 import com.moviemate.dto.UserProfileResponse;
 import com.moviemate.dto.UserResponse;
@@ -7,6 +9,8 @@ import com.moviemate.dto.UserStatsResponse;
 import com.moviemate.entity.User;
 import com.moviemate.security.CustomUserDetails;
 import com.moviemate.service.FollowerService;
+import com.moviemate.service.ListService;
+import com.moviemate.service.RatingService;
 import com.moviemate.service.UserService;
 import com.moviemate.service.UserStatsService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -28,20 +32,13 @@ public class UserController {
     private final UserService userService;
     private final FollowerService followerService;
     private final UserStatsService userStatsService;
+    private final ListService listService;
+    private final RatingService ratingService;
 
     @Operation(summary = "Obtener el usuario actual")
     @GetMapping("/me")
     public ResponseEntity<UserResponse> getCurrentUser(@AuthenticationPrincipal CustomUserDetails userDetails) {
         User user = userDetails.getUser();
-        UserResponse userResponse = userService.mapToUserResponse(user);
-        return ResponseEntity.ok(userResponse);
-    }
-
-    @Operation(summary = "Obtener un usuario por ID")
-    @GetMapping("/{userId}")
-    public ResponseEntity<UserResponse> getUserById(
-            @Parameter(description = "ID del usuario") @PathVariable Long userId) {
-        User user = userService.findUserById(userId);
         UserResponse userResponse = userService.mapToUserResponse(user);
         return ResponseEntity.ok(userResponse);
     }
@@ -55,8 +52,8 @@ public class UserController {
         return ResponseEntity.ok(userResponse);
     }
 
-    @Operation(summary = "Obtener perfil de un usuario")
-    @GetMapping("/{userId}/profile")
+    @Operation(summary = "Obtener un usuario por ID")
+    @GetMapping("/{userId}")
     public ResponseEntity<UserProfileResponse> getUserProfile(
             @AuthenticationPrincipal CustomUserDetails userDetails,
             @Parameter(description = "ID del usuario") @PathVariable Long userId) {
@@ -108,8 +105,27 @@ public class UserController {
         return ResponseEntity.ok(users);
     }
 
+    @Operation(
+            summary = "Obtener las listas del usuario autenticado",
+            description = "Devuelve todas las listas creadas por el usuario."
+    )
+    @GetMapping("/me/lists")
+    public ResponseEntity<List<ListResponse>> getUserLists(
+            @AuthenticationPrincipal CustomUserDetails userDetails) {
+        User user = userDetails.getUser();
+        return ResponseEntity.ok(listService.getUserLists(user));
+    }
+
+    @Operation(summary = "Obtener todas las puntuaciones del usuario actual")
+    @GetMapping("/me/ratings")
+    public ResponseEntity<List<RatingResponse>> getUserRatings(
+            @AuthenticationPrincipal CustomUserDetails userDetails) {
+        User user = userDetails.getUser();
+        return ResponseEntity.ok(ratingService.getUserRatings(user));
+    }
+
     @Operation(summary = "Obtener usuarios sugeridos")
-    @GetMapping("/suggested")
+    @GetMapping("/suggestions")
     public ResponseEntity<List<UserResponse>> getSuggestedUsers(@AuthenticationPrincipal CustomUserDetails userDetails) {
         User currentUser = userDetails.getUser();
         List<UserResponse> suggestedUsers = userService.getSuggestedUsers(currentUser);

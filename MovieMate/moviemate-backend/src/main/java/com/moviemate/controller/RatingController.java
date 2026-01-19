@@ -67,16 +67,8 @@ public class RatingController {
         return ResponseEntity.noContent().build();
     }
 
-    @Operation(summary = "Obtener todas las puntuaciones del usuario actual")
-    @GetMapping("/my-ratings")
-    public ResponseEntity<List<RatingResponse>> getUserRatings(
-            @AuthenticationPrincipal CustomUserDetails userDetails) {
-        User user = userDetails.getUser();
-        return ResponseEntity.ok(ratingService.getUserRatings(user));
-    }
-
     @Operation(summary = "Dar o quitar like a una puntuación")
-    @PostMapping("/{ratingId}/like")
+    @PostMapping("/{ratingId}/likes")
     public ResponseEntity<Void> toggleLike(
             @AuthenticationPrincipal CustomUserDetails userDetails,
             @PathVariable Long ratingId) {

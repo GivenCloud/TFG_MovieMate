@@ -21,8 +21,8 @@ public class ContentController {
         return ResponseEntity.ok(contentService.getAllContent());
     }
     
-    @GetMapping("/{id}")
-    public ResponseEntity<ContentResponse> getContentById(@PathVariable Long id) {
-        return ResponseEntity.ok(contentService.getContentById(id));
+    @GetMapping("/{contentId}")
+    public ResponseEntity<ContentResponse> getContentById(@PathVariable Long contentId) {
+        return ResponseEntity.ok(contentService.getContentById(contentId));
     }
 }

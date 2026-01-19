@@ -95,7 +95,7 @@ public class TmdbController {
             summary = "Sincronizar película desde TMDB",
             description = "Obtiene información detallada de una película desde TMDB y la guarda en la base de datos."
     )
-    @PostMapping("/sync/movies/{tmdbId}")
+    @PostMapping("/movies/{tmdbId}/sync")
     public ResponseEntity<Content> syncMovie(
             @Parameter(
                     description = "ID de película en TMDB",
@@ -113,7 +113,7 @@ public class TmdbController {
             summary = "Sincronizar serie desde TMDB",
             description = "Obtiene información detallada de una serie desde TMDB y la guarda en la base de datos."
     )
-    @PostMapping("/sync/tv/{tmdbId}")
+    @PostMapping("/tv/{tmdbId}/sync")
     public ResponseEntity<Content> syncTvShow(
             @Parameter(
                     description = "ID de serie en TMDB",
