@@ -1,0 +1,73 @@
+<mxfile host="app.diagrams.net" agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36" version="29.3.4">
+  <diagram name="Página-1" id="djHDtVfSaDDUjHA8A1hx">
+    <mxGraphModel dx="753" dy="850" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="XJJb_1_aHIXETbtUBW_6-2" parent="1" style="ellipse;whiteSpace=wrap;html=1;fillColor=#FF9933;fontStyle=1" value="Crear valoración" vertex="1">
+          <mxGeometry height="70" width="130" x="310" y="385" as="geometry" />
+        </mxCell>
+        <mxCell id="XJJb_1_aHIXETbtUBW_6-3" parent="1" style="ellipse;whiteSpace=wrap;html=1;fillColor=#FF9933;fontStyle=1" value="Editar valoración" vertex="1">
+          <mxGeometry height="70" width="130" x="310" y="465" as="geometry" />
+        </mxCell>
+        <mxCell id="XJJb_1_aHIXETbtUBW_6-4" parent="1" style="ellipse;whiteSpace=wrap;html=1;fillColor=light-dark(#FF9933,#FF9933);fontStyle=1" value="Consultar valoraciones propias" vertex="1">
+          <mxGeometry height="70" width="130" x="310" y="625" as="geometry" />
+        </mxCell>
+        <mxCell id="XJJb_1_aHIXETbtUBW_6-8" parent="1" style="ellipse;whiteSpace=wrap;html=1;fillColor=#FF9933;fontStyle=1" value="Borrar valoración" vertex="1">
+          <mxGeometry height="70" width="130" x="310" y="545" as="geometry" />
+        </mxCell>
+        <mxCell id="XJJb_1_aHIXETbtUBW_6-16" connectable="0" parent="1" style="group" value="" vertex="1">
+          <mxGeometry height="100" width="150" x="10" y="570" as="geometry" />
+        </mxCell>
+        <mxCell id="XJJb_1_aHIXETbtUBW_6-15" parent="XJJb_1_aHIXETbtUBW_6-16" style="rounded=1;whiteSpace=wrap;html=1;fillColor=light-dark(#FF9933,#FF9933);movable=1;resizable=1;rotatable=1;deletable=1;editable=1;locked=0;connectable=1;" value="" vertex="1">
+          <mxGeometry height="40" width="150" y="60" as="geometry" />
+        </mxCell>
+        <mxCell id="XJJb_1_aHIXETbtUBW_6-1" parent="XJJb_1_aHIXETbtUBW_6-16" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;outlineConnect=0;fillColor=light-dark(#FF9933,#FF9933);fontStyle=1;movable=1;resizable=1;rotatable=1;deletable=1;editable=1;locked=0;connectable=1;" value="Usuario registrado&amp;nbsp;&lt;div&gt;(Valoraciones y reseñas)&lt;/div&gt;" vertex="1">
+          <mxGeometry height="60" width="34.61538461538461" x="57.69230769230769" as="geometry" />
+        </mxCell>
+        <mxCell id="XJJb_1_aHIXETbtUBW_6-17" parent="1" style="ellipse;whiteSpace=wrap;html=1;fillColor=#FF9933;fontStyle=1" value="Consultar valoraciones de contenido" vertex="1">
+          <mxGeometry height="70" width="130" x="310" y="705" as="geometry" />
+        </mxCell>
+        <mxCell id="XJJb_1_aHIXETbtUBW_6-18" parent="1" style="ellipse;whiteSpace=wrap;html=1;fillColor=#FF9933;fontStyle=1" value="Marcar reseña como útil" vertex="1">
+          <mxGeometry height="70" width="130" x="310" y="785" as="geometry" />
+        </mxCell>
+        <mxCell id="XJJb_1_aHIXETbtUBW_6-20" edge="1" parent="1" style="endArrow=classic;html=1;rounded=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" target="XJJb_1_aHIXETbtUBW_6-2" value="">
+          <mxGeometry height="50" relative="1" width="50" as="geometry">
+            <mxPoint x="160" y="610" as="sourcePoint" />
+            <mxPoint x="340" y="610" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="XJJb_1_aHIXETbtUBW_6-21" edge="1" parent="1" style="endArrow=classic;html=1;rounded=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" target="XJJb_1_aHIXETbtUBW_6-3" value="">
+          <mxGeometry height="50" relative="1" width="50" as="geometry">
+            <mxPoint x="160" y="610" as="sourcePoint" />
+            <mxPoint x="450" y="530" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="XJJb_1_aHIXETbtUBW_6-22" edge="1" parent="1" style="endArrow=classic;html=1;rounded=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" target="XJJb_1_aHIXETbtUBW_6-8" value="">
+          <mxGeometry height="50" relative="1" width="50" as="geometry">
+            <mxPoint x="160" y="610" as="sourcePoint" />
+            <mxPoint x="360" y="590" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="XJJb_1_aHIXETbtUBW_6-23" edge="1" parent="1" style="endArrow=classic;html=1;rounded=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" target="XJJb_1_aHIXETbtUBW_6-4" value="">
+          <mxGeometry height="50" relative="1" width="50" as="geometry">
+            <mxPoint x="160" y="610" as="sourcePoint" />
+            <mxPoint x="450" y="630" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="XJJb_1_aHIXETbtUBW_6-24" edge="1" parent="1" style="endArrow=classic;html=1;rounded=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" target="XJJb_1_aHIXETbtUBW_6-17" value="">
+          <mxGeometry height="50" relative="1" width="50" as="geometry">
+            <mxPoint x="160" y="610" as="sourcePoint" />
+            <mxPoint x="500" y="620" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="XJJb_1_aHIXETbtUBW_6-25" edge="1" parent="1" style="endArrow=classic;html=1;rounded=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" target="XJJb_1_aHIXETbtUBW_6-18" value="">
+          <mxGeometry height="50" relative="1" width="50" as="geometry">
+            <mxPoint x="160" y="610" as="sourcePoint" />
+            <mxPoint x="540" y="730" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
