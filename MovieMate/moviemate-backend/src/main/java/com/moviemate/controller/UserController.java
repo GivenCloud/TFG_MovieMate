@@ -3,6 +3,7 @@ package com.moviemate.controller;
 import com.moviemate.dto.ListResponse;
 import com.moviemate.dto.RatingResponse;
 import com.moviemate.dto.UpdateProfileRequest;
+import com.moviemate.dto.UpdateUserPublicStatusRequest;
 import com.moviemate.dto.UserProfileResponse;
 import com.moviemate.dto.UserResponse;
 import com.moviemate.dto.UserStatsResponse;
@@ -94,6 +95,29 @@ public class UserController {
 
         User user = userDetails.getUser();
         UserResponse updatedUser = userService.updateUserProfile(user, request.getBio(), request.getAvatarUrl());
+        return ResponseEntity.ok(updatedUser);
+    }
+
+    @Operation(
+        summary = "Actualizar visibilidad del perfil",
+        requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(
+            description = "Datos para actualizar la visibilidad del perfil",
+            required = true,
+            content = @Content(
+                schema = @Schema(implementation = UpdateUserPublicStatusRequest.class),
+                examples = @io.swagger.v3.oas.annotations.media.ExampleObject(
+                    value = "{\"isPublic\":false}"
+                )
+            )
+        )
+    )
+    @PutMapping("/me/public-status")
+    public ResponseEntity<UserResponse> updatePublicStatus(
+            @AuthenticationPrincipal CustomUserDetails userDetails,
+            @org.springframework.web.bind.annotation.RequestBody UpdateUserPublicStatusRequest request) {
+
+        User user = userDetails.getUser();
+        UserResponse updatedUser = userService.updateUserPublicStatus(user, request.getIsPublic());
         return ResponseEntity.ok(updatedUser);
     }
 

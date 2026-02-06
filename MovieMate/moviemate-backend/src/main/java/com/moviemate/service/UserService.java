@@ -50,6 +50,12 @@ public class UserService {
         User updatedUser = userRepository.save(user);
         return mapToUserResponse(updatedUser);
     }
+
+    public UserResponse updateUserPublicStatus(User user, boolean isPublic) {
+        user.setIsPublic(isPublic);
+        User updatedUser = userRepository.save(user);
+        return mapToUserResponse(updatedUser);
+    }
     
     public UserResponse mapToUserResponse(User user) {
         return UserResponse.builder()
@@ -58,6 +64,7 @@ public class UserService {
             .email(user.getEmail())
             .avatarUrl(user.getAvatarUrl())
             .bio(user.getBio())
+            .isPublic(user.getIsPublic())
             .createdAt(user.getCreatedAt())
             .build();
     }

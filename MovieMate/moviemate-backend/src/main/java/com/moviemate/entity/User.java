@@ -29,6 +29,9 @@ public class User {
     @Column(length = 500)
     private String bio;
 
+    @Column(nullable = false)
+    private Boolean isPublic = true;
+
     @CreationTimestamp
     private LocalDateTime createdAt;
 

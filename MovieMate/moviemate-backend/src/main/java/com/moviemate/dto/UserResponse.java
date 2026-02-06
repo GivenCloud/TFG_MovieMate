@@ -16,5 +16,6 @@ public class UserResponse {
     private String email;
     private String avatarUrl;
     private String bio;
+    private Boolean isPublic;
     private LocalDateTime createdAt;
 }
