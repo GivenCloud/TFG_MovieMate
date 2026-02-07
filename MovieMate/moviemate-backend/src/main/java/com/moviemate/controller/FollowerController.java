@@ -1,9 +1,11 @@
 package com.moviemate.controller;
 
 import com.moviemate.annotation.RequirePublicProfile;
+import com.moviemate.dto.FollowRequestActionResponse;
 import com.moviemate.dto.UserResponse;
 import com.moviemate.entity.User;
 import com.moviemate.security.CustomUserDetails;
+import com.moviemate.service.FollowRequestService;
 import com.moviemate.service.FollowerService;
 import com.moviemate.service.UserService;
 import lombok.RequiredArgsConstructor;
@@ -23,23 +25,36 @@ public class FollowerController {
     
     private final FollowerService followerService;
     private final UserService userService;
+    private final FollowRequestService followRequestService;
 
     @Operation(
             summary = "Seguir a un usuario",
             description = "Permite que el usuario autenticado siga a otro usuario."
     )
-    @PostMapping("/{userId}/followers")
-    public ResponseEntity<Void> followUser(
+    @PostMapping("/{userId}/follow-requests")
+    public ResponseEntity<Void> sendFollowRequest(
             @AuthenticationPrincipal CustomUserDetails userDetails,
             @Parameter(description = "ID del usuario al que se quiere seguir", example = "1")
             @PathVariable Long userId) {
 
         User currentUser = userDetails.getUser();
         User userToFollow = userService.findUserById(userId);
-        followerService.followUser(currentUser, userToFollow);
+        followRequestService.sendFollowRequest(currentUser, userToFollow);
 
         return ResponseEntity.ok().build();
     }
+
+    @PostMapping("/follow-requests/{requestId}/accept")
+    public ResponseEntity<FollowRequestActionResponse> acceptFollowRequest(@AuthenticationPrincipal CustomUserDetails userDetails, @PathVariable Long requestId) {
+        FollowRequestActionResponse response = followRequestService.acceptRequest(requestId, userDetails.getUser());
+        return ResponseEntity.ok(response);
+    }
+    
+    @DeleteMapping("/follow-requests/{requestId}")
+    public ResponseEntity<FollowRequestActionResponse> rejectFollowRequest(@AuthenticationPrincipal CustomUserDetails userDetails, @PathVariable Long requestId) {
+        FollowRequestActionResponse response = followRequestService.rejectRequest(requestId, userDetails.getUser());
+        return ResponseEntity.ok(response);
+}
 
     @Operation(
             summary = "Dejar de seguir a un usuario",

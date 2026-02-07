@@ -1,6 +1,7 @@
 package com.moviemate.controller;
 
 import com.moviemate.annotation.RequirePublicProfile;
+import com.moviemate.dto.FollowRequestDto;
 import com.moviemate.dto.ListResponse;
 import com.moviemate.dto.RatingResponse;
 import com.moviemate.dto.UpdateProfileRequest;
@@ -10,6 +11,7 @@ import com.moviemate.dto.UserResponse;
 import com.moviemate.dto.UserStatsResponse;
 import com.moviemate.entity.User;
 import com.moviemate.security.CustomUserDetails;
+import com.moviemate.service.FollowRequestService;
 import com.moviemate.service.FollowerService;
 import com.moviemate.service.ListService;
 import com.moviemate.service.RatingService;
@@ -36,6 +38,7 @@ public class UserController {
     private final UserStatsService userStatsService;
     private final ListService listService;
     private final RatingService ratingService;
+    private final FollowRequestService followRequestService;
 
     @Operation(summary = "Obtener el usuario actual")
     @GetMapping("/me")
@@ -152,6 +155,16 @@ public class UserController {
         User user = userDetails.getUser();
         return ResponseEntity.ok(ratingService.getUserRatings(user));
     }
+
+    @GetMapping("/me/follow-requests")
+    public ResponseEntity<List<FollowRequestDto>> getMyRequests(
+            @AuthenticationPrincipal CustomUserDetails userDetails) {
+        User user = userDetails.getUser();
+        List<FollowRequestDto> requests = followRequestService.findByReceiver(user);
+
+        return ResponseEntity.ok(requests);
+    }
+
 
     @Operation(summary = "Obtener usuarios sugeridos")
     @GetMapping("/suggestions")
