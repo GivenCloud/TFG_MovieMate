@@ -99,14 +99,17 @@ public class ListService {
     
     @Transactional(readOnly = true)
     public java.util.List<ListResponse> getUserLists(User user) {
-        return listRepository.findByUserWithContents(user).stream()
+        return listRepository.findByUserWithContents(user)
+            .stream()
             .map(this::mapToListResponse)
             .collect(Collectors.toList());
     }
-    
+
     @Transactional(readOnly = true)
-    public java.util.List<ListResponse> getPublicLists() {
-        return listRepository.findPublicListsWithContents().stream()
+    public java.util.List<ListResponse> getPublicLists(Long currentUserId) {
+        // Quiero que devuelva las listas publicas de usuarios que tengan la cuenta publica y de usuarios a los que sigo
+        return listRepository.findPublicListsWithContentsForUser(currentUserId)
+            .stream()
             .map(this::mapToListResponse)
             .collect(Collectors.toList());
     }

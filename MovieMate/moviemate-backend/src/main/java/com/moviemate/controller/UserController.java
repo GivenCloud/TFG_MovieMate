@@ -1,5 +1,6 @@
 package com.moviemate.controller;
 
+import com.moviemate.annotation.RequirePublicProfile;
 import com.moviemate.dto.ListResponse;
 import com.moviemate.dto.RatingResponse;
 import com.moviemate.dto.UpdateProfileRequest;
@@ -55,6 +56,7 @@ public class UserController {
 
     @Operation(summary = "Obtener un usuario por ID")
     @GetMapping("/{userId}")
+    @RequirePublicProfile(userId = "#userId")
     public ResponseEntity<UserProfileResponse> getUserProfile(
             @AuthenticationPrincipal CustomUserDetails userDetails,
             @Parameter(description = "ID del usuario") @PathVariable Long userId) {
@@ -67,6 +69,7 @@ public class UserController {
         profile.setEmail(targetUser.getEmail());
         profile.setAvatarUrl(targetUser.getAvatarUrl());
         profile.setBio(targetUser.getBio());
+        profile.setIsPublic(targetUser.getIsPublic());
         profile.setCreatedAt(targetUser.getCreatedAt());
         profile.setFollowersCount(followerService.getFollowersCount(targetUser));
         profile.setFollowingCount(followerService.getFollowingCount(targetUser));
@@ -124,8 +127,10 @@ public class UserController {
     @Operation(summary = "Buscar usuarios por query")
     @GetMapping
     public ResponseEntity<List<UserResponse>> searchUsers(
+            @AuthenticationPrincipal CustomUserDetails userDetails,
             @Parameter(description = "Query de búsqueda") @RequestParam String q) {
-        List<UserResponse> users = userService.searchUsers(q);
+        User currentUser = userDetails.getUser();
+        List<UserResponse> users = userService.searchUsers(currentUser.getId(), q);
         return ResponseEntity.ok(users);
     }
 
@@ -152,12 +157,13 @@ public class UserController {
     @GetMapping("/suggestions")
     public ResponseEntity<List<UserResponse>> getSuggestedUsers(@AuthenticationPrincipal CustomUserDetails userDetails) {
         User currentUser = userDetails.getUser();
-        List<UserResponse> suggestedUsers = userService.getSuggestedUsers(currentUser);
+        List<UserResponse> suggestedUsers = userService.getSuggestedUsers(currentUser.getId());
         return ResponseEntity.ok(suggestedUsers);
     }
 
     @Operation(summary = "Obtener estadísticas de un usuario")
     @GetMapping("/{userId}/stats")
+    @RequirePublicProfile(userId = "#userId")
     public ResponseEntity<UserStatsResponse> getUserStats(
             @Parameter(description = "ID del usuario") @PathVariable Long userId) {
         UserStatsResponse stats = userStatsService.getOrCreateAndUpdateStats(userId);

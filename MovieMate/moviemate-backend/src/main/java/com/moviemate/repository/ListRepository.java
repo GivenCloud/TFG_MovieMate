@@ -16,8 +16,13 @@ public interface ListRepository extends JpaRepository<List, Long> {
     @Query("SELECT DISTINCT l FROM List l LEFT JOIN FETCH l.contents lc LEFT JOIN FETCH lc.content WHERE l.user = :user")
     java.util.List<List> findByUserWithContents(@Param("user") User user);
     
-    @Query("SELECT DISTINCT l FROM List l LEFT JOIN FETCH l.contents lc LEFT JOIN FETCH lc.content WHERE l.isPublic = true ORDER BY l.createdAt DESC")
-    java.util.List<List> findPublicListsWithContents();
+    @Query("SELECT DISTINCT l FROM List l " +
+       "LEFT JOIN FETCH l.contents lc LEFT JOIN FETCH lc.content " +
+       "JOIN l.user u " +
+       "LEFT JOIN Follower f ON f.followed.id = u.id AND f.follower.id = :currentUserId " +
+       "WHERE l.isPublic = true AND (u.isPublic = true OR f.id IS NOT NULL) " +
+       "ORDER BY l.createdAt DESC")
+    java.util.List<List> findPublicListsWithContentsForUser(@Param("currentUserId") Long currentUserId);
     
     java.util.List<List> findByUser(User user);
     java.util.List<List> findByUserAndIsPublic(User user, Boolean isPublic);

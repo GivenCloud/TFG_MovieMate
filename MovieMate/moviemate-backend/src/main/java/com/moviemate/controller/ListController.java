@@ -105,7 +105,9 @@ public class ListController {
             description = "Devuelve todas las listas visibles para cualquier usuario."
     )
     @GetMapping("/public")
-    public ResponseEntity<List<ListResponse>> getPublicLists() {
-        return ResponseEntity.ok(listService.getPublicLists());
+    public ResponseEntity<List<ListResponse>> getPublicLists(
+                @AuthenticationPrincipal CustomUserDetails userDetails) {
+        User user = userDetails.getUser();
+        return ResponseEntity.ok(listService.getPublicLists(user.getId()));
     }
 }

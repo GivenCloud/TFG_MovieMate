@@ -1,5 +1,6 @@
 package com.moviemate.controller;
 
+import com.moviemate.annotation.RequirePublicProfile;
 import com.moviemate.dto.UserResponse;
 import com.moviemate.entity.User;
 import com.moviemate.security.CustomUserDetails;
@@ -62,6 +63,7 @@ public class FollowerController {
             description = "Devuelve una lista de usuarios que siguen al usuario con el ID dado."
     )
     @GetMapping("/{userId}/followers")
+    @RequirePublicProfile(userId = "#userId")
     public ResponseEntity<List<UserResponse>> getFollowers(
             @Parameter(description = "ID del usuario cuyos seguidores se quieren consultar", example = "2")
             @PathVariable Long userId) {
@@ -75,6 +77,7 @@ public class FollowerController {
             description = "Devuelve una lista de usuarios que el usuario con el ID dado está siguiendo."
     )
     @GetMapping("/{userId}/following")
+    @RequirePublicProfile(userId = "#userId")
     public ResponseEntity<List<UserResponse>> getFollowing(
             @Parameter(description = "ID del usuario cuyos seguidos se quieren consultar", example = "2")
             @PathVariable Long userId) {
@@ -88,6 +91,7 @@ public class FollowerController {
             description = "Devuelve true o false dependiendo de si el usuario autenticado sigue al usuario objetivo."
     )
     @GetMapping("/{userId}/following-status")
+    @RequirePublicProfile(userId = "#userId")
     public ResponseEntity<Boolean> isFollowing(
             @AuthenticationPrincipal CustomUserDetails userDetails,
             @Parameter(description = "ID del usuario objetivo a comprobar", example = "2")

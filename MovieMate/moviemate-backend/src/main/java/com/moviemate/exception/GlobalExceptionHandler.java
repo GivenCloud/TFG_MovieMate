@@ -85,4 +85,14 @@ public class GlobalExceptionHandler {
         );
         return ResponseEntity.status(HttpStatus.CONFLICT).body(errorResponse);
     }
+
+    @ExceptionHandler(ProfilePrivateException.class)
+    public ResponseEntity<ErrorResponse> handleAccessDenied(ProfilePrivateException ex) {
+        ErrorResponse error = new ErrorResponse(
+            "PRIVATE_PROFILE", 
+            "Este perfil es privado y no puedes consultarlo", 
+            HttpStatus.FORBIDDEN.value()
+        );
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(error);
+    }
 }

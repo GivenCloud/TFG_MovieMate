@@ -25,19 +25,21 @@ public class UserService {
             .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
     }
     
-    public List<UserResponse> searchUsers(String query) {
+    public List<UserResponse> searchUsers(Long currentUserId, String query) {
         // Buscar por username o email que contenga la query
         return userRepository.findByUsernameContainingIgnoreCaseOrEmailContainingIgnoreCase(query, query)
             .stream()
+            // No quiero que aparezca el usuario actual en los resultados de búsqueda
+            .filter(user -> !user.getId().equals(currentUserId))
             .map(this::mapToUserResponse)
             .collect(Collectors.toList());
     }
     
-    public List<UserResponse> getSuggestedUsers(User currentUser) {
-        // Lógica simple: devolver usuarios recientemente registrados (excepto el actual)
+    public List<UserResponse> getSuggestedUsers(Long currentUserId) {
+        // Devolver usuarios recientemente registrados (excepto el actual)
         return userRepository.findTop10ByOrderByCreatedAtDesc()
             .stream()
-            .filter(user -> !user.getId().equals(currentUser.getId()))
+            .filter(user -> !user.getId().equals(currentUserId))
             .map(this::mapToUserResponse)
             .collect(Collectors.toList());
     }

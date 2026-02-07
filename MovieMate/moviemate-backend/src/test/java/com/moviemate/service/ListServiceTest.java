@@ -353,15 +353,16 @@ class ListServiceTest {
         List list = buildListWithOneContent(user);
         list.setIsPublic(true);
 
-        when(listRepository.findPublicListsWithContents())
+        when(listRepository.findPublicListsWithContentsForUser(user.getId()))
                 .thenReturn(java.util.List.of(list));
 
-        java.util.List<ListResponse> responses = listService.getPublicLists();
+        java.util.List<ListResponse> responses = listService.getPublicLists(user.getId());
 
         assertThat(responses).hasSize(1);
-        assertThat(responses.get(0).getIsPublic()).isTrue();
         assertThat(responses.get(0).getItemCount()).isEqualTo(1);
+        assertThat(responses.get(0).getUser().getUsername()).isEqualTo("chris");
     }
+
 
     // ---------- mapToListResponse ----------
 
