@@ -7,6 +7,7 @@ import com.moviemate.dto.UserResponse;
 import com.moviemate.entity.Content;
 import com.moviemate.entity.Rating;
 import com.moviemate.entity.User;
+import com.moviemate.repository.ContentRepository;
 import com.moviemate.repository.RatingRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -22,14 +23,16 @@ import static org.mockito.Mockito.*;
 class RatingServiceTest {
 
     private RatingRepository ratingRepository;
+    private ContentRepository contentRepository;
     private ContentService contentService;
     private RatingService ratingService;
 
     @BeforeEach
     void setUp() {
         ratingRepository = mock(RatingRepository.class);
+        contentRepository = mock(ContentRepository.class);
         contentService = mock(ContentService.class);
-        ratingService = new RatingService(ratingRepository, contentService);
+        ratingService = new RatingService(ratingRepository, contentRepository, contentService);
     }
 
     // ---------- createOrUpdateRating ----------

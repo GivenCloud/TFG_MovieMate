@@ -9,6 +9,9 @@ import com.moviemate.service.ReviewLikeService;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+
+import java.util.List;
+
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
@@ -56,6 +59,16 @@ public class RatingController {
             @Valid @org.springframework.web.bind.annotation.RequestBody RatingRequest request) {
         User user = userDetails.getUser();
         return ResponseEntity.ok(ratingService.createOrUpdateRating(user, request));
+    }
+
+    @Operation(summary = "Obtener las puntuaciones de un contenido específico")
+    @GetMapping("/{contentId}")
+    public ResponseEntity<List<RatingResponse>> getRatingsByContent(
+            @AuthenticationPrincipal CustomUserDetails userDetails,
+            @PathVariable Long contentId) {
+        User user = userDetails.getUser();
+        List<RatingResponse> response = ratingService.getRatingsByContent(user, contentId);
+        return ResponseEntity.ok(response);
     }
 
     @Operation(summary = "Eliminar una puntuación existente")

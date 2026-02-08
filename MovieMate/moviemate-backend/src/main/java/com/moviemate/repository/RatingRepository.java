@@ -15,6 +15,7 @@ import java.util.Optional;
 
 public interface RatingRepository extends JpaRepository<Rating, Long> {
     Optional<Rating> findByUserAndContent(User user, Content content);
+    List<Rating> findAllByUserAndContent(User user, Content content);
     List<Rating> findByUser(User user);
     List<Rating> findByContent(Content content);
     boolean existsByUserAndContent(User user, Content content);

@@ -7,6 +7,7 @@ import com.moviemate.dto.UserResponse;
 import com.moviemate.entity.Content;
 import com.moviemate.entity.Rating;
 import com.moviemate.entity.User;
+import com.moviemate.repository.ContentRepository;
 import com.moviemate.repository.RatingRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -20,8 +21,18 @@ import java.util.stream.Collectors;
 public class RatingService {
     
     private final RatingRepository ratingRepository;
+    private final ContentRepository contentRepository;
     private final ContentService contentService;
     
+        public List<RatingResponse> getRatingsByContent(User user, Long contentId) {
+        Content content = contentRepository.findById(contentId)
+                .orElseThrow(() -> new RuntimeException("Contenido no encontrado"));
+        List<Rating> ratings = ratingRepository.findAllByUserAndContent(user, content);
+        return ratings.stream()
+                .map(this::mapToRatingResponse)
+                .collect(Collectors.toList());
+    }
+
     @Transactional
     public RatingResponse createOrUpdateRating(User user, RatingRequest request) {
         Content content = contentService.getOrSyncByTmdb(request.getTmdbId().intValue(), request.getContentType());
