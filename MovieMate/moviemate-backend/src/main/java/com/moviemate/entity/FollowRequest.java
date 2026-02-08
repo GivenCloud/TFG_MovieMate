@@ -30,6 +30,16 @@ public class FollowRequest {
     @JoinColumn(name = "receiver_id", nullable = false)
     private User receiver;
 
+    @Enumerated(EnumType.STRING)
+    private FollowRequestStatus status = FollowRequestStatus.PENDING;
+
     @CreationTimestamp
     private LocalDateTime createdAt;
+
+    public enum FollowRequestStatus {
+        PENDING,
+        ACCEPTED,
+        REJECTED,
+        CANCELLED
+    }
 }

@@ -1,33 +1,48 @@
 package com.moviemate.entity;
 
-import java.time.LocalDateTime;
-
-import org.hibernate.annotations.CreationTimestamp;
-
 import jakarta.persistence.*;
 import lombok.Data;
+import org.hibernate.annotations.CreationTimestamp;
 
+import java.time.LocalDateTime;
+
+@Data
 @Entity
 @Table(name = "notifications")
-@Data
 public class Notification {
-    @Id @GeneratedValue private Long id;
-    
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id")
-    private User user;  // Receptor
-    
-    @Column(nullable = false)
-    private String type;  // "FOLLOW_REQUEST", "FOLLOW_APPROVED"
-    
-    @Column(columnDefinition = "TEXT")
-    private String message;
-    
-    private boolean read = false;
-    
-    @CreationTimestamp private LocalDateTime createdAt;
-    
-    @ManyToOne
-    private Follower relatedFollower;
-}
 
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    // Usuario que recibe la notificación
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id", nullable = false)
+    private User user;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "sender_id")
+    private User sender;
+
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private NotificationType type;
+
+    // ID del recurso relacionado (FollowRequest, Post, etc.)
+    @Column(nullable = false)
+    private Long referenceId;
+
+    @Column(nullable = false)
+    private boolean read = false;
+
+    @CreationTimestamp
+    private LocalDateTime createdAt;
+
+    public enum NotificationType {
+        FOLLOW_REQUEST,
+        FOLLOW_REQUEST_ACCEPTED,
+        FOLLOWER,
+        REVIEW_LIKE
+    }
+}

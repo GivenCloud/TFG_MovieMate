@@ -10,7 +10,9 @@ import com.moviemate.entity.User;
 
 public interface FollowRequestRepository extends JpaRepository<FollowRequest, Long> {
 
-    boolean existsBySenderAndReceiver(User sender, User receiver);
+    boolean existsBySenderAndReceiverAndStatus(User sender, User receiver, FollowRequest.FollowRequestStatus status);
+
+    Optional<FollowRequest> findBySenderAndReceiverAndStatus(User sender, User receiver, FollowRequest.FollowRequestStatus status);
 
     Optional<FollowRequest> findBySenderAndReceiver(User sender, User receiver);
 

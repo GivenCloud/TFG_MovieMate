@@ -3,6 +3,7 @@ package com.moviemate.controller;
 import com.moviemate.annotation.RequirePublicProfile;
 import com.moviemate.dto.FollowRequestDto;
 import com.moviemate.dto.ListResponse;
+import com.moviemate.dto.NotificationDto;
 import com.moviemate.dto.RatingResponse;
 import com.moviemate.dto.UpdateProfileRequest;
 import com.moviemate.dto.UpdateUserPublicStatusRequest;
@@ -14,6 +15,7 @@ import com.moviemate.security.CustomUserDetails;
 import com.moviemate.service.FollowRequestService;
 import com.moviemate.service.FollowerService;
 import com.moviemate.service.ListService;
+import com.moviemate.service.NotificationService;
 import com.moviemate.service.RatingService;
 import com.moviemate.service.UserService;
 import com.moviemate.service.UserStatsService;
@@ -39,6 +41,7 @@ public class UserController {
     private final ListService listService;
     private final RatingService ratingService;
     private final FollowRequestService followRequestService;
+    private final NotificationService notificationService;
 
     @Operation(summary = "Obtener el usuario actual")
     @GetMapping("/me")
@@ -163,6 +166,15 @@ public class UserController {
         List<FollowRequestDto> requests = followRequestService.findByReceiver(user);
 
         return ResponseEntity.ok(requests);
+    }
+
+    @GetMapping("/me/notifications")
+    public ResponseEntity<List<NotificationDto>> getMyNotifications(@AuthenticationPrincipal CustomUserDetails userDetails) {
+
+        User user = userDetails.getUser();
+        List<NotificationDto> notifications = notificationService.getNotifications(user);
+
+        return ResponseEntity.ok(notifications);
     }
 
 

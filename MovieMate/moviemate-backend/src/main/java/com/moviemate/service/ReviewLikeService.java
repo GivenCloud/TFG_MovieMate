@@ -15,6 +15,7 @@ public class ReviewLikeService {
 
     private final ReviewLikeRepository reviewLikeRepository;
     private final RatingRepository ratingRepository;
+    private final NotificationService notificationService;
 
     @Transactional
     public boolean toggleLike(User user, Long ratingId) {
@@ -34,6 +35,9 @@ public class ReviewLikeService {
             reviewLike.setUser(user);
             reviewLike.setRating(rating);
             reviewLikeRepository.save(reviewLike);
+
+            notificationService.sendLikeNotification(rating.getUser(), reviewLike);
+
             return true;
         }
     }
