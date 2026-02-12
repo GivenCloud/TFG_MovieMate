@@ -79,7 +79,7 @@ public class ListController {
             @PathVariable Long listId,
             @org.springframework.web.bind.annotation.RequestBody AddToListRequest request) {
         User user = userDetails.getUser();
-        com.moviemate.entity.Content content = contentService.getOrSyncByTmdb(
+        com.moviemate.entity.Content content = contentService.getOrFetch(
                 request.getTmdbId().intValue(), 
                 request.getContentType()
         );

@@ -55,7 +55,7 @@ public class ListService {
     public ListResponse addContentToList(User user, Long listId, Long contentId) {
         List list = listRepository.findById(listId)
             .orElseThrow(() -> new RuntimeException("Lista no encontrada"));
-            
+
         // Verificar que el usuario es el propietario de la lista
         if (!list.getUser().getId().equals(user.getId())) {
             throw new RuntimeException("No tienes permisos para modificar esta lista");
@@ -63,7 +63,10 @@ public class ListService {
         
         Content content = contentRepository.findById(contentId)
             .orElseThrow(() -> new RuntimeException("Contenido no encontrado"));
-            
+           
+        content.setLastInteraction(java.time.LocalDateTime.now());
+        contentRepository.save(content);    
+        
         // Verificar si el contenido ya está en la lista
         if (listContentRepository.existsByListAndContent(list, content)) {
             throw new RuntimeException("El contenido ya está en la lista");
@@ -134,14 +137,15 @@ public class ListService {
                     .tmdbId(listContent.getContent().getTmdbId())
                     .title(listContent.getContent().getTitle())
                     .contentType(listContent.getContent().getContentType())
-                    .releaseDate(listContent.getContent().getReleaseDate().toString())
+                    .releaseDate(listContent.getContent().getReleaseDate() != null ? listContent.getContent().getReleaseDate().toString() : null)
                     .posterUrl(listContent.getContent().getPosterUrl())
                     .backdropUrl(listContent.getContent().getBackdropUrl())
                     .synopsis(listContent.getContent().getSynopsis())
                     .genres(listContent.getContent().getGenres())
-                    .averageRating(listContent.getContent().getAverageRating())
-                    .voteCount(listContent.getContent().getVoteCount())
-                    .lastSync(listContent.getContent().getLastSync().toString())
+                    .tmdbRating(listContent.getContent().getTmdbRating())
+                    .tmdbVoteCount(listContent.getContent().getTmdbVoteCount())
+                    .appRating(listContent.getContent().getAppRating())
+                    .appVoteCount(listContent.getContent().getAppVoteCount())
                     .build())
                 .collect(Collectors.toList()) : java.util.Collections.emptyList())
             .build();

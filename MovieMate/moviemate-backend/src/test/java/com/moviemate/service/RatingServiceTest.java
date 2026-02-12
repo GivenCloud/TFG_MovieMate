@@ -18,6 +18,8 @@ import java.util.List;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.Mockito.*;
 
 class RatingServiceTest {
@@ -43,7 +45,7 @@ class RatingServiceTest {
         RatingRequest request = buildRatingRequest();
 
         Content content = buildContent();
-        when(contentService.getOrSyncByTmdb(request.getTmdbId().intValue(), request.getContentType()))
+        when(contentService.getOrFetch(request.getTmdbId().intValue(), request.getContentType()))
                 .thenReturn(content);
         when(ratingRepository.findByUserAndContent(user, content))
                 .thenReturn(Optional.empty());
@@ -65,6 +67,9 @@ class RatingServiceTest {
         when(ratingRepository.countRatingsByContent(content.getId()))
                 .thenReturn(5);
 
+        when(contentRepository.save(any(Content.class)))
+            .thenAnswer(i -> i.getArgument(0));
+
         RatingResponse response = ratingService.createOrUpdateRating(user, request);
 
         // verifica mapeo principal
@@ -74,10 +79,14 @@ class RatingServiceTest {
         assertThat(response.getUser().getUsername()).isEqualTo("chris");
         assertThat(response.getContent().getId()).isEqualTo(content.getId());
 
+        assertThat(content.getAppRating()).isEqualTo(8.0);
+        assertThat(content.getAppVoteCount()).isEqualTo(5);
+
+
         // verifica actualización de estadísticas
         verify(ratingRepository).calculateAverageRatingByContent(content.getId());
         verify(ratingRepository).countRatingsByContent(content.getId());
-        verify(contentService).addContent(content);
+        verify(contentRepository, times(1)).save(content);;
     }
 
     @Test
@@ -86,7 +95,7 @@ class RatingServiceTest {
         RatingRequest request = buildRatingRequest();
 
         Content content = buildContent();
-        when(contentService.getOrSyncByTmdb(request.getTmdbId().intValue(), request.getContentType()))
+        when(contentService.getOrFetch(request.getTmdbId().intValue(), request.getContentType()))
                 .thenReturn(content);
 
         Rating existing = new Rating();
@@ -103,6 +112,8 @@ class RatingServiceTest {
                 .thenReturn(9.0);
         when(ratingRepository.countRatingsByContent(content.getId()))
                 .thenReturn(3);
+        when(contentRepository.save(any(Content.class)))
+            .thenAnswer(i -> i.getArgument(0));
 
         RatingResponse response = ratingService.createOrUpdateRating(user, request);
 
@@ -110,8 +121,11 @@ class RatingServiceTest {
         assertThat(existing.getRating()).isEqualTo(request.getRating());
         assertThat(existing.getReviewText()).isEqualTo(request.getReviewText());
 
+        assertThat(content.getAppRating()).isEqualTo(9.0);
+        assertThat(content.getAppVoteCount()).isEqualTo(3);
+
         verify(ratingRepository).save(existing);
-        verify(contentService).addContent(content);
+        verify(contentRepository, times(1)).save(content);;
     }
 
     @Test
@@ -120,7 +134,7 @@ class RatingServiceTest {
         RatingRequest request = buildRatingRequest();
         Content content = buildContent();
 
-        when(contentService.getOrSyncByTmdb(anyInt(), any(Content.ContentType.class))).thenReturn(content);
+        when(contentService.getOrFetch(anyInt(), any(Content.ContentType.class))).thenReturn(content);
         when(ratingRepository.findByUserAndContent(user, content)).thenReturn(Optional.empty());
 
         Rating saved = new Rating();
@@ -135,12 +149,14 @@ class RatingServiceTest {
                 .thenReturn(null);       // caso especial
         when(ratingRepository.countRatingsByContent(content.getId()))
                 .thenReturn(0);
+        when(contentRepository.save(any(Content.class)))
+            .thenAnswer(i -> i.getArgument(0));
 
         ratingService.createOrUpdateRating(user, request);
 
-        assertThat(content.getAverageRating()).isEqualTo(0.0);
-        assertThat(content.getVoteCount()).isEqualTo(0);
-        verify(contentService).addContent(content);
+        assertThat(content.getAppRating()).isEqualTo(0.0);
+        assertThat(content.getAppVoteCount()).isEqualTo(0);
+        verify(contentRepository, times(1)).save(content);;
     }
 
     // ---------- deleteRating ----------
@@ -160,11 +176,15 @@ class RatingServiceTest {
                 .thenReturn(7.0);
         when(ratingRepository.countRatingsByContent(content.getId()))
                 .thenReturn(2);
+        when(contentRepository.save(any(Content.class)))
+            .thenAnswer(i -> i.getArgument(0));
 
         ratingService.deleteRating(user, 20L);
 
         verify(ratingRepository).delete(rating);
-        verify(contentService).addContent(content);
+        assertThat(content.getAppRating()).isEqualTo(7.0);
+        assertThat(content.getAppVoteCount()).isEqualTo(2);
+        verify(contentRepository, times(1)).save(content);;
     }
 
     @Test
@@ -193,8 +213,9 @@ class RatingServiceTest {
         assertThatThrownBy(() -> ratingService.deleteRating(other, 20L))
                 .isInstanceOf(RuntimeException.class)
                 .hasMessageContaining("No tienes permisos");
+                
         verify(ratingRepository, never()).delete(any());
-        verify(contentService, never()).addContent(any());
+        verify(contentRepository, never()).save(any());
     }
 
     // ---------- getUserRatings ----------
@@ -238,8 +259,6 @@ class RatingServiceTest {
                 .isEqualTo("Peli");
         assertThat(response.getContent().getReleaseDate())
                 .isEqualTo(content.getReleaseDate().toString());
-        assertThat(response.getContent().getLastSync())
-                .isEqualTo(content.getLastSync().toString());
     }
 
     // ---------- helpers ----------
@@ -262,10 +281,14 @@ class RatingServiceTest {
         c.setPosterUrl("poster.jpg");
         c.setBackdropUrl("backdrop.jpg");
         c.setSynopsis("Sinopsis");
-        c.setGenres(new String[]{"Action", "Drama"});
-        c.setAverageRating(8.0);
-        c.setVoteCount(10);
-        c.setLastSync(LocalDateTime.now());
+        c.setGenres(new java.util.ArrayList<>(java.util.List.of("Acción", "Aventura")));
+        c.setTmdbRating(8.5);
+        c.setTmdbVoteCount(1000);
+        c.setAppRating(9.0);
+        c.setAppVoteCount(100);
+        c.setLastTmdbSync(LocalDateTime.now().minusDays(1));
+        c.setLastInteraction(LocalDateTime.now().minusHours(5));
+        c.setSyncStatus(Content.SyncStatus.FRESH);
         return c;
     }
 

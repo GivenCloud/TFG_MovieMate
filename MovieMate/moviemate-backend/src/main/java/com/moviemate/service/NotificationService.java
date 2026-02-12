@@ -223,6 +223,9 @@ public class NotificationService {
                 followRequestRepository.findById(notification.getReferenceId())
                     .ifPresent(req -> populateUserInfo(dto, req.getSender()));
                 break;
+            case FOLLOW_REQUEST_ACCEPTED:
+                 followerRepository.findById(notification.getReferenceId())
+                    .ifPresent(f -> populateUserInfo(dto, f.getFollower()));
             case FOLLOWER:
                 followerRepository.findById(notification.getReferenceId())
                     .ifPresent(f -> populateUserInfo(dto, f.getFollower()));

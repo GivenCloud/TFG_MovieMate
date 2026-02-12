@@ -35,8 +35,11 @@ public class RatingService {
 
     @Transactional
     public RatingResponse createOrUpdateRating(User user, RatingRequest request) {
-        Content content = contentService.getOrSyncByTmdb(request.getTmdbId().intValue(), request.getContentType());
+        Content content = contentService.getOrFetch(request.getTmdbId().intValue(), request.getContentType());
             
+        content.setLastInteraction(java.time.LocalDateTime.now());
+        contentRepository.save(content);
+
         Rating rating = ratingRepository.findByUserAndContent(user, content)
             .orElse(new Rating());
             
@@ -67,18 +70,24 @@ public class RatingService {
         Content content = rating.getContent();
         ratingRepository.delete(rating);
 
+        content.setLastInteraction(java.time.LocalDateTime.now());
+        contentRepository.save(content);
+
         updateContentStatistics(content);
     }
     
     private void updateContentStatistics(Content content) {
-        Double averageRating = ratingRepository.calculateAverageRatingByContent(content.getId());
-        Integer voteCount = ratingRepository.countRatingsByContent(content.getId());
-        
-        content.setAverageRating(averageRating != null ? averageRating : 0.0);
-        content.setVoteCount(voteCount);
-        contentService.addContent(content);
+        Double averageRating =
+                ratingRepository.calculateAverageRatingByContent(content.getId());
+
+        Integer voteCount =
+                ratingRepository.countRatingsByContent(content.getId());
+
+        content.setAppRating(averageRating != null ? averageRating : 0.0);
+        content.setAppVoteCount(voteCount != null ? voteCount : 0);
     }
-    
+
+    @Transactional
     public List<RatingResponse> getUserRatings(User user) {
         return ratingRepository.findByUser(user).stream()
             .map(this::mapToRatingResponse)
@@ -104,14 +113,15 @@ public class RatingService {
                 .tmdbId(rating.getContent().getTmdbId())
                 .title(rating.getContent().getTitle())
                 .contentType(rating.getContent().getContentType())
-                .releaseDate(rating.getContent().getReleaseDate().toString())
+                .releaseDate(rating.getContent().getReleaseDate() != null ? rating.getContent().getReleaseDate().toString() : null)
                 .posterUrl(rating.getContent().getPosterUrl())
                 .backdropUrl(rating.getContent().getBackdropUrl())
                 .synopsis(rating.getContent().getSynopsis())
                 .genres(rating.getContent().getGenres())
-                .averageRating(rating.getContent().getAverageRating())
-                .voteCount(rating.getContent().getVoteCount())
-                .lastSync(rating.getContent().getLastSync().toString())
+                .tmdbRating(rating.getContent().getTmdbRating())
+                .tmdbVoteCount(rating.getContent().getTmdbVoteCount())
+                .appRating(rating.getContent().getAppRating())
+                .appVoteCount(rating.getContent().getAppVoteCount())
                 .build())
             .build();
     }

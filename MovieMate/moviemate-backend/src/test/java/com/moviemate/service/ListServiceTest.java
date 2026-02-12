@@ -135,10 +135,11 @@ class ListServiceTest {
         Content content = new Content();
         content.setId(100L);
         content.setReleaseDate(LocalDate.of(2020, 1, 1));
-        content.setLastSync(LocalDateTime.now());
 
         when(listRepository.findById(10L)).thenReturn(Optional.of(list));
         when(contentRepository.findById(100L)).thenReturn(Optional.of(content));
+        when(contentRepository.save(any(Content.class)))
+            .thenAnswer(i -> i.getArgument(0));
         when(listContentRepository.existsByListAndContent(list, content)).thenReturn(false);
 
         // lista refrescada con un contenido
@@ -395,10 +396,14 @@ class ListServiceTest {
         content.setPosterUrl("poster.jpg");
         content.setBackdropUrl("backdrop.jpg");
         content.setSynopsis("Sinopsis");
-        content.setGenres(new String[]{"Drama"});
-        content.setAverageRating(8.5);
-        content.setVoteCount(1000);
-        content.setLastSync(LocalDateTime.now());
+        content.setGenres(new java.util.ArrayList<>(java.util.List.of("Acción", "Aventura")));
+        content.setTmdbRating(8.5);
+        content.setTmdbVoteCount(1000);
+        content.setAppRating(9.0);
+        content.setAppVoteCount(100);
+        content.setLastTmdbSync(LocalDateTime.now().minusDays(1));
+        content.setLastInteraction(LocalDateTime.now().minusHours(5));
+        content.setSyncStatus(Content.SyncStatus.FRESH);
 
         List list = new List();
         list.setId(10L);

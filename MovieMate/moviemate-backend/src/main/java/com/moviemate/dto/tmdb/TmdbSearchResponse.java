@@ -40,5 +40,16 @@ public class TmdbSearchResponse {
 
         @JsonProperty("vote_average")
         private Double voteAverage;
+
+        @JsonProperty("vote_count") 
+        private Integer voteCount; 
+        
+        private List<Genre> genres; 
+        
+        @Data 
+        public static class Genre { 
+            private Integer id; 
+            private String name; 
+        }
     }
 }

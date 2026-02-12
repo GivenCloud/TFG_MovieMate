@@ -103,17 +103,18 @@ public class TmdbService {
         }
 
         if (response.getGenres() != null) {
-            String[] genres = response.getGenres().stream()
+            List<String> genres = response.getGenres().stream()
                     .map(TmdbMovieDetails.Genre::getName)
-                    .toArray(String[]::new);
+                    .toList();
             content.setGenres(genres);
         }
 
         if (response.getVote_average() != null) {
-            content.setAverageRating(response.getVote_average());
+            content.setTmdbRating(response.getVote_average());
         }
 
-        content.setVoteCount(response.getVote_count());
+        content.setTmdbVoteCount(response.getVote_count());
+        content.setLastTmdbSync(LocalDate.now().atStartOfDay());
         return contentRepository.save(content);
     }
 
@@ -138,17 +139,18 @@ public class TmdbService {
         }
 
         if (response.getGenres() != null) {
-            String[] genres = response.getGenres().stream()
+            List<String> genres = response.getGenres().stream()
                     .map(TmdbTvDetails.Genre::getName)
-                    .toArray(String[]::new);
+                    .toList();
             content.setGenres(genres);
         }
 
         if (response.getVote_average() != null) {
-            content.setAverageRating(response.getVote_average());
+            content.setTmdbRating(response.getVote_average());
         }
 
-        content.setVoteCount(response.getVote_count());
+        content.setTmdbVoteCount(response.getVote_count());
+        content.setLastTmdbSync(LocalDate.now().atStartOfDay());
         return contentRepository.save(content);
     }
 
@@ -259,10 +261,17 @@ public class TmdbService {
             } catch (Exception ignored) {}
         }
 
+        content.setGenres(result.getGenres() != null ? result.getGenres().stream() 
+            .map(TmdbSearchResponse.TmdbMovieResult.Genre::getName) 
+            .toList() : Collections.emptyList()
+        ); 
         
         if (result.getVoteAverage() != null) {
-            content.setAverageRating(result.getVoteAverage());
+            content.setTmdbRating(result.getVoteAverage());
         }
+
+        content.setTmdbVoteCount(result.getVoteCount());
+        content.setLastTmdbSync(LocalDate.now().atStartOfDay());
         
         return content;
     }
