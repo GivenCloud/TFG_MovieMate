@@ -7,6 +7,7 @@ target/
 .settings/
 *.log
 *.db
+logs/
 
 ### STS ###
 .apt_generated
