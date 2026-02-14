@@ -1,8 +1,17 @@
 Backend: 
 - Elimina o simplifica following-status devolviendo ese dato en el GET /api/users/{userId} o GET /api/users/{userId}/followers.
-- Decidir si quiero que un usuario pueda comentar/opinar la valoración de otro usuario, si decido que si debería de implementar un rol de admin para poder moderar los comentarios.
-- Decidir la manera en la que trabajaré con la API, si sincronizando periódicamente mi base de datos o usando mi base de datos como una especie de cache y solo guardar las pelis y series que añado en listas o valoraciones.
-- Que los perfiles puedan ser públicos o privados.
+
+
+- Hacer el test de este endpoint: Obtener valoraciones de un contenido
+
+Arreglar controlador content
+
+Hacer los test del resto de clases
+
+Añadir Docker y GitHub Actions
+
+Actualizar la memoria
+
 
 Frontend:
 - Realizar un mockup de la interfaz de la app.
