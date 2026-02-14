@@ -24,6 +24,8 @@ API Backend para la aplicación MovieMate - Sistema de gestión y recomendación
 
 ## Ejecutar con Docker
 
+### Pasos
+
 \```bash
 # Configurar variables de entorno
 cp .env.example .env
