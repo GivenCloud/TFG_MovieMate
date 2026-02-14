@@ -364,7 +364,6 @@ class ListServiceTest {
         assertThat(responses.get(0).getUser().getUsername()).isEqualTo("chris");
     }
 
-
     // ---------- mapToListResponse ----------
 
     @Test

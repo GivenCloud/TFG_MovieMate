@@ -239,6 +239,39 @@ class RatingServiceTest {
         assertThat(responses.get(0).getUser().getUsername()).isEqualTo("chris");
     }
 
+    // ---------- getRatingsByContent ----------
+
+    @Test
+    void getRatingsByContent_shouldReturnAllRatingsForContentAndUser() {
+        User user = buildUser(1L, "chris");
+        Content content = buildContent();
+        
+        Rating r1 = buildRating(10L, user, content, 4);
+        Rating r2 = buildRating(11L, user, content, 5);
+        
+        when(contentRepository.findById(100L)).thenReturn(Optional.of(content));
+        when(ratingRepository.findAllByUserAndContent(user, content))
+                .thenReturn(List.of(r1, r2));
+        
+        List<RatingResponse> responses = ratingService.getRatingsByContent(user, 100L);
+        
+        assertThat(responses).hasSize(2);
+        assertThat(responses)
+                .extracting(RatingResponse::getId)
+                .containsExactlyInAnyOrder(10L, 11L);
+    }
+
+    @Test
+    void getRatingsByContent_shouldThrow_whenContentNotFound() {
+        User user = buildUser(1L, "chris");
+        
+        when(contentRepository.findById(999L)).thenReturn(Optional.empty());
+        
+        assertThatThrownBy(() -> ratingService.getRatingsByContent(user, 999L))
+                .isInstanceOf(RuntimeException.class)
+                .hasMessageContaining("Contenido no encontrado");
+    }
+
     // ---------- mapToRatingResponse ----------
 
     @Test
