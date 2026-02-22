@@ -44,7 +44,7 @@ public class FollowerController {
         return ResponseEntity.ok().build();
     }
 
-    @PostMapping("/follow-requests/{requestId}/accept")
+    @PostMapping("/follow-requests/{requestId}")
     public ResponseEntity<FollowRequestActionResponse> acceptFollowRequest(@AuthenticationPrincipal CustomUserDetails userDetails, @PathVariable Long requestId) {
         FollowRequestActionResponse response = followRequestService.acceptRequest(requestId, userDetails.getUser());
         return ResponseEntity.ok(response);
