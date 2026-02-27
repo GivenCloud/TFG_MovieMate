@@ -56,6 +56,6 @@ public class Rating {
     }
 
     public enum Status {
-        POR_VER, EN_PROGRESO, VISTA, ABANDONADA
+        POR_VER, EN_PROGRESO, VISTA, ABANDONADA, PAUSADA
     }
 }
