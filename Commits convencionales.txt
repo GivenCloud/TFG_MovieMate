@@ -1,0 +1,20 @@
+<tipo>(<ámbito>): <descripción>
+
+<cuerpo opcional>
+
+<footer opcional>
+
+feat: Nueva funcionalidad
+fix: Corrección de bug
+docs: Cambios en documentación
+style: Formateo, punto y coma, etc.
+refactor: Refactorización de código
+test: Añadir o modificar tests
+chore: Tareas de mantenimiento
+
+git commit -m "feat(auth): add JWT refresh token"
+git commit -m "fix(rating): correct average calculation"
+git commit -m "docs(readme): add Docker installation guide"
+git commit -m "test(user): add user service tests"
+git commit -m "refactor(security): improve filter chain configuration"
+git commit -m "chore(deps): update Spring Boot to 3.3.5"

@@ -1,0 +1,1856 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MovieMate – Mockups v3</title>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700;800&family=Lora:ital,wght@0,500;0,700;1,400;1,600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+/* ══════════════════════════════════════
+   DESIGN TOKENS
+══════════════════════════════════════ */
+:root {
+  /* backgrounds */
+  --bg0: #08080e;
+  --bg1: #0f0f18;
+  --bg2: #161620;
+  --bg3: #1e1e2c;
+  --bg4: #262636;
+
+  /* borders */
+  --b1: rgba(255,255,255,0.06);
+  --b2: rgba(255,255,255,0.10);
+  --b3: rgba(255,255,255,0.14);
+
+  /* text */
+  --t1: #f0eef8;
+  --t2: #c4c0d8;
+  --t3: #7e7a94;
+  --t4: #4e4b60;
+
+  /* accent — vivid coral-amber, unique to MovieMate */
+  --a:   #ff7043;
+  --a2:  #ff8a65;
+  --a3:  #ffab91;
+  --a-bg: rgba(255,112,67,0.10);
+  --a-bg2: rgba(255,112,67,0.06);
+
+  /* secondary accent — slate teal for contrast moments */
+  --s:   #4db6ac;
+  --s-bg: rgba(77,182,172,0.10);
+
+  /* star gold */
+  --star: #fbbf24;
+
+  /* danger */
+  --danger: #ef5350;
+
+  /* fonts */
+  --ff-head: 'Sora', sans-serif;
+  --ff-serif: 'Lora', Georgia, serif;
+  --ff-mono: 'JetBrains Mono', monospace;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+body {
+  font-family: var(--ff-head);
+  background: var(--bg0);
+  color: var(--t1);
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* subtle noise texture on body */
+body::after {
+  content: '';
+  position: fixed; inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)' opacity='1'/%3E%3C/svg%3E");
+  opacity: 0.022;
+  pointer-events: none;
+  z-index: 9998;
+}
+
+/* ══════════════════════════════════════
+   META NAV (screen switcher)
+══════════════════════════════════════ */
+.meta-nav {
+  position: fixed; top: 0; left: 0; right: 0;
+  z-index: 1000;
+  display: flex; align-items: center;
+  background: rgba(8,8,14,0.92);
+  backdrop-filter: blur(20px);
+  border-bottom: 1px solid var(--b1);
+  padding: 0 16px;
+  height: 44px;
+  overflow-x: auto;
+  gap: 2px;
+}
+.meta-nav::-webkit-scrollbar { display: none; }
+.meta-logo {
+  font-family: var(--ff-serif);
+  font-size: 1.05rem;
+  font-style: italic;
+  font-weight: 700;
+  color: var(--a);
+  padding-right: 16px;
+  margin-right: 8px;
+  border-right: 1px solid var(--b1);
+  flex-shrink: 0;
+  letter-spacing: -0.3px;
+}
+.meta-tab {
+  font-size: 0.72rem;
+  font-weight: 500;
+  color: var(--t3);
+  background: none; border: none;
+  padding: 0 12px; height: 44px;
+  cursor: pointer; white-space: nowrap; flex-shrink: 0;
+  border-bottom: 2px solid transparent;
+  transition: color 0.15s, border-color 0.15s;
+}
+.meta-tab:hover { color: var(--t2); }
+.meta-tab.active { color: var(--a); border-bottom-color: var(--a); }
+
+/* ══════════════════════════════════════
+   SCREENS
+══════════════════════════════════════ */
+.screen { display: none; padding-top: 44px; min-height: 100vh; animation: fadeUp 0.25s ease; }
+.screen.active { display: block; }
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: none; }
+}
+
+/* ══════════════════════════════════════
+   APP SHELL
+══════════════════════════════════════ */
+.shell { display: flex; }
+
+/* SIDEBAR */
+.sidebar {
+  width: 224px; flex-shrink: 0;
+  background: var(--bg1);
+  border-right: 1px solid var(--b1);
+  position: sticky; top: 44px;
+  height: calc(100vh - 44px);
+  display: flex; flex-direction: column;
+  overflow-y: auto;
+}
+.sidebar::-webkit-scrollbar { width: 4px; }
+.sidebar::-webkit-scrollbar-thumb { background: var(--bg4); border-radius: 2px; }
+
+.sidebar-brand {
+  padding: 20px 18px 18px;
+  border-bottom: 1px solid var(--b1);
+  display: flex; align-items: center; gap: 10px;
+}
+.sidebar-brand-icon {
+  width: 32px; height: 32px;
+  background: var(--a);
+  border-radius: 8px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1rem;
+  flex-shrink: 0;
+}
+.sidebar-brand-text {
+  font-family: var(--ff-serif);
+  font-size: 1.1rem;
+  font-weight: 700;
+  font-style: italic;
+  color: var(--t1);
+  letter-spacing: -0.3px;
+}
+.sidebar-brand-text span {
+  display: block;
+  font-family: var(--ff-mono);
+  font-style: normal;
+  font-size: 0.58rem;
+  color: var(--t4);
+  font-weight: 400;
+  letter-spacing: 0.5px;
+  margin-top: 1px;
+}
+
+.sidebar-section {
+  padding: 16px 18px 6px;
+  font-size: 0.6rem;
+  font-weight: 700;
+  letter-spacing: 1.2px;
+  text-transform: uppercase;
+  color: var(--t4);
+}
+.sidebar-item {
+  display: flex; align-items: center; gap: 11px;
+  padding: 9px 18px;
+  font-size: 0.84rem;
+  font-weight: 400;
+  color: var(--t3);
+  cursor: pointer;
+  border-left: 2px solid transparent;
+  transition: all 0.15s;
+  position: relative;
+}
+.sidebar-item:hover { color: var(--t1); background: var(--bg2); }
+.sidebar-item.active {
+  color: var(--a2);
+  background: var(--a-bg2);
+  border-left-color: var(--a);
+  font-weight: 500;
+}
+.sidebar-item .ico {
+  width: 18px; text-align: center;
+  font-size: 0.95rem; opacity: 0.8;
+}
+.sidebar-badge {
+  margin-left: auto;
+  background: var(--danger);
+  color: #fff;
+  font-family: var(--ff-mono);
+  font-size: 0.6rem;
+  font-weight: 500;
+  padding: 2px 6px;
+  border-radius: 10px;
+  min-width: 20px;
+  text-align: center;
+}
+.sidebar-spacer { flex: 1; }
+.sidebar-user {
+  padding: 14px 18px;
+  border-top: 1px solid var(--b1);
+  display: flex; align-items: center; gap: 10px;
+  cursor: pointer;
+}
+.sidebar-user:hover { background: var(--bg2); }
+.sidebar-avatar {
+  width: 32px; height: 32px; border-radius: 50%;
+  background: linear-gradient(135deg, var(--a), #ff4081);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 0.72rem; font-weight: 700; color: #fff;
+  flex-shrink: 0;
+}
+.sidebar-user-info { font-size: 0.8rem; color: var(--t2); }
+.sidebar-user-info small { display: block; font-family: var(--ff-mono); font-size: 0.6rem; color: var(--t4); margin-top: 1px; }
+
+/* TOPBAR */
+.topbar {
+  display: flex; align-items: center; gap: 12px;
+  padding: 0 24px;
+  height: 52px;
+  background: var(--bg1);
+  border-bottom: 1px solid var(--b1);
+  position: sticky; top: 44px; z-index: 10;
+}
+.search-wrap {
+  flex: 1; max-width: 440px;
+  display: flex; align-items: center; gap: 8px;
+  background: var(--bg2);
+  border: 1px solid var(--b1);
+  border-radius: 12px;
+  padding: 8px 14px;
+  font-size: 0.83rem; color: var(--t3);
+  transition: border-color 0.2s;
+  cursor: text;
+}
+.search-wrap:hover { border-color: var(--b3); }
+.icon-btn {
+  width: 34px; height: 34px; border-radius: 50%;
+  background: var(--bg2); border: 1px solid var(--b1);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 0.95rem; cursor: pointer; flex-shrink: 0;
+  transition: border-color 0.15s, background 0.15s;
+  position: relative;
+}
+.icon-btn:hover { border-color: var(--b3); background: var(--bg3); }
+.pip {
+  position: absolute; top: 3px; right: 3px;
+  width: 8px; height: 8px; border-radius: 50%;
+  background: var(--danger);
+  border: 1.5px solid var(--bg1);
+}
+
+/* ══════════════════════════════════════
+   BUTTONS
+══════════════════════════════════════ */
+.btn {
+  display: inline-flex; align-items: center; gap: 6px;
+  font-family: var(--ff-head); font-size: 0.8rem; font-weight: 600;
+  padding: 9px 16px; border: none; border-radius: 10px;
+  cursor: pointer; transition: all 0.18s; white-space: nowrap;
+}
+.btn-primary { background: var(--a); color: #fff; }
+.btn-primary:hover { background: var(--a2); transform: translateY(-1px); box-shadow: 0 6px 20px rgba(255,112,67,0.35); }
+.btn-secondary { background: var(--bg3); color: var(--t1); border: 1px solid var(--b2); }
+.btn-secondary:hover { background: var(--bg4); border-color: var(--b3); }
+.btn-ghost { background: transparent; color: var(--t2); border: 1px solid var(--b2); }
+.btn-ghost:hover { background: var(--bg3); color: var(--t1); }
+.btn-sm { padding: 6px 12px; font-size: 0.74rem; border-radius: 8px; }
+
+/* ══════════════════════════════════════
+   MAIN CONTENT
+══════════════════════════════════════ */
+.content { flex: 1; min-width: 0; }
+
+/* ══════════════════════════════════════
+   HERO — FEATURED
+   Key differentiator: full-bleed backdrop
+   with a diagonal cut separating it from
+   the rest, poster image floating large
+══════════════════════════════════════ */
+.hero {
+  position: relative;
+  height: 460px;
+  overflow: hidden;
+}
+/* Backdrop image fills the hero */
+.hero-backdrop {
+  position: absolute; inset: 0;
+  background-size: cover;
+  background-position: center top;
+  filter: brightness(0.35) saturate(1.2);
+  transform: scale(1.05);
+  transition: transform 8s ease;
+}
+.hero:hover .hero-backdrop { transform: scale(1.0); }
+
+/* Gradient masks */
+.hero-mask {
+  position: absolute; inset: 0;
+  background:
+    linear-gradient(to right, var(--bg0) 0%, rgba(8,8,14,0.7) 40%, transparent 70%),
+    linear-gradient(to top, var(--bg0) 0%, transparent 50%);
+}
+/* Diagonal accent stripe — personality touch */
+.hero-stripe {
+  position: absolute;
+  bottom: -1px; left: 0; right: 0;
+  height: 80px;
+  background: var(--bg0);
+  clip-path: polygon(0 60%, 100% 0%, 100% 100%, 0% 100%);
+}
+
+/* Poster card floating on the right — overlapping the stripe */
+.hero-poster {
+  position: absolute;
+  right: 80px;
+  top: 30px;
+  bottom: -30px;
+  width: 200px;
+  z-index: 3;
+}
+.hero-poster img {
+  width: 100%; height: 100%;
+  object-fit: cover;
+  border-radius: 14px;
+  box-shadow: 0 30px 80px rgba(0,0,0,0.7), 0 0 0 1px rgba(255,255,255,0.08);
+}
+.hero-poster-placeholder {
+  width: 100%; height: 100%;
+  border-radius: 14px;
+  background: linear-gradient(135deg, var(--bg3), var(--bg4));
+  display: flex; align-items: center; justify-content: center;
+  font-size: 5rem;
+  box-shadow: 0 30px 80px rgba(0,0,0,0.7);
+  border: 1px solid var(--b2);
+}
+
+.hero-content {
+  position: relative; z-index: 2;
+  padding: 0 36px 36px;
+  height: 100%;
+  display: flex; flex-direction: column; justify-content: flex-end;
+  max-width: 580px;
+}
+.hero-badge {
+  display: inline-flex; align-items: center; gap: 6px;
+  background: var(--a-bg);
+  border: 1px solid rgba(255,112,67,0.3);
+  color: var(--a2);
+  font-size: 0.7rem; font-weight: 600;
+  padding: 4px 10px; border-radius: 20px;
+  margin-bottom: 14px; width: fit-content;
+}
+.hero h1 {
+  font-family: var(--ff-serif);
+  font-size: 3rem; font-weight: 700;
+  line-height: 1.05; letter-spacing: -0.5px;
+  margin-bottom: 10px;
+  color: var(--t1);
+}
+.hero-meta {
+  display: flex; align-items: center; gap: 12px;
+  font-size: 0.8rem; color: var(--t2);
+  margin-bottom: 20px; flex-wrap: wrap;
+}
+.score-pill {
+  display: flex; align-items: center; gap: 4px;
+  background: rgba(251,191,36,0.15);
+  color: var(--star); font-weight: 700; font-size: 0.8rem;
+  padding: 3px 9px; border-radius: 6px;
+}
+.dot-sep { color: var(--t4); }
+.hero-actions { display: flex; gap: 10px; flex-wrap: wrap; }
+
+/* ══════════════════════════════════════
+   SECTION HEADERS
+══════════════════════════════════════ */
+.section { padding: 28px 24px 0; }
+.sec-head {
+  display: flex; align-items: baseline; justify-content: space-between;
+  margin-bottom: 18px;
+}
+.sec-title {
+  font-family: var(--ff-serif);
+  font-size: 1.2rem; font-weight: 700; font-style: italic;
+  color: var(--t1);
+}
+.sec-link {
+  font-size: 0.75rem; color: var(--a); cursor: pointer; font-weight: 500;
+  transition: color 0.15s;
+}
+.sec-link:hover { color: var(--a2); }
+
+/* ══════════════════════════════════════
+   POSTER CARDS
+   Key: real images, hover reveals rating
+══════════════════════════════════════ */
+.cards-scroll {
+  display: flex; gap: 14px; overflow-x: auto;
+  padding-bottom: 4px; scrollbar-width: none;
+}
+.cards-scroll::-webkit-scrollbar { display: none; }
+
+.pcard {
+  flex-shrink: 0; width: 144px; cursor: pointer;
+  transition: transform 0.22s;
+}
+.pcard:hover { transform: translateY(-5px); }
+.pcard:hover .pcard-overlay { opacity: 1; }
+
+.pcard-fig {
+  width: 144px; aspect-ratio: 2/3;
+  border-radius: 12px;
+  overflow: hidden;
+  background: var(--bg3);
+  border: 1px solid var(--b1);
+  margin-bottom: 9px;
+  position: relative;
+}
+.pcard-fig img {
+  width: 100%; height: 100%;
+  object-fit: cover;
+  display: block;
+}
+.pcard-fig-placeholder {
+  width: 100%; height: 100%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 3rem; background: var(--bg3);
+}
+
+/* bottom gradient + score always visible */
+.pcard-fig::after {
+  content: '';
+  position: absolute; inset: 0;
+  background: linear-gradient(to top, rgba(8,8,14,0.85) 0%, transparent 55%);
+  border-radius: 12px;
+}
+.pcard-score {
+  position: absolute; bottom: 7px; left: 8px; z-index: 1;
+  display: flex; align-items: center; gap: 3px;
+  font-family: var(--ff-mono); font-size: 0.68rem; font-weight: 500;
+  color: var(--star);
+}
+.pcard-type-badge {
+  position: absolute; top: 7px; right: 7px; z-index: 1;
+  font-size: 0.58rem; font-weight: 700;
+  background: rgba(8,8,14,0.7); backdrop-filter: blur(4px);
+  color: var(--t2); padding: 2px 6px; border-radius: 5px;
+  letter-spacing: 0.3px;
+}
+
+/* hover overlay with quick actions */
+.pcard-overlay {
+  position: absolute; inset: 0;
+  background: rgba(8,8,14,0.65);
+  border-radius: 12px;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  gap: 8px; z-index: 2;
+  opacity: 0; transition: opacity 0.2s;
+}
+.pcard-overlay-btn {
+  font-size: 0.7rem; font-weight: 600;
+  background: var(--a); color: #fff;
+  border: none; border-radius: 8px;
+  padding: 6px 14px; cursor: pointer;
+  width: 110px; text-align: center;
+}
+.pcard-overlay-btn.ghost {
+  background: rgba(255,255,255,0.12);
+  color: var(--t1);
+}
+
+.pcard-title { font-size: 0.82rem; font-weight: 600; line-height: 1.25; color: var(--t1); margin-bottom: 3px; }
+.pcard-sub { font-family: var(--ff-mono); font-size: 0.65rem; color: var(--t3); }
+.pcard-user-stars { display: flex; gap: 1px; margin-top: 5px; }
+.star-ico { font-size: 0.62rem; color: var(--bg4); }
+.star-ico.on { color: var(--star); }
+
+/* ══════════════════════════════════════
+   ACTIVITY FEED
+══════════════════════════════════════ */
+.feed { display: flex; flex-direction: column; gap: 12px; padding: 0 24px 32px; }
+
+.feed-item {
+  display: flex; gap: 12px;
+  background: var(--bg1);
+  border: 1px solid var(--b1);
+  border-radius: 14px;
+  padding: 14px 16px;
+  transition: background 0.15s, border-color 0.15s;
+  cursor: pointer;
+}
+.feed-item:hover { background: var(--bg2); border-color: var(--b2); }
+
+.feed-av {
+  width: 36px; height: 36px; border-radius: 50%; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 0.75rem; font-weight: 700; color: #fff;
+}
+.feed-thumb {
+  width: 48px; flex-shrink: 0;
+  border-radius: 7px; overflow: hidden;
+  background: var(--bg3); border: 1px solid var(--b1);
+  display: flex; align-items: center; justify-content: center;
+}
+.feed-thumb img { width: 100%; aspect-ratio: 2/3; object-fit: cover; display: block; }
+.feed-thumb-placeholder { font-size: 1.4rem; padding: 8px 0; }
+
+.feed-body { flex: 1; min-width: 0; }
+.feed-who { font-size: 0.75rem; color: var(--t3); margin-bottom: 3px; }
+.feed-who strong { color: var(--t1); font-weight: 600; }
+.feed-content-title { font-weight: 600; font-size: 0.88rem; margin-bottom: 4px; }
+.feed-stars { display: flex; gap: 2px; margin-bottom: 5px; }
+.feed-quote {
+  font-size: 0.81rem; line-height: 1.55; color: var(--t2);
+  font-style: italic;
+  /* distinctive left bar accent */
+  padding-left: 10px;
+  border-left: 2px solid var(--a);
+  margin-bottom: 8px;
+}
+.feed-actions { display: flex; gap: 0; }
+.feed-act {
+  font-size: 0.73rem; color: var(--t3);
+  background: none; border: none;
+  padding: 4px 10px 4px 0; cursor: pointer;
+  display: flex; align-items: center; gap: 4px;
+  transition: color 0.15s;
+}
+.feed-act:hover { color: var(--t1); }
+.feed-act.liked { color: var(--danger); }
+
+/* ══════════════════════════════════════
+   DISCOVER — SEARCH + GRID
+══════════════════════════════════════ */
+.discover-hero {
+  background: var(--bg1);
+  padding: 40px 28px 32px;
+  border-bottom: 1px solid var(--b1);
+  position: relative; overflow: hidden;
+}
+/* ghost text watermark — personality */
+.discover-hero::before {
+  content: 'Discover';
+  position: absolute; right: -10px; top: 50%;
+  transform: translateY(-50%);
+  font-family: var(--ff-serif);
+  font-size: 8rem; font-weight: 700; font-style: italic;
+  color: rgba(255,112,67,0.04);
+  pointer-events: none; line-height: 1;
+}
+.discover-hero h1 {
+  font-family: var(--ff-serif);
+  font-size: 2rem; font-weight: 700; font-style: italic;
+  margin-bottom: 18px;
+}
+.discover-hero h1 em { color: var(--a2); font-style: normal; }
+
+.big-search {
+  display: flex; align-items: center; gap: 10px;
+  background: var(--bg2);
+  border: 1px solid var(--b2);
+  border-radius: 14px;
+  padding: 12px 18px;
+  max-width: 560px;
+  font-size: 0.9rem; color: var(--t3);
+  transition: border-color 0.2s;
+}
+.big-search:hover { border-color: var(--a); }
+
+.filter-row {
+  display: flex; gap: 8px; padding: 14px 24px;
+  border-bottom: 1px solid var(--b1); flex-wrap: wrap;
+}
+.chip {
+  font-size: 0.74rem; font-weight: 500;
+  padding: 6px 14px; border-radius: 20px;
+  border: 1px solid var(--b2);
+  background: transparent; color: var(--t3);
+  cursor: pointer; transition: all 0.15s;
+}
+.chip:hover { border-color: var(--b3); color: var(--t1); }
+.chip.active { border-color: var(--a); color: var(--a2); background: var(--a-bg); }
+
+.disc-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(138px, 1fr));
+  gap: 16px;
+  padding: 22px 24px 40px;
+}
+
+/* ══════════════════════════════════════
+   DETAIL — content page
+   Key personality: poster overlaps hero,
+   tabs with underline accent, review cards
+   with a different left-accent system
+══════════════════════════════════════ */
+.detail-hero {
+  position: relative;
+  height: 400px; overflow: hidden;
+}
+.detail-hero-bg {
+  position: absolute; inset: 0;
+  background-size: cover; background-position: center 30%;
+  filter: brightness(0.28) saturate(1.3);
+  transform: scale(1.04);
+}
+.detail-hero-mask {
+  position: absolute; inset: 0;
+  background:
+    linear-gradient(to right, var(--bg0) 0%, rgba(8,8,14,0.6) 45%, transparent 75%),
+    linear-gradient(to top, var(--bg0) 0%, transparent 60%);
+}
+/* diagonal bottom cut */
+.detail-hero::after {
+  content: '';
+  position: absolute; bottom: -1px; left: 0; right: 0;
+  height: 70px; background: var(--bg0);
+  clip-path: polygon(0 70%, 100% 0%, 100% 100%, 0% 100%);
+  z-index: 3;
+}
+
+/* Poster floats to the right, extends below the hero */
+.detail-poster-float {
+  position: absolute;
+  right: 80px; top: 28px; bottom: -50px;
+  width: 210px; z-index: 4;
+}
+.detail-poster-float img {
+  width: 100%; height: 100%; object-fit: cover;
+  border-radius: 16px;
+  box-shadow: 0 32px 80px rgba(0,0,0,0.75), 0 0 0 1px rgba(255,255,255,0.09);
+}
+.detail-poster-float-placeholder {
+  width: 100%; height: 100%; border-radius: 16px;
+  background: var(--bg3); border: 1px solid var(--b2);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 6rem;
+  box-shadow: 0 32px 80px rgba(0,0,0,0.75);
+}
+
+.detail-content {
+  position: relative; z-index: 2;
+  padding: 0 32px 36px;
+  height: 100%; display: flex;
+  flex-direction: column; justify-content: flex-end;
+  max-width: 640px;
+}
+.detail-type-tag {
+  display: inline-flex; align-items: center; gap: 5px;
+  font-family: var(--ff-mono); font-size: 0.65rem;
+  background: var(--a-bg); color: var(--a2);
+  border: 1px solid rgba(255,112,67,0.25);
+  padding: 3px 9px; border-radius: 6px;
+  margin-bottom: 12px;
+}
+.detail-h1 {
+  font-family: var(--ff-serif);
+  font-size: 2.6rem; font-weight: 700;
+  line-height: 1.05; letter-spacing: -0.5px;
+  margin-bottom: 10px; color: var(--t1);
+}
+.detail-meta { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; font-size: 0.8rem; color: var(--t2); margin-bottom: 14px; }
+.genre-chips { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 18px; }
+.genre-chip {
+  font-size: 0.68rem; font-weight: 500;
+  padding: 4px 10px; border-radius: 6px;
+  background: var(--bg3); border: 1px solid var(--b2);
+  color: var(--t2);
+}
+
+/* Stats ribbon — unique touch: floating numbers with thin dividers */
+.stats-ribbon {
+  display: flex; align-items: stretch;
+  margin: 24px 24px 0;
+  background: var(--bg1);
+  border: 1px solid var(--b1);
+  border-radius: 14px;
+  overflow: hidden;
+}
+.stat-cell {
+  flex: 1; padding: 16px 12px; text-align: center;
+  border-right: 1px solid var(--b1);
+}
+.stat-cell:last-child { border-right: none; }
+.stat-val {
+  font-family: var(--ff-mono);
+  font-size: 1.4rem; font-weight: 500;
+  color: var(--a2); display: block;
+}
+.stat-lbl { font-size: 0.68rem; color: var(--t3); margin-top: 2px; }
+
+/* Rating interaction row */
+.rating-row {
+  display: flex; align-items: center; gap: 14px;
+  padding: 16px 24px;
+  border-bottom: 1px solid var(--b1);
+  background: var(--bg1);
+  flex-wrap: wrap;
+}
+.rating-row .prompt { font-size: 0.82rem; color: var(--t3); }
+.star-picker { display: flex; gap: 4px; }
+.big-star {
+  font-size: 1.7rem; color: var(--bg4); cursor: pointer;
+  transition: color 0.1s, transform 0.1s;
+}
+.big-star.on { color: var(--star); }
+.big-star:hover { transform: scale(1.2); }
+.rating-val {
+  font-family: var(--ff-mono); font-size: 1.1rem;
+  color: var(--star); font-weight: 500;
+}
+
+/* Synopsis block */
+.synopsis-block {
+  padding: 22px 24px;
+  border-bottom: 1px solid var(--b1);
+}
+.synopsis-label {
+  font-family: var(--ff-serif);
+  font-size: 0.95rem; font-weight: 700; font-style: italic;
+  color: var(--t1); margin-bottom: 10px;
+}
+.synopsis-text {
+  font-size: 0.86rem; line-height: 1.7; color: var(--t2);
+  font-weight: 300; max-width: 680px;
+}
+
+/* Content tabs */
+.tab-bar { display: flex; gap: 0; border-bottom: 1px solid var(--b1); padding: 0 24px; }
+.tab-btn-item {
+  font-size: 0.81rem; font-weight: 500; color: var(--t3);
+  padding: 13px 16px; cursor: pointer;
+  border-bottom: 2px solid transparent;
+  transition: all 0.15s;
+}
+.tab-btn-item:hover { color: var(--t1); }
+.tab-btn-item.active { color: var(--a2); border-bottom-color: var(--a); }
+
+/* Reviews */
+.reviews-list { padding: 18px 24px 40px; display: flex; flex-direction: column; gap: 14px; }
+.review-card {
+  background: var(--bg1);
+  border: 1px solid var(--b1);
+  border-radius: 14px;
+  padding: 16px;
+  /* subtle left accent on reviews */
+  border-left: 3px solid transparent;
+  transition: border-color 0.2s;
+}
+.review-card:hover { border-left-color: var(--a); background: var(--bg2); }
+.rv-top { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+.rv-av {
+  width: 32px; height: 32px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 0.7rem; font-weight: 700; color: #fff; flex-shrink: 0;
+}
+.rv-handle { font-weight: 600; font-size: 0.84rem; }
+.rv-stars { display: flex; gap: 1px; margin-left: 4px; }
+.rv-date { font-family: var(--ff-mono); font-size: 0.65rem; color: var(--t4); margin-left: auto; }
+.rv-text { font-size: 0.84rem; line-height: 1.6; color: var(--t2); }
+.rv-actions { margin-top: 10px; }
+
+/* ══════════════════════════════════════
+   PROFILE
+══════════════════════════════════════ */
+.profile-header {
+  padding: 32px 28px;
+  border-bottom: 1px solid var(--b1);
+  background: var(--bg1);
+  display: flex; align-items: flex-end; gap: 24px;
+  flex-wrap: wrap;
+  position: relative; overflow: hidden;
+}
+/* decorative watermark */
+.profile-header::before {
+  content: attr(data-initials);
+  position: absolute; right: -10px; top: 50%;
+  transform: translateY(-50%);
+  font-family: var(--ff-serif); font-weight: 700; font-style: italic;
+  font-size: 11rem; color: rgba(255,112,67,0.04);
+  pointer-events: none; line-height: 1;
+}
+
+.profile-pic {
+  width: 88px; height: 88px; border-radius: 50%;
+  background: linear-gradient(135deg, var(--a), #e91e63);
+  display: flex; align-items: center; justify-content: center;
+  font-family: var(--ff-serif); font-size: 2rem; font-weight: 700;
+  color: #fff; flex-shrink: 0;
+  border: 3px solid var(--bg1);
+  box-shadow: 0 0 0 2px var(--a);
+}
+.profile-info { flex: 1; min-width: 200px; }
+.profile-name {
+  font-family: var(--ff-serif);
+  font-size: 1.7rem; font-weight: 700; font-style: italic;
+  letter-spacing: -0.3px; margin-bottom: 2px;
+}
+.profile-handle { font-family: var(--ff-mono); font-size: 0.72rem; color: var(--t3); margin-bottom: 8px; }
+.profile-bio { font-size: 0.84rem; color: var(--t2); max-width: 420px; line-height: 1.5; margin-bottom: 12px; }
+.follow-row { display: flex; gap: 16px; font-size: 0.8rem; }
+.follow-stat { color: var(--t3); cursor: pointer; }
+.follow-stat:hover { color: var(--t1); }
+.follow-stat strong { color: var(--t1); }
+
+.profile-stats-grid {
+  display: grid; grid-template-columns: repeat(4,1fr);
+  gap: 1px; background: var(--b1);
+  border: 1px solid var(--b1); border-radius: 14px;
+  overflow: hidden; margin: 20px 24px;
+}
+.ps-cell {
+  background: var(--bg1); padding: 16px; text-align: center;
+}
+.ps-cell .val {
+  font-family: var(--ff-mono); font-size: 1.4rem;
+  color: var(--a2); font-weight: 500;
+}
+.ps-cell .lbl { font-size: 0.68rem; color: var(--t3); margin-top: 2px; }
+
+/* ══════════════════════════════════════
+   LISTS
+══════════════════════════════════════ */
+.lists-top {
+  display: flex; align-items: center; gap: 12px;
+  padding: 16px 24px;
+  border-bottom: 1px solid var(--b1);
+  background: var(--bg1);
+}
+.lists-top h2 {
+  font-family: var(--ff-serif); font-size: 1.3rem; font-weight: 700; font-style: italic;
+  flex: 1;
+}
+
+.lists-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(270px, 1fr));
+  gap: 16px;
+  padding: 20px 24px 40px;
+}
+.list-card {
+  background: var(--bg1);
+  border: 1px solid var(--b1);
+  border-radius: 14px;
+  overflow: hidden;
+  cursor: pointer;
+  transition: transform 0.2s, border-color 0.2s, box-shadow 0.2s;
+}
+.list-card:hover {
+  transform: translateY(-3px);
+  border-color: rgba(255,112,67,0.3);
+  box-shadow: 0 12px 40px rgba(0,0,0,0.3);
+}
+.list-card-images {
+  display: grid; grid-template-columns: repeat(4,1fr);
+  gap: 2px; height: 88px; overflow: hidden;
+}
+.list-img {
+  background: var(--bg3);
+  display: flex; align-items: center; justify-content: center;
+  overflow: hidden;
+}
+.list-img img { width: 100%; height: 100%; object-fit: cover; }
+.list-img-placeholder { font-size: 1.5rem; }
+.list-card-body { padding: 14px 16px 16px; }
+.list-card-name { font-size: 0.9rem; font-weight: 600; margin-bottom: 4px; color: var(--t1); }
+.list-card-desc { font-size: 0.76rem; color: var(--t3); margin-bottom: 10px; }
+.list-card-meta { display: flex; gap: 10px; font-family: var(--ff-mono); font-size: 0.62rem; color: var(--t4); }
+
+.list-add-card {
+  background: transparent;
+  border: 1.5px dashed var(--b2);
+  border-radius: 14px;
+  min-height: 180px;
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer;
+  transition: border-color 0.2s, background 0.2s;
+}
+.list-add-card:hover { border-color: var(--a); background: var(--a-bg2); }
+.list-add-inner { text-align: center; color: var(--t4); }
+.list-add-inner .plus-ico { font-size: 1.8rem; margin-bottom: 6px; color: var(--b3); }
+.list-add-inner span { font-size: 0.8rem; font-weight: 500; }
+
+/* ══════════════════════════════════════
+   NOTIFICATIONS
+══════════════════════════════════════ */
+.notifs-top {
+  display: flex; align-items: center; gap: 12px;
+  padding: 16px 24px; border-bottom: 1px solid var(--b1);
+  background: var(--bg1);
+}
+.notifs-top h2 { font-family: var(--ff-serif); font-size: 1.3rem; font-weight: 700; font-style: italic; flex: 1; }
+
+.notifs-list { display: flex; flex-direction: column; gap: 0; padding: 0 0 40px; }
+.notif-item {
+  display: flex; align-items: flex-start; gap: 12px;
+  padding: 14px 24px;
+  border-bottom: 1px solid var(--b1);
+  cursor: pointer; transition: background 0.15s;
+  position: relative;
+}
+.notif-item:hover { background: var(--bg2); }
+/* personality: colored left stripe for unread */
+.notif-item.unread {
+  background: rgba(255,112,67,0.03);
+}
+.notif-item.unread::before {
+  content: ''; position: absolute;
+  left: 0; top: 0; bottom: 0; width: 3px;
+  background: var(--a);
+}
+.notif-ico {
+  width: 36px; height: 36px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 0.95rem; flex-shrink: 0;
+}
+.notif-body { flex: 1; min-width: 0; }
+.notif-body p { font-size: 0.83rem; color: var(--t2); line-height: 1.5; }
+.notif-body p strong { color: var(--t1); font-weight: 600; }
+.notif-time { font-family: var(--ff-mono); font-size: 0.62rem; color: var(--t4); margin-top: 3px; }
+.unread-dot {
+  width: 8px; height: 8px; border-radius: 50%;
+  background: var(--a); flex-shrink: 0; margin-top: 6px;
+}
+
+/* ══════════════════════════════════════
+   AUTH
+══════════════════════════════════════ */
+.auth-page {
+  min-height: calc(100vh - 44px);
+  display: grid; grid-template-columns: 1fr 1fr;
+}
+.auth-left {
+  background: var(--bg1);
+  display: flex; align-items: center; justify-content: center;
+  padding: 60px;
+  border-right: 1px solid var(--b1);
+  position: relative; overflow: hidden;
+}
+/* gradient orb background */
+.auth-left::before {
+  content: '';
+  position: absolute;
+  width: 500px; height: 500px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(255,112,67,0.12), transparent 70%);
+  top: 50%; left: 50%; transform: translate(-50%, -50%);
+}
+.auth-left-content { position: relative; z-index: 1; max-width: 340px; }
+.auth-brand {
+  display: flex; align-items: center; gap: 12px; margin-bottom: 8px;
+}
+.auth-brand-icon {
+  width: 44px; height: 44px; background: var(--a);
+  border-radius: 12px; display: flex; align-items: center; justify-content: center;
+  font-size: 1.3rem;
+}
+.auth-brand-name {
+  font-family: var(--ff-serif);
+  font-size: 1.8rem; font-weight: 700; font-style: italic;
+  color: var(--t1); letter-spacing: -0.3px;
+}
+.auth-tagline {
+  font-family: var(--ff-mono); font-size: 0.68rem; color: var(--t3);
+  letter-spacing: 0.5px; margin-bottom: 36px;
+}
+.auth-feat { display: flex; align-items: flex-start; gap: 12px; margin-bottom: 18px; }
+.auth-feat-ico {
+  width: 32px; height: 32px; border-radius: 8px;
+  background: var(--bg3); border: 1px solid var(--b2);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 0.95rem; flex-shrink: 0;
+}
+.auth-feat-text { font-size: 0.83rem; color: var(--t2); line-height: 1.45; }
+.auth-feat-text strong { color: var(--t1); font-weight: 600; }
+
+.auth-right {
+  display: flex; align-items: center; justify-content: center;
+  padding: 60px; background: var(--bg0);
+}
+.auth-form { width: 100%; max-width: 360px; }
+.auth-form h2 { font-family: var(--ff-serif); font-size: 1.8rem; font-weight: 700; font-style: italic; margin-bottom: 4px; }
+.auth-form .auth-sub { font-size: 0.83rem; color: var(--t3); margin-bottom: 28px; }
+.form-group { margin-bottom: 14px; }
+.form-label { font-family: var(--ff-mono); font-size: 0.68rem; font-weight: 500; color: var(--t3); display: block; margin-bottom: 6px; letter-spacing: 0.3px; }
+.form-input {
+  width: 100%; background: var(--bg2); border: 1px solid var(--b2);
+  border-radius: 10px; padding: 11px 14px;
+  color: var(--t1); font-family: var(--ff-head); font-size: 0.86rem;
+  outline: none; transition: border-color 0.2s, box-shadow 0.2s;
+}
+.form-input::placeholder { color: var(--t4); }
+.form-input:focus { border-color: var(--a); box-shadow: 0 0 0 3px rgba(255,112,67,0.12); }
+.btn-full { width: 100%; justify-content: center; padding: 12px; border-radius: 12px; margin-top: 6px; }
+.auth-divider {
+  display: flex; align-items: center; gap: 10px;
+  margin: 18px 0; font-size: 0.76rem; color: var(--t4);
+}
+.auth-divider::before, .auth-divider::after { content: ''; flex: 1; height: 1px; background: var(--b1); }
+.auth-footer { text-align: center; font-size: 0.8rem; color: var(--t3); margin-top: 18px; }
+.auth-footer a { color: var(--a); cursor: pointer; }
+
+/* ══════════════════════════════════════
+   UTILS
+══════════════════════════════════════ */
+::-webkit-scrollbar { width: 5px; height: 5px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--bg4); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: var(--a); }
+
+.screen-badge {
+  position: fixed; bottom: 14px; right: 14px;
+  font-family: var(--ff-mono); font-size: 0.64rem;
+  color: var(--a2); background: rgba(8,8,14,0.85);
+  border: 1px solid var(--b2); padding: 5px 11px; border-radius: 8px;
+  z-index: 2000; pointer-events: none;
+}
+
+@media(max-width:768px) {
+  .sidebar { display: none; }
+  .auth-left { display: none; }
+  .auth-page { grid-template-columns: 1fr; }
+  .profile-stats-grid { grid-template-columns: repeat(2,1fr); }
+  .detail-poster-float { display: none; }
+}
+</style>
+</head>
+<body>
+
+<!-- META NAV -->
+<nav class="meta-nav">
+  <div class="meta-logo">MovieMate</div>
+  <button class="meta-tab active" onclick="goTo('home')">🏠 Inicio</button>
+  <button class="meta-tab" onclick="goTo('discover')">🔍 Descubrir</button>
+  <button class="meta-tab" onclick="goTo('detail')">🎬 Ficha</button>
+  <button class="meta-tab" onclick="goTo('profile')">👤 Perfil</button>
+  <button class="meta-tab" onclick="goTo('lists')">📋 Listas</button>
+  <button class="meta-tab" onclick="goTo('notifs')">🔔 Notificaciones</button>
+  <button class="meta-tab" onclick="goTo('auth')">🔑 Login</button>
+</nav>
+<div class="screen-badge" id="badge">Inicio</div>
+
+<!-- TMDB image helper: poster URLs -->
+<!-- Using TMDB image CDN directly (public, no key needed for static images) -->
+<!-- Fallback placeholders if they don't load -->
+
+<!-- ══════ SCREEN: INICIO ══════ -->
+<div class="screen active" id="s-home">
+<div class="shell">
+  <aside class="sidebar">
+    <div class="sidebar-brand">
+      <div class="sidebar-brand-icon">🎬</div>
+      <div class="sidebar-brand-text">MovieMate <span>Tu cine, tu comunidad</span></div>
+    </div>
+    <div class="sidebar-section">Principal</div>
+    <div class="sidebar-item active"><span class="ico">🏠</span>Inicio</div>
+    <div class="sidebar-item"><span class="ico">🔍</span>Descubrir</div>
+    <div class="sidebar-item"><span class="ico">📡</span>Actividad</div>
+    <div class="sidebar-section">Mi espacio</div>
+    <div class="sidebar-item"><span class="ico">⭐</span>Valoraciones</div>
+    <div class="sidebar-item"><span class="ico">📋</span>Mis listas</div>
+    <div class="sidebar-item"><span class="ico">🕐</span>Por ver</div>
+    <div class="sidebar-item"><span class="ico">❤️</span>Favoritos</div>
+    <div class="sidebar-section">Social</div>
+    <div class="sidebar-item"><span class="ico">👥</span>Siguiendo</div>
+    <div class="sidebar-item"><span class="ico">🔔</span>Notificaciones<span class="sidebar-badge">3</span></div>
+    <div class="sidebar-spacer"></div>
+    <div class="sidebar-user">
+      <div class="sidebar-avatar">CM</div>
+      <div class="sidebar-user-info">Christian M.<small>@christianmc</small></div>
+    </div>
+  </aside>
+
+  <div class="content">
+    <div class="topbar">
+      <div class="search-wrap">🔍 &nbsp;Buscar películas, series, usuarios…</div>
+      <div style="margin-left:auto;display:flex;gap:8px;">
+        <div class="icon-btn">🔔<div class="pip"></div></div>
+        <div class="icon-btn" style="background:linear-gradient(135deg,var(--a),#e91e63);font-size:0.72rem;font-weight:700;color:#fff;">CM</div>
+      </div>
+    </div>
+
+    <!-- HERO: Dune 2 with real TMDB backdrop -->
+    <div class="hero">
+      <div class="hero-backdrop" style="background-image:url('https://image.tmdb.org/t/p/w1280/xOMo8BRK7PfcJv9JCnx7s5hj0PX.jpg'); background-image:url('https://image.tmdb.org/t/p/w1280/xOMo8BRK7PfcJv9JCnx7s5hj0PX.jpg'),linear-gradient(135deg,#1a0a2e,#0a1628);"></div>
+      <div class="hero-mask"></div>
+      <div class="hero-stripe"></div>
+      <!-- Floating poster -->
+      <div class="hero-poster">
+        <img src="https://image.tmdb.org/t/p/w342/8b8R8l88Qje9dn9OE8PY05Nxl1X.jpg"
+             onerror="this.style.display='none';this.nextElementSibling.style.display='flex';"
+             alt="Dune 2 poster">
+        <div class="hero-poster-placeholder" style="display:none;">🌊</div>
+      </div>
+      <div class="hero-content">
+        <div class="hero-badge">✨ Tendencia esta semana</div>
+        <h1>Dune: Parte Dos</h1>
+        <div class="hero-meta">
+          <div class="score-pill">⭐ 8.5</div>
+          <span class="dot-sep">·</span>
+          <span>2024</span>
+          <span class="dot-sep">·</span>
+          <span>166 min</span>
+          <span class="dot-sep">·</span>
+          <span>Denis Villeneuve</span>
+        </div>
+        <div class="hero-actions">
+          <button class="btn btn-primary">+ Añadir a lista</button>
+          <button class="btn btn-secondary">⭐ Valorar</button>
+          <button class="btn btn-ghost">Ver ficha →</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- POPULARES -->
+    <div class="section" style="padding-top:32px;">
+      <div class="sec-head">
+        <div class="sec-title">Populares ahora 🔥</div>
+        <div class="sec-link">Ver todo →</div>
+      </div>
+      <div class="cards-scroll">
+        <!-- Card 1: Dune 2 -->
+        <div class="pcard">
+          <div class="pcard-fig">
+            <img src="https://image.tmdb.org/t/p/w342/8b8R8l88Qje9dn9OE8PY05Nxl1X.jpg" alt="Dune 2"
+                 onerror="this.style.display='none';this.nextElementSibling.style.display='flex';">
+            <div class="pcard-fig-placeholder" style="display:none;">🌊</div>
+            <div class="pcard-score">⭐ 8.5</div>
+            <div class="pcard-type-badge">Film</div>
+            <div class="pcard-overlay">
+              <button class="pcard-overlay-btn">+ Lista</button>
+              <button class="pcard-overlay-btn ghost">Ver ficha</button>
+            </div>
+          </div>
+          <div class="pcard-title">Dune: Parte Dos</div>
+          <div class="pcard-sub">2024 · Sci-Fi</div>
+          <div class="pcard-user-stars"><span class="star-ico on">★</span><span class="star-ico on">★</span><span class="star-ico on">★</span><span class="star-ico on">★</span><span class="star-ico">★</span></div>
+        </div>
+        <!-- Card 2: Fallout -->
+        <div class="pcard">
+          <div class="pcard-fig">
+            <img src="https://image.tmdb.org/t/p/w342/AnsSKR9GovsYFZGBs4yS0TkBnRV.jpg" alt="Fallout"
+                 onerror="this.style.display='none';this.nextElementSibling.style.display='flex';">
+            <div class="pcard-fig-placeholder" style="display:none;">🤖</div>
+            <div class="pcard-score">⭐ 7.9</div>
+            <div class="pcard-type-badge">Serie</div>
+            <div class="pcard-overlay">
+              <button class="pcard-overlay-btn">+ Lista</button>
+              <button class="pcard-overlay-btn ghost">Ver ficha</button>
+            </div>
+          </div>
+          <div class="pcard-title">Fallout</div>
+          <div class="pcard-sub">2024 · Acción</div>
+          <div class="pcard-user-stars"><span class="star-ico on">★</span><span class="star-ico on">★</span><span class="star-ico on">★</span><span class="star-ico on">★</span><span class="star-ico on">★</span></div>
+        </div>
+        <!-- Card 3: Shogun -->
+        <div class="pcard">
+          <div class="pcard-fig">
+            <img src="https://image.tmdb.org/t/p/w342/rAiYTfKGqDCRIIqo664sY9XZIvQ.jpg" alt="Shogun"
+                 onerror="this.style.display='none';this.nextElementSibling.style.display='flex';">
+            <div class="pcard-fig-placeholder" style="display:none;">🏯</div>
+            <div class="pcard-score">⭐ 8.1</div>
+            <div class="pcard-type-badge">Serie</div>
+            <div class="pcard-overlay">
+              <button class="pcard-overlay-btn">+ Lista</button>
+              <button class="pcard-overlay-btn ghost">Ver ficha</button>
+            </div>
+          </div>
+          <div class="pcard-title">Shogun</div>
+          <div class="pcard-sub">2024 · Drama</div>
+          <div class="pcard-user-stars"><span class="star-ico on">★</span><span class="star-ico on">★</span><span class="star-ico on">★</span><span class="star-ico on">★</span><span class="star-ico">★</span></div>
+        </div>
+        <!-- Card 4: Arcane S2 -->
+        <div class="pcard">
+          <div class="pcard-fig">
+            <img src="https://image.tmdb.org/t/p/w342/fqldf2t8ztc9aiwn3k6mlX3tvRT.jpg" alt="Arcane"
+                 onerror="this.style.display='none';this.nextElementSibling.style.display='flex';">
+            <div class="pcard-fig-placeholder" style="display:none;">🔮</div>
+            <div class="pcard-score">⭐ 8.7</div>
+            <div class="pcard-type-badge">Serie</div>
+            <div class="pcard-overlay">
+              <button class="pcard-overlay-btn">+ Lista</button>
+              <button class="pcard-overlay-btn ghost">Ver ficha</button>
+            </div>
+          </div>
+          <div class="pcard-title">Arcane S2</div>
+          <div class="pcard-sub">2024 · Animación</div>
+        </div>
+        <!-- Card 5: Oppenheimer -->
+        <div class="pcard">
+          <div class="pcard-fig">
+            <img src="https://image.tmdb.org/t/p/w342/ptpr0kGAckfQkJeJIt8st5dglvd.jpg" alt="Oppenheimer"
+                 onerror="this.style.display='none';this.nextElementSibling.style.display='flex';">
+            <div class="pcard-fig-placeholder" style="display:none;">💣</div>
+            <div class="pcard-score">⭐ 9.0</div>
+            <div class="pcard-type-badge">Film</div>
+            <div class="pcard-overlay">
+              <button class="pcard-overlay-btn">+ Lista</button>
+              <button class="pcard-overlay-btn ghost">Ver ficha</button>
+            </div>
+          </div>
+          <div class="pcard-title">Oppenheimer</div>
+          <div class="pcard-sub">2023 · Drama</div>
+        </div>
+        <!-- Card 6: X-Men 97 -->
+        <div class="pcard">
+          <div class="pcard-fig">
+            <img src="https://image.tmdb.org/t/p/w342/gluDFOOFSPiMmr2MhMuS2WYmRuR.jpg" alt="X-Men 97"
+                 onerror="this.style.display='none';this.nextElementSibling.style.display='flex';">
+            <div class="pcard-fig-placeholder" style="display:none;">⚡</div>
+            <div class="pcard-score">⭐ 8.4</div>
+            <div class="pcard-type-badge">Serie</div>
+            <div class="pcard-overlay">
+              <button class="pcard-overlay-btn">+ Lista</button>
+              <button class="pcard-overlay-btn ghost">Ver ficha</button>
+            </div>
+          </div>
+          <div class="pcard-title">X-Men '97</div>
+          <div class="pcard-sub">2024 · Animación</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ACTIVITY FEED -->
+    <div class="section" style="margin-top:24px;">
+      <div class="sec-head">
+        <div class="sec-title">Actividad reciente 📡</div>
+        <div class="sec-link">Ver todo →</div>
+      </div>
+    </div>
+    <div class="feed" style="padding:12px 24px 40px;">
+      <div class="feed-item">
+        <div class="feed-av" style="background:linear-gradient(135deg,#7c3aed,#a78bfa);">AL</div>
+        <div class="feed-thumb">
+          <img src="https://image.tmdb.org/t/p/w92/ptpr0kGAckfQkJeJIt8st5dglvd.jpg" alt="Oppenheimer"
+               onerror="this.style.display='none';this.nextElementSibling.style.display='flex';">
+          <div class="feed-thumb-placeholder" style="display:none;">💣</div>
+        </div>
+        <div class="feed-body">
+          <div class="feed-who"><strong>@alexlm</strong> ha valorado</div>
+          <div class="feed-content-title">Oppenheimer</div>
+          <div class="feed-stars"><span class="star-ico on">★</span><span class="star-ico on">★</span><span class="star-ico on">★</span><span class="star-ico on">★</span><span class="star-ico on">★</span></div>
+          <div class="feed-quote">"Una obra maestra técnica y narrativa. Nolan en su mejor momento. El sonido en IMAX es absolutamente brutal."</div>
+          <div class="feed-actions">
+            <button class="feed-act liked">❤️ 14</button>
+            <button class="feed-act">💬 3</button>
+            <button class="feed-act">🕐 hace 2h</button>
+          </div>
+        </div>
+      </div>
+      <div class="feed-item">
+        <div class="feed-av" style="background:linear-gradient(135deg,#ef4444,#f97316);">MR</div>
+        <div class="feed-thumb">
+          <img src="https://image.tmdb.org/t/p/w92/rAiYTfKGqDCRIIqo664sY9XZIvQ.jpg" alt="Shogun"
+               onerror="this.style.display='none';this.nextElementSibling.style.display='flex';">
+          <div class="feed-thumb-placeholder" style="display:none;">🏯</div>
+        </div>
+        <div class="feed-body">
+          <div class="feed-who"><strong>@mariarp</strong> añadió a <em style="color:var(--a2);">"Mis series favoritas de 2024"</em></div>
+          <div class="feed-content-title">Shogun · Temporada 1</div>
+          <div class="feed-actions">
+            <button class="feed-act">❤️ 7</button>
+            <button class="feed-act">🕐 hace 4h</button>
+          </div>
+        </div>
+      </div>
+      <div class="feed-item">
+        <div class="feed-av" style="background:linear-gradient(135deg,#059669,#34d399);">JC</div>
+        <div class="feed-thumb">
+          <img src="https://image.tmdb.org/t/p/w92/AnsSKR9GovsYFZGBs4yS0TkBnRV.jpg" alt="Fallout"
+               onerror="this.style.display='none';this.nextElementSibling.style.display='flex';">
+          <div class="feed-thumb-placeholder" style="display:none;">🤖</div>
+        </div>
+        <div class="feed-body">
+          <div class="feed-who"><strong>@juanc</strong> ha valorado</div>
+          <div class="feed-content-title">Fallout — 1×01</div>
+          <div class="feed-stars"><span class="star-ico on">★</span><span class="star-ico on">★</span><span class="star-ico on">★</span><span class="star-ico on">★</span><span class="star-ico">★</span></div>
+          <div class="feed-quote">"Increíble adaptación. El mundo está perfectamente recreado, los personajes funcionan muy bien."</div>
+          <div class="feed-actions">
+            <button class="feed-act">❤️ 5</button>
+            <button class="feed-act">💬 1</button>
+            <button class="feed-act">🕐 hace 6h</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- ══════ SCREEN: DISCOVER ══════ -->
+<div class="screen" id="s-discover">
+<div class="shell">
+  <aside class="sidebar">
+    <div class="sidebar-brand"><div class="sidebar-brand-icon">🎬</div><div class="sidebar-brand-text">MovieMate<span>Tu cine, tu comunidad</span></div></div>
+    <div class="sidebar-section">Principal</div>
+    <div class="sidebar-item"><span class="ico">🏠</span>Inicio</div>
+    <div class="sidebar-item active"><span class="ico">🔍</span>Descubrir</div>
+    <div class="sidebar-item"><span class="ico">📡</span>Actividad</div>
+    <div class="sidebar-section">Filtros rápidos</div>
+    <div class="sidebar-item"><span class="ico">🎬</span>Solo películas</div>
+    <div class="sidebar-item"><span class="ico">📺</span>Solo series</div>
+    <div class="sidebar-item"><span class="ico">⭐</span>Mejor valoradas</div>
+    <div class="sidebar-item"><span class="ico">🆕</span>Novedades</div>
+    <div class="sidebar-spacer"></div>
+    <div class="sidebar-user"><div class="sidebar-avatar">CM</div><div class="sidebar-user-info">Christian M.<small>@christianmc</small></div></div>
+  </aside>
+  <div class="content">
+    <div class="discover-hero">
+      <h1>Descubre <em>nuevo contenido</em> 🍿</h1>
+      <div class="big-search">🔍 &nbsp;Busca cualquier película o serie…</div>
+    </div>
+    <div class="filter-row">
+      <button class="chip active">Todo</button>
+      <button class="chip">🎬 Películas</button>
+      <button class="chip">📺 Series</button>
+      <button class="chip">Acción</button>
+      <button class="chip">Drama</button>
+      <button class="chip">Comedia</button>
+      <button class="chip">Sci-Fi</button>
+      <button class="chip">Terror</button>
+      <button class="chip">Animación</button>
+      <button class="chip">⭐ Top valoradas</button>
+    </div>
+    <div class="disc-grid">
+      <div class="pcard" style="width:auto">
+        <div class="pcard-fig"><img src="https://image.tmdb.org/t/p/w342/8b8R8l88Qje9dn9OE8PY05Nxl1X.jpg" onerror="this.style.display='none';this.nextElementSibling.style.display='flex';"><div class="pcard-fig-placeholder" style="display:none;">🌊</div><div class="pcard-score">⭐ 8.5</div><div class="pcard-type-badge">Film</div><div class="pcard-overlay"><button class="pcard-overlay-btn">+ Lista</button><button class="pcard-overlay-btn ghost">Ver ficha</button></div></div>
+        <div class="pcard-title">Dune: Parte Dos</div><div class="pcard-sub">2024 · SCI-FI</div>
+      </div>
+      <div class="pcard" style="width:auto">
+        <div class="pcard-fig"><img src="https://image.tmdb.org/t/p/w342/AnsSKR9GovsYFZGBs4yS0TkBnRV.jpg" onerror="this.style.display='none';this.nextElementSibling.style.display='flex';"><div class="pcard-fig-placeholder" style="display:none;">🤖</div><div class="pcard-score">⭐ 7.9</div><div class="pcard-type-badge">Serie</div><div class="pcard-overlay"><button class="pcard-overlay-btn">+ Lista</button><button class="pcard-overlay-btn ghost">Ver ficha</button></div></div>
+        <div class="pcard-title">Fallout</div><div class="pcard-sub">2024 · ACCIÓN</div>
+      </div>
+      <div class="pcard" style="width:auto">
+        <div class="pcard-fig"><img src="https://image.tmdb.org/t/p/w342/rAiYTfKGqDCRIIqo664sY9XZIvQ.jpg" onerror="this.style.display='none';this.nextElementSibling.style.display='flex';"><div class="pcard-fig-placeholder" style="display:none;">🏯</div><div class="pcard-score">⭐ 8.1</div><div class="pcard-type-badge">Serie</div><div class="pcard-overlay"><button class="pcard-overlay-btn">+ Lista</button><button class="pcard-overlay-btn ghost">Ver ficha</button></div></div>
+        <div class="pcard-title">Shogun</div><div class="pcard-sub">2024 · DRAMA</div>
+      </div>
+      <div class="pcard" style="width:auto">
+        <div class="pcard-fig"><img src="https://image.tmdb.org/t/p/w342/fqldf2t8ztc9aiwn3k6mlX3tvRT.jpg" onerror="this.style.display='none';this.nextElementSibling.style.display='flex';"><div class="pcard-fig-placeholder" style="display:none;">🔮</div><div class="pcard-score">⭐ 8.7</div><div class="pcard-type-badge">Serie</div><div class="pcard-overlay"><button class="pcard-overlay-btn">+ Lista</button><button class="pcard-overlay-btn ghost">Ver ficha</button></div></div>
+        <div class="pcard-title">Arcane S2</div><div class="pcard-sub">2024 · ANIMACIÓN</div>
+      </div>
+      <div class="pcard" style="width:auto">
+        <div class="pcard-fig"><img src="https://image.tmdb.org/t/p/w342/ptpr0kGAckfQkJeJIt8st5dglvd.jpg" onerror="this.style.display='none';this.nextElementSibling.style.display='flex';"><div class="pcard-fig-placeholder" style="display:none;">💣</div><div class="pcard-score">⭐ 9.0</div><div class="pcard-type-badge">Film</div><div class="pcard-overlay"><button class="pcard-overlay-btn">+ Lista</button><button class="pcard-overlay-btn ghost">Ver ficha</button></div></div>
+        <div class="pcard-title">Oppenheimer</div><div class="pcard-sub">2023 · DRAMA</div>
+      </div>
+      <div class="pcard" style="width:auto">
+        <div class="pcard-fig"><img src="https://image.tmdb.org/t/p/w342/gluDFOOFSPiMmr2MhMuS2WYmRuR.jpg" onerror="this.style.display='none';this.nextElementSibling.style.display='flex';"><div class="pcard-fig-placeholder" style="display:none;">⚡</div><div class="pcard-score">⭐ 8.4</div><div class="pcard-type-badge">Serie</div><div class="pcard-overlay"><button class="pcard-overlay-btn">+ Lista</button><button class="pcard-overlay-btn ghost">Ver ficha</button></div></div>
+        <div class="pcard-title">X-Men '97</div><div class="pcard-sub">2024 · ANIMACIÓN</div>
+      </div>
+      <div class="pcard" style="width:auto">
+        <div class="pcard-fig"><img src="https://image.tmdb.org/t/p/w342/kDp1vUBnMpe8ak4rjgl3cLELqjU.jpg" onerror="this.style.display='none';this.nextElementSibling.style.display='flex';"><div class="pcard-fig-placeholder" style="display:none;">🦸</div><div class="pcard-score">⭐ 6.8</div><div class="pcard-type-badge">Film</div><div class="pcard-overlay"><button class="pcard-overlay-btn">+ Lista</button><button class="pcard-overlay-btn ghost">Ver ficha</button></div></div>
+        <div class="pcard-title">Deadpool & Wolverine</div><div class="pcard-sub">2024 · ACCIÓN</div>
+      </div>
+      <div class="pcard" style="width:auto">
+        <div class="pcard-fig"><img src="https://image.tmdb.org/t/p/w342/i7prMbRQekK4jKfWCoFhJjFgJqh.jpg" onerror="this.style.display='none';this.nextElementSibling.style.display='flex';"><div class="pcard-fig-placeholder" style="display:none;">🎭</div><div class="pcard-score">⭐ 7.5</div><div class="pcard-type-badge">Serie</div><div class="pcard-overlay"><button class="pcard-overlay-btn">+ Lista</button><button class="pcard-overlay-btn ghost">Ver ficha</button></div></div>
+        <div class="pcard-title">The Bear S3</div><div class="pcard-sub">2024 · DRAMA</div>
+      </div>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- ══════ SCREEN: DETAIL ══════ -->
+<div class="screen" id="s-detail">
+<div class="shell">
+  <aside class="sidebar">
+    <div class="sidebar-brand"><div class="sidebar-brand-icon">🎬</div><div class="sidebar-brand-text">MovieMate<span>Tu cine, tu comunidad</span></div></div>
+    <div class="sidebar-section">Acciones</div>
+    <div class="sidebar-item active"><span class="ico">📄</span>Ficha completa</div>
+    <div class="sidebar-item"><span class="ico">➕</span>Añadir a lista</div>
+    <div class="sidebar-item"><span class="ico">👁️</span>Marcar vista</div>
+    <div class="sidebar-item"><span class="ico">🕐</span>Guardar pendiente</div>
+    <div class="sidebar-spacer"></div>
+    <div class="sidebar-user"><div class="sidebar-avatar">CM</div><div class="sidebar-user-info">Christian M.<small>@christianmc</small></div></div>
+  </aside>
+  <div class="content">
+    <!-- HERO with real backdrop -->
+    <div class="detail-hero">
+      <div class="detail-hero-bg" style="background-image:url('https://image.tmdb.org/t/p/w1280/xOMo8BRK7PfcJv9JCnx7s5hj0PX.jpg'),linear-gradient(135deg,#1a0828,#081426);"></div>
+      <div class="detail-hero-mask"></div>
+      <!-- Poster floating -->
+      <div class="detail-poster-float">
+        <img src="https://image.tmdb.org/t/p/w342/8b8R8l88Qje9dn9OE8PY05Nxl1X.jpg"
+             onerror="this.style.display='none';this.nextElementSibling.style.display='flex';" alt="Dune 2">
+        <div class="detail-poster-float-placeholder" style="display:none;">🌊</div>
+      </div>
+      <div class="detail-content">
+        <div class="detail-type-tag">🎬 Película</div>
+        <div class="detail-h1">Dune: Parte Dos</div>
+        <div class="detail-meta">
+          <div class="score-pill">⭐ 8.5</div>
+          <span class="dot-sep">·</span><span>2024</span>
+          <span class="dot-sep">·</span><span>166 min</span>
+          <span class="dot-sep">·</span><span>Denis Villeneuve</span>
+        </div>
+        <div class="genre-chips">
+          <span class="genre-chip">Ciencia Ficción</span>
+          <span class="genre-chip">Aventura</span>
+          <span class="genre-chip">Drama</span>
+        </div>
+        <div style="display:flex;gap:10px;flex-wrap:wrap;">
+          <button class="btn btn-primary">+ Añadir a lista</button>
+          <button class="btn btn-secondary">👁️ Marcar vista</button>
+          <button class="btn btn-ghost">🕐 Pendiente</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Stats ribbon -->
+    <div class="stats-ribbon">
+      <div class="stat-cell"><span class="stat-val">8.5</span><div class="stat-lbl">Puntuación TMDB</div></div>
+      <div class="stat-cell"><span class="stat-val">8.1</span><div class="stat-lbl">MovieMate</div></div>
+      <div class="stat-cell"><span class="stat-val">247</span><div class="stat-lbl">Valoraciones</div></div>
+      <div class="stat-cell"><span class="stat-val">1.2K</span><div class="stat-lbl">En listas</div></div>
+      <div class="stat-cell"><span class="stat-val">84%</span><div class="stat-lbl">Recomiendan</div></div>
+    </div>
+
+    <!-- Rating -->
+    <div class="rating-row">
+      <span class="prompt">Tu valoración:</span>
+      <div class="star-picker" id="stars">
+        <span class="big-star on">★</span>
+        <span class="big-star on">★</span>
+        <span class="big-star on">★</span>
+        <span class="big-star on">★</span>
+        <span class="big-star">★</span>
+      </div>
+      <span class="rating-val">4.0/5</span>
+      <button class="btn btn-ghost btn-sm" style="margin-left:auto;">✏️ Escribir reseña</button>
+    </div>
+
+    <!-- Synopsis -->
+    <div class="synopsis-block">
+      <div class="synopsis-label">Sinopsis</div>
+      <p class="synopsis-text">Paul Atreides se une a Chani y a los Fremen mientras busca venganza contra los conspiradores que destruyeron a su familia. Afrontando una elección entre el amor de su vida y el destino del universo conocido, deberá evitar un futuro terrible que solo él puede prever.</p>
+    </div>
+
+    <!-- Tabs -->
+    <div class="tab-bar">
+      <div class="tab-btn-item active">Reseñas (247)</div>
+      <div class="tab-btn-item">Reparto</div>
+      <div class="tab-btn-item">Dónde ver</div>
+      <div class="tab-btn-item">Relacionados</div>
+    </div>
+
+    <div class="reviews-list">
+      <div class="review-card">
+        <div class="rv-top">
+          <div class="rv-av" style="background:linear-gradient(135deg,#7c3aed,#a78bfa);">AL</div>
+          <span class="rv-handle">@alexlm</span>
+          <div class="rv-stars"><span class="star-ico on">★</span><span class="star-ico on">★</span><span class="star-ico on">★</span><span class="star-ico on">★</span><span class="star-ico on">★</span></div>
+          <span class="rv-date">12 mar 2024</span>
+        </div>
+        <p class="rv-text">"Una obra maestra técnica y narrativa. Denis Villeneuve consigue lo imposible: adaptar la segunda parte de Herbert con una sensación épica abrumadora. La fotografía en Giedi Prime rodada en infrarrojo es extraordinaria. Zendaya y Chalamet tienen una química imposible de fingir."</p>
+        <div class="rv-actions"><button class="feed-act liked">❤️ 34 útil</button></div>
+      </div>
+      <div class="review-card">
+        <div class="rv-top">
+          <div class="rv-av" style="background:linear-gradient(135deg,#ef4444,#f97316);">MR</div>
+          <span class="rv-handle">@mariarp</span>
+          <div class="rv-stars"><span class="star-ico on">★</span><span class="star-ico on">★</span><span class="star-ico on">★</span><span class="star-ico on">★</span><span class="star-ico">★</span></div>
+          <span class="rv-date">10 mar 2024</span>
+        </div>
+        <p class="rv-text">"Visualmente impresionante. El ritmo de la segunda mitad se acelera demasiado pero Austin Butler está absolutamente inquietante como Feyd-Rautha. Cine de autor en estado puro."</p>
+        <div class="rv-actions"><button class="feed-act">❤️ 18 útil</button></div>
+      </div>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- ══════ SCREEN: PROFILE ══════ -->
+<div class="screen" id="s-profile">
+<div class="shell">
+  <aside class="sidebar">
+    <div class="sidebar-brand"><div class="sidebar-brand-icon">🎬</div><div class="sidebar-brand-text">MovieMate<span>Tu cine, tu comunidad</span></div></div>
+    <div class="sidebar-section">Mi espacio</div>
+    <div class="sidebar-item active"><span class="ico">👤</span>Mi perfil</div>
+    <div class="sidebar-item"><span class="ico">⭐</span>Valoraciones</div>
+    <div class="sidebar-item"><span class="ico">📋</span>Mis listas</div>
+    <div class="sidebar-item"><span class="ico">🕐</span>Por ver</div>
+    <div class="sidebar-spacer"></div>
+    <div class="sidebar-user"><div class="sidebar-avatar">CM</div><div class="sidebar-user-info">Christian M.<small>@christianmc</small></div></div>
+  </aside>
+  <div class="content">
+    <div class="profile-header" data-initials="CM">
+      <div class="profile-pic">C</div>
+      <div class="profile-info">
+        <div class="profile-name">Christian Matas</div>
+        <div class="profile-handle">@christianmc</div>
+        <p class="profile-bio">Cinéfilo empedernido. Amante del cine de autor y las series de calidad. Siempre buscando la próxima joya oculta 🎬</p>
+        <div class="follow-row">
+          <div class="follow-stat"><strong>128</strong> siguiendo</div>
+          <div class="follow-stat"><strong>341</strong> seguidores</div>
+        </div>
+      </div>
+      <div style="display:flex;gap:8px;margin-left:auto;align-self:flex-start;">
+        <button class="btn btn-ghost btn-sm">✏️ Editar perfil</button>
+        <button class="btn btn-ghost btn-sm">⚙️</button>
+      </div>
+    </div>
+
+    <div class="profile-stats-grid">
+      <div class="ps-cell"><div class="val">312</div><div class="lbl">Películas vistas</div></div>
+      <div class="ps-cell"><div class="val">47</div><div class="lbl">Series seguidas</div></div>
+      <div class="ps-cell"><div class="val">289</div><div class="lbl">Valoraciones</div></div>
+      <div class="ps-cell"><div class="val">23</div><div class="lbl">Listas creadas</div></div>
+    </div>
+
+    <div class="tab-bar">
+      <div class="tab-btn-item active">Actividad reciente</div>
+      <div class="tab-btn-item">Valoraciones</div>
+      <div class="tab-btn-item">Listas</div>
+      <div class="tab-btn-item">Siguiendo</div>
+    </div>
+
+    <div class="section" style="padding-top:20px;">
+      <div class="sec-head"><div class="sec-title">Últimas valoraciones</div><div class="sec-link">Ver todas →</div></div>
+      <div class="cards-scroll">
+        <div class="pcard"><div class="pcard-fig"><img src="https://image.tmdb.org/t/p/w342/8b8R8l88Qje9dn9OE8PY05Nxl1X.jpg" onerror="this.style.display='none';this.nextElementSibling.style.display='flex';"><div class="pcard-fig-placeholder" style="display:none;">🌊</div><div class="pcard-score">⭐ 8.5</div><div class="pcard-overlay"><button class="pcard-overlay-btn">Ver ficha</button></div></div><div class="pcard-title">Dune: Parte Dos</div><div class="pcard-user-stars"><span class="star-ico on">★</span><span class="star-ico on">★</span><span class="star-ico on">★</span><span class="star-ico on">★</span><span class="star-ico">★</span></div></div>
+        <div class="pcard"><div class="pcard-fig"><img src="https://image.tmdb.org/t/p/w342/ptpr0kGAckfQkJeJIt8st5dglvd.jpg" onerror="this.style.display='none';this.nextElementSibling.style.display='flex';"><div class="pcard-fig-placeholder" style="display:none;">💣</div><div class="pcard-score">⭐ 9.0</div><div class="pcard-overlay"><button class="pcard-overlay-btn">Ver ficha</button></div></div><div class="pcard-title">Oppenheimer</div><div class="pcard-user-stars"><span class="star-ico on">★</span><span class="star-ico on">★</span><span class="star-ico on">★</span><span class="star-ico on">★</span><span class="star-ico on">★</span></div></div>
+        <div class="pcard"><div class="pcard-fig"><img src="https://image.tmdb.org/t/p/w342/AnsSKR9GovsYFZGBs4yS0TkBnRV.jpg" onerror="this.style.display='none';this.nextElementSibling.style.display='flex';"><div class="pcard-fig-placeholder" style="display:none;">🤖</div><div class="pcard-score">⭐ 7.9</div><div class="pcard-overlay"><button class="pcard-overlay-btn">Ver ficha</button></div></div><div class="pcard-title">Fallout</div><div class="pcard-user-stars"><span class="star-ico on">★</span><span class="star-ico on">★</span><span class="star-ico on">★</span><span class="star-ico on">★</span><span class="star-ico">★</span></div></div>
+        <div class="pcard"><div class="pcard-fig"><img src="https://image.tmdb.org/t/p/w342/rAiYTfKGqDCRIIqo664sY9XZIvQ.jpg" onerror="this.style.display='none';this.nextElementSibling.style.display='flex';"><div class="pcard-fig-placeholder" style="display:none;">🏯</div><div class="pcard-score">⭐ 8.1</div><div class="pcard-overlay"><button class="pcard-overlay-btn">Ver ficha</button></div></div><div class="pcard-title">Shogun</div><div class="pcard-user-stars"><span class="star-ico on">★</span><span class="star-ico on">★</span><span class="star-ico on">★</span><span class="star-ico on">★</span><span class="star-ico on">★</span></div></div>
+      </div>
+    </div>
+
+    <div class="section" style="margin-top:24px;padding-bottom:32px;">
+      <div class="sec-head"><div class="sec-title">Listas destacadas</div><div class="sec-link">Ver todas →</div></div>
+      <div class="lists-grid" style="padding:0;">
+        <div class="list-card">
+          <div class="list-card-images">
+            <div class="list-img"><img src="https://image.tmdb.org/t/p/w92/8b8R8l88Qje9dn9OE8PY05Nxl1X.jpg" onerror="this.innerHTML='🌊'"></div>
+            <div class="list-img"><img src="https://image.tmdb.org/t/p/w92/ptpr0kGAckfQkJeJIt8st5dglvd.jpg" onerror="this.innerHTML='💣'"></div>
+            <div class="list-img"><img src="https://image.tmdb.org/t/p/w92/AnsSKR9GovsYFZGBs4yS0TkBnRV.jpg" onerror="this.innerHTML='🤖'"></div>
+            <div class="list-img"><img src="https://image.tmdb.org/t/p/w92/rAiYTfKGqDCRIIqo664sY9XZIvQ.jpg" onerror="this.innerHTML='🏯'"></div>
+          </div>
+          <div class="list-card-body">
+            <div class="list-card-name">Mis favoritas de 2024 ❤️</div>
+            <div class="list-card-desc">Las películas y series que más me han marcado</div>
+            <div class="list-card-meta"><span>18 títulos</span><span>🔓 Pública</span></div>
+          </div>
+        </div>
+        <div class="list-card">
+          <div class="list-card-images">
+            <div class="list-img"><img src="https://image.tmdb.org/t/p/w92/fqldf2t8ztc9aiwn3k6mlX3tvRT.jpg" onerror="this.innerHTML='🔮'"></div>
+            <div class="list-img"><img src="https://image.tmdb.org/t/p/w92/gluDFOOFSPiMmr2MhMuS2WYmRuR.jpg" onerror="this.innerHTML='⚡'"></div>
+            <div class="list-img"><div class="list-img-placeholder">🐉</div></div>
+            <div class="list-img"><div class="list-img-placeholder">🎭</div></div>
+          </div>
+          <div class="list-card-body">
+            <div class="list-card-name">Series pendientes 🎯</div>
+            <div class="list-card-desc">Lo que tengo que ver sí o sí</div>
+            <div class="list-card-meta"><span>34 títulos</span><span>🔒 Privada</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- ══════ SCREEN: LISTS ══════ -->
+<div class="screen" id="s-lists">
+<div class="shell">
+  <aside class="sidebar">
+    <div class="sidebar-brand"><div class="sidebar-brand-icon">🎬</div><div class="sidebar-brand-text">MovieMate<span>Tu cine, tu comunidad</span></div></div>
+    <div class="sidebar-section">Mis listas</div>
+    <div class="sidebar-item active"><span class="ico">📋</span>Todas las listas</div>
+    <div class="sidebar-item"><span class="ico">❤️</span>Favoritos</div>
+    <div class="sidebar-item"><span class="ico">🕐</span>Por ver</div>
+    <div class="sidebar-item"><span class="ico">👁️</span>Ya vistas</div>
+    <div class="sidebar-item"><span class="ico">➕</span>Nueva lista</div>
+    <div class="sidebar-spacer"></div>
+    <div class="sidebar-user"><div class="sidebar-avatar">CM</div><div class="sidebar-user-info">Christian M.<small>@christianmc</small></div></div>
+  </aside>
+  <div class="content">
+    <div class="lists-top">
+      <h2>Mis listas 📋</h2>
+      <button class="btn btn-primary btn-sm" style="margin-left:auto;">+ Nueva lista</button>
+    </div>
+    <div class="filter-row">
+      <button class="chip active">Todas</button>
+      <button class="chip">Públicas</button>
+      <button class="chip">Privadas</button>
+      <button class="chip">Películas</button>
+      <button class="chip">Series</button>
+    </div>
+    <div class="lists-grid">
+      <div class="list-card">
+        <div class="list-card-images">
+          <div class="list-img"><img src="https://image.tmdb.org/t/p/w92/8b8R8l88Qje9dn9OE8PY05Nxl1X.jpg" onerror="this.innerHTML='🌊'"></div>
+          <div class="list-img"><img src="https://image.tmdb.org/t/p/w92/ptpr0kGAckfQkJeJIt8st5dglvd.jpg" onerror="this.innerHTML='💣'"></div>
+          <div class="list-img"><img src="https://image.tmdb.org/t/p/w92/AnsSKR9GovsYFZGBs4yS0TkBnRV.jpg" onerror="this.innerHTML='🤖'"></div>
+          <div class="list-img"><img src="https://image.tmdb.org/t/p/w92/rAiYTfKGqDCRIIqo664sY9XZIvQ.jpg" onerror="this.innerHTML='🏯'"></div>
+        </div>
+        <div class="list-card-body">
+          <div class="list-card-name">Mis favoritas de 2024 ❤️</div>
+          <div class="list-card-desc">Las películas y series que más me han marcado este año</div>
+          <div class="list-card-meta"><span>18 títulos</span><span>🔓 Pública</span><span>❤️ 24</span></div>
+        </div>
+      </div>
+      <div class="list-card">
+        <div class="list-card-images">
+          <div class="list-img"><img src="https://image.tmdb.org/t/p/w92/fqldf2t8ztc9aiwn3k6mlX3tvRT.jpg" onerror="this.innerHTML='🔮'"></div>
+          <div class="list-img"><img src="https://image.tmdb.org/t/p/w92/gluDFOOFSPiMmr2MhMuS2WYmRuR.jpg" onerror="this.innerHTML='⚡'"></div>
+          <div class="list-img"><div class="list-img-placeholder">🐉</div></div>
+          <div class="list-img"><div class="list-img-placeholder">🎭</div></div>
+        </div>
+        <div class="list-card-body">
+          <div class="list-card-name">Series pendientes 🎯</div>
+          <div class="list-card-desc">Lo que tengo que ver sí o sí en los próximos meses</div>
+          <div class="list-card-meta"><span>34 títulos</span><span>🔒 Privada</span></div>
+        </div>
+      </div>
+      <div class="list-card">
+        <div class="list-card-images">
+          <div class="list-img"><div class="list-img-placeholder">🎞️</div></div>
+          <div class="list-img"><div class="list-img-placeholder">🎥</div></div>
+          <div class="list-img"><div class="list-img-placeholder">🌙</div></div>
+          <div class="list-img"><div class="list-img-placeholder">🎪</div></div>
+        </div>
+        <div class="list-card-body">
+          <div class="list-card-name">Cine de autor imprescindible</div>
+          <div class="list-card-desc">Directores que hay que conocer y sus obras clave</div>
+          <div class="list-card-meta"><span>52 títulos</span><span>🔓 Pública</span><span>❤️ 67</span></div>
+        </div>
+      </div>
+      <div class="list-card">
+        <div class="list-card-images">
+          <div class="list-img"><div class="list-img-placeholder">🚀</div></div>
+          <div class="list-img"><div class="list-img-placeholder">🌌</div></div>
+          <div class="list-img"><div class="list-img-placeholder">🤖</div></div>
+          <div class="list-img"><div class="list-img-placeholder">⚗️</div></div>
+        </div>
+        <div class="list-card-body">
+          <div class="list-card-name">Sci-Fi que cambia perspectivas 🚀</div>
+          <div class="list-card-desc">Películas y series que expanden la mente</div>
+          <div class="list-card-meta"><span>29 títulos</span><span>🔓 Pública</span><span>❤️ 41</span></div>
+        </div>
+      </div>
+      <div class="list-card">
+        <div class="list-card-images">
+          <div class="list-img"><div class="list-img-placeholder">😭</div></div>
+          <div class="list-img"><div class="list-img-placeholder">💔</div></div>
+          <div class="list-img"><div class="list-img-placeholder">🎭</div></div>
+          <div class="list-img"><div class="list-img-placeholder">🌧️</div></div>
+        </div>
+        <div class="list-card-body">
+          <div class="list-card-name">Dramas que me hicieron llorar 😭</div>
+          <div class="list-card-desc">Para cuando quieres sentir cosas</div>
+          <div class="list-card-meta"><span>15 títulos</span><span>🔒 Privada</span></div>
+        </div>
+      </div>
+      <div class="list-add-card">
+        <div class="list-add-inner">
+          <div class="plus-ico">+</div>
+          <span>Crear nueva lista</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- ══════ SCREEN: NOTIFICATIONS ══════ -->
+<div class="screen" id="s-notifs">
+<div class="shell">
+  <aside class="sidebar">
+    <div class="sidebar-brand"><div class="sidebar-brand-icon">🎬</div><div class="sidebar-brand-text">MovieMate<span>Tu cine, tu comunidad</span></div></div>
+    <div class="sidebar-section">Principal</div>
+    <div class="sidebar-item"><span class="ico">🏠</span>Inicio</div>
+    <div class="sidebar-item active"><span class="ico">🔔</span>Notificaciones<span class="sidebar-badge">3</span></div>
+    <div class="sidebar-spacer"></div>
+    <div class="sidebar-user"><div class="sidebar-avatar">CM</div><div class="sidebar-user-info">Christian M.<small>@christianmc</small></div></div>
+  </aside>
+  <div class="content">
+    <div class="notifs-top">
+      <h2>Notificaciones 🔔</h2>
+      <span style="font-family:var(--ff-mono);font-size:0.68rem;color:var(--t3);">3 sin leer</span>
+      <button class="btn btn-ghost btn-sm" style="margin-left:auto;">Marcar todo leído</button>
+    </div>
+    <div class="filter-row">
+      <button class="chip active">Todas</button>
+      <button class="chip">Sin leer (3)</button>
+      <button class="chip">Seguimientos</button>
+      <button class="chip">Me gustas</button>
+    </div>
+    <div class="notifs-list">
+      <div class="notif-item unread">
+        <div class="notif-ico" style="background:rgba(255,112,67,0.12);">👤</div>
+        <div class="notif-body">
+          <p><strong>@alexlm</strong> ha empezado a seguirte.</p>
+          <div class="notif-time">hace 15 minutos</div>
+        </div>
+        <button class="btn btn-primary btn-sm" style="flex-shrink:0;">Seguir</button>
+        <div class="unread-dot"></div>
+      </div>
+      <div class="notif-item unread">
+        <div class="notif-ico" style="background:rgba(239,83,80,0.12);">❤️</div>
+        <div class="notif-body">
+          <p><strong>@mariarp</strong> ha dado me gusta a tu reseña de <strong>Oppenheimer</strong>.</p>
+          <div class="notif-time">hace 1 hora</div>
+        </div>
+        <div class="unread-dot"></div>
+      </div>
+      <div class="notif-item unread">
+        <div class="notif-ico" style="background:rgba(77,182,172,0.12);">✅</div>
+        <div class="notif-body">
+          <p><strong>@juanc</strong> ha aceptado tu solicitud de seguimiento.</p>
+          <div class="notif-time">hace 3 horas</div>
+        </div>
+        <div class="unread-dot"></div>
+      </div>
+      <div class="notif-item">
+        <div class="notif-ico" style="background:var(--bg3);">👤</div>
+        <div class="notif-body">
+          <p><strong>@cinefilo99</strong> ha empezado a seguirte.</p>
+          <div class="notif-time">hace 1 día</div>
+        </div>
+        <button class="btn btn-ghost btn-sm" style="flex-shrink:0;">Seguir</button>
+      </div>
+      <div class="notif-item">
+        <div class="notif-ico" style="background:var(--bg3);">❤️</div>
+        <div class="notif-body">
+          <p><strong>@moviebuff</strong> ha dado me gusta a tu reseña de <strong>Dune: Parte Dos</strong>.</p>
+          <div class="notif-time">hace 2 días</div>
+        </div>
+      </div>
+      <div class="notif-item">
+        <div class="notif-ico" style="background:var(--bg3);">📋</div>
+        <div class="notif-body">
+          <p><strong>@alexlm</strong> ha añadido <strong>Shogun</strong> a su lista <em style="color:var(--a2);">"Series del año"</em>.</p>
+          <div class="notif-time">hace 3 días</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- ══════ SCREEN: AUTH ══════ -->
+<div class="screen" id="s-auth">
+  <div class="auth-page">
+    <div class="auth-left">
+      <div class="auth-left-content">
+        <div class="auth-brand">
+          <div class="auth-brand-icon">🎬</div>
+          <div class="auth-brand-name">MovieMate</div>
+        </div>
+        <div class="auth-tagline">Tu diario cinematográfico y social</div>
+        <div class="auth-feat"><div class="auth-feat-ico">🎬</div><div class="auth-feat-text"><strong>Películas y series juntas.</strong> Un solo lugar para gestionar todo tu contenido audiovisual, sin apps separadas.</div></div>
+        <div class="auth-feat"><div class="auth-feat-ico">⭐</div><div class="auth-feat-text"><strong>Valora y reseña.</strong> Comparte tu opinión y descubre qué opina la comunidad sobre cada título.</div></div>
+        <div class="auth-feat"><div class="auth-feat-ico">📋</div><div class="auth-feat-text"><strong>Listas personalizadas.</strong> Organiza tu colección como quieras, pública o privada.</div></div>
+        <div class="auth-feat"><div class="auth-feat-ico">👥</div><div class="auth-feat-text"><strong>Red social cinéfila.</strong> Sigue a personas y descubre contenido a través de su actividad.</div></div>
+      </div>
+    </div>
+    <div class="auth-right">
+      <div class="auth-form">
+        <h2>Bienvenido</h2>
+        <p class="auth-sub">Inicia sesión para continuar</p>
+        <div class="form-group">
+          <label class="form-label">Email o usuario</label>
+          <input class="form-input" type="text" placeholder="usuario@email.com">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Contraseña</label>
+          <input class="form-input" type="password" placeholder="••••••••">
+        </div>
+        <button class="btn btn-primary btn-full">Iniciar sesión</button>
+        <div class="auth-divider">o</div>
+        <button class="btn btn-ghost btn-full">Continuar con Google</button>
+        <div class="auth-footer">
+          ¿No tienes cuenta? <a>Regístrate gratis</a>
+          &nbsp;·&nbsp; <a>¿Olvidaste tu contraseña?</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+const screenMap = {
+  home:'s-home', discover:'s-discover', detail:'s-detail',
+  profile:'s-profile', lists:'s-lists', notifs:'s-notifs', auth:'s-auth'
+};
+const labelMap = {
+  home:'Inicio', discover:'Descubrir', detail:'Ficha de contenido',
+  profile:'Perfil', lists:'Listas', notifs:'Notificaciones', auth:'Login / Registro'
+};
+
+function goTo(key) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.meta-tab').forEach(b => b.classList.remove('active'));
+  document.getElementById(screenMap[key]).classList.add('active');
+  document.querySelectorAll('.meta-tab').forEach(b => {
+    if (b.getAttribute('onclick').includes("'"+key+"'")) b.classList.add('active');
+  });
+  document.getElementById('badge').textContent = labelMap[key];
+  window.scrollTo(0,0);
+}
+
+// Star rating interactivity
+const starRow = document.getElementById('stars');
+if (starRow) {
+  const stars = starRow.querySelectorAll('.big-star');
+  let saved = 4;
+  stars.forEach((s, i) => {
+    s.addEventListener('mouseenter', () => stars.forEach((x,j) => x.classList.toggle('on', j<=i)));
+    s.addEventListener('mouseleave', () => stars.forEach((x,j) => x.classList.toggle('on', j<saved)));
+    s.addEventListener('click', () => { saved = i+1; });
+  });
+}
+
+// Filter chips
+document.querySelectorAll('.filter-row').forEach(row => {
+  row.querySelectorAll('.chip').forEach(c => {
+    c.addEventListener('click', () => {
+      row.querySelectorAll('.chip').forEach(x => x.classList.remove('active'));
+      c.classList.add('active');
+    });
+  });
+});
+
+// Tab bars
+document.querySelectorAll('.tab-bar').forEach(bar => {
+  bar.querySelectorAll('.tab-btn-item').forEach(t => {
+    t.addEventListener('click', () => {
+      bar.querySelectorAll('.tab-btn-item').forEach(x => x.classList.remove('active'));
+      t.classList.add('active');
+    });
+  });
+});
+</script>
+</body>
+</html>

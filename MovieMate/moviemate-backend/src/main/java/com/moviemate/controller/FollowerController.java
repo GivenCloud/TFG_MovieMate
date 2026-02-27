@@ -44,17 +44,25 @@ public class FollowerController {
         return ResponseEntity.ok().build();
     }
 
+    @Operation(
+            summary = "Aceptar solicitud de seguimiento",
+            description = "Permite que el usuario autenticado acepte una solicitud de seguimiento."
+    )
     @PostMapping("/follow-requests/{requestId}")
     public ResponseEntity<FollowRequestActionResponse> acceptFollowRequest(@AuthenticationPrincipal CustomUserDetails userDetails, @PathVariable Long requestId) {
         FollowRequestActionResponse response = followRequestService.acceptRequest(requestId, userDetails.getUser());
         return ResponseEntity.ok(response);
     }
     
+    @Operation(
+            summary = "Rechazar solicitud de seguimiento",
+            description = "Permite que el usuario autenticado rechace una solicitud de seguimiento."
+    )
     @DeleteMapping("/follow-requests/{requestId}")
     public ResponseEntity<FollowRequestActionResponse> rejectFollowRequest(@AuthenticationPrincipal CustomUserDetails userDetails, @PathVariable Long requestId) {
         FollowRequestActionResponse response = followRequestService.rejectRequest(requestId, userDetails.getUser());
         return ResponseEntity.ok(response);
-}
+    }
 
     @Operation(
             summary = "Dejar de seguir a un usuario",
