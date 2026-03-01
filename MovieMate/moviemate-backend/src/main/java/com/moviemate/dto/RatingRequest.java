@@ -13,7 +13,7 @@ import java.time.LocalDate;
 @Data
 public class RatingRequest {
     @NotNull(message = "El ID del TMDB es obligatorio")
-    private Long tmdbId;
+    private Integer tmdbId;
 
     private Content.ContentType contentType;
     

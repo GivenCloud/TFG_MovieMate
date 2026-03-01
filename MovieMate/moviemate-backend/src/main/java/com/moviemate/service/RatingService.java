@@ -35,10 +35,7 @@ public class RatingService {
 
     @Transactional
     public RatingResponse createOrUpdateRating(User user, RatingRequest request) {
-        Content content = contentService.getOrFetch(request.getTmdbId().intValue(), request.getContentType());
-            
-        content.setLastInteraction(java.time.LocalDateTime.now());
-        contentRepository.save(content);
+        Content content = contentService.getOrFetch(request.getTmdbId());
 
         Rating rating = ratingRepository.findByUserAndContent(user, content)
             .orElse(new Rating());
@@ -55,6 +52,7 @@ public class RatingService {
         
         // Actualizar estadísticas del contenido
         updateContentStatistics(content);
+        contentService.refreshAsync(content.getId());
         
         return mapToRatingResponse(savedRating);
     }
@@ -70,21 +68,17 @@ public class RatingService {
         Content content = rating.getContent();
         ratingRepository.delete(rating);
 
-        content.setLastInteraction(java.time.LocalDateTime.now());
-        contentRepository.save(content);
-
         updateContentStatistics(content);
     }
     
     private void updateContentStatistics(Content content) {
-        Double averageRating =
-                ratingRepository.calculateAverageRatingByContent(content.getId());
-
-        Integer voteCount =
-                ratingRepository.countRatingsByContent(content.getId());
+        Integer voteCount = ratingRepository.countRatingsByContent(content.getId());
+        Double averageRating = ratingRepository.calculateAverageRatingByContent(content.getId());
 
         content.setAppRating(averageRating != null ? averageRating : 0.0);
         content.setAppVoteCount(voteCount != null ? voteCount : 0);
+
+        contentRepository.save(content);
     }
 
     @Transactional

@@ -21,6 +21,7 @@ import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
 class ListServiceTest {
@@ -29,14 +30,16 @@ class ListServiceTest {
     private ListContentRepository listContentRepository;
     private ContentRepository contentRepository;
     private ListService listService;
+    private ContentService contentService;
 
     @BeforeEach
     void setUp() {
         listRepository = mock(ListRepository.class);
         listContentRepository = mock(ListContentRepository.class);
+        contentService = mock(ContentService.class);
         contentRepository = mock(ContentRepository.class);
 
-        listService = new ListService(listRepository, listContentRepository, contentRepository);
+        listService = new ListService(listRepository, listContentRepository, contentService);
     }
 
     // ---------- createList ----------
@@ -151,7 +154,7 @@ class ListServiceTest {
 
         when(listRepository.findById(10L)).thenReturn(Optional.of(list));
 
-        ListResponse response = listService.addContentToList(user, 10L, 100L);
+        ListResponse response = listService.addContentToList(user, 10L, 1000);
 
         verify(listContentRepository).save(any(ListContent.class));
         assertThat(response.getItemCount()).isEqualTo(1);
@@ -164,7 +167,7 @@ class ListServiceTest {
 
         when(listRepository.findById(10L)).thenReturn(Optional.empty());
 
-        assertThatThrownBy(() -> listService.addContentToList(user, 10L, 100L))
+        assertThatThrownBy(() -> listService.addContentToList(user, 10L, 1000))
                 .isInstanceOf(RuntimeException.class)
                 .hasMessageContaining("Lista no encontrada");
     }
@@ -183,7 +186,7 @@ class ListServiceTest {
 
         when(listRepository.findById(10L)).thenReturn(Optional.of(list));
 
-        assertThatThrownBy(() -> listService.addContentToList(other, 10L, 100L))
+        assertThatThrownBy(() -> listService.addContentToList(other, 10L, 1000))
                 .isInstanceOf(RuntimeException.class)
                 .hasMessageContaining("No tienes permisos");
     }
@@ -198,9 +201,10 @@ class ListServiceTest {
         list.setUser(user);
 
         when(listRepository.findById(10L)).thenReturn(Optional.of(list));
-        when(contentRepository.findById(100L)).thenReturn(Optional.empty());
+        when(contentService.getOrFetch(1000))
+            .thenThrow(new RuntimeException("Contenido no encontrado: 1000"));
 
-        assertThatThrownBy(() -> listService.addContentToList(user, 10L, 100L))
+        assertThatThrownBy(() -> listService.addContentToList(user, 10L, 1000))
                 .isInstanceOf(RuntimeException.class)
                 .hasMessageContaining("Contenido no encontrado");
     }
@@ -216,12 +220,13 @@ class ListServiceTest {
 
         Content content = new Content();
         content.setId(100L);
+        content.setTmdbId(1000);
 
         when(listRepository.findById(10L)).thenReturn(Optional.of(list));
-        when(contentRepository.findById(100L)).thenReturn(Optional.of(content));
+        when(contentService.getOrFetch(1000)).thenReturn(content);
         when(listContentRepository.existsByListAndContent(list, content)).thenReturn(true);
 
-        assertThatThrownBy(() -> listService.addContentToList(user, 10L, 100L))
+        assertThatThrownBy(() -> listService.addContentToList(user, 10L, 1000))
                 .isInstanceOf(RuntimeException.class)
                 .hasMessageContaining("El contenido ya está en la lista");
     }
@@ -239,6 +244,7 @@ class ListServiceTest {
 
         Content content = new Content();
         content.setId(100L);
+        content.setTmdbId(1000);
 
         ListContent listContent = new ListContent();
         listContent.setId(1L);
@@ -246,11 +252,11 @@ class ListServiceTest {
         listContent.setContent(content);
 
         when(listRepository.findById(10L)).thenReturn(Optional.of(list));
-        when(contentRepository.findById(100L)).thenReturn(Optional.of(content));
+        when(contentService.getOrFetch(1000)).thenReturn(content);
         when(listContentRepository.findByListAndContent(list, content))
                 .thenReturn(Optional.of(listContent));
 
-        listService.removeContentFromList(user, 10L, 100L);
+        listService.removeContentFromList(user, 10L, 1000);
 
         verify(listContentRepository).delete(listContent);
     }
@@ -262,7 +268,7 @@ class ListServiceTest {
 
         when(listRepository.findById(10L)).thenReturn(Optional.empty());
 
-        assertThatThrownBy(() -> listService.removeContentFromList(user, 10L, 100L))
+        assertThatThrownBy(() -> listService.removeContentFromList(user, 10L, 1000))
                 .isInstanceOf(RuntimeException.class)
                 .hasMessageContaining("Lista no encontrada");
     }
@@ -281,7 +287,7 @@ class ListServiceTest {
 
         when(listRepository.findById(10L)).thenReturn(Optional.of(list));
 
-        assertThatThrownBy(() -> listService.removeContentFromList(other, 10L, 100L))
+        assertThatThrownBy(() -> listService.removeContentFromList(other, 10L, 1000))
                 .isInstanceOf(RuntimeException.class)
                 .hasMessageContaining("No tienes permisos");
     }
@@ -296,11 +302,11 @@ class ListServiceTest {
         list.setUser(user);
 
         when(listRepository.findById(10L)).thenReturn(Optional.of(list));
-        when(contentRepository.findById(100L)).thenReturn(Optional.empty());
+        when(contentService.getOrFetch(1000)).thenReturn(null);
 
-        assertThatThrownBy(() -> listService.removeContentFromList(user, 10L, 100L))
+        assertThatThrownBy(() -> listService.removeContentFromList(user, 10L, 1000))
                 .isInstanceOf(RuntimeException.class)
-                .hasMessageContaining("Contenido no encontrado");
+                .hasMessageContaining("El contenido no está en la lista");
     }
 
     @Test
@@ -314,13 +320,14 @@ class ListServiceTest {
 
         Content content = new Content();
         content.setId(100L);
+        content.setTmdbId(1000);
 
         when(listRepository.findById(10L)).thenReturn(Optional.of(list));
-        when(contentRepository.findById(100L)).thenReturn(Optional.of(content));
+        when(contentService.getOrFetch(1000)).thenReturn(content);
         when(listContentRepository.findByListAndContent(list, content))
                 .thenReturn(Optional.empty());
 
-        assertThatThrownBy(() -> listService.removeContentFromList(user, 10L, 100L))
+        assertThatThrownBy(() -> listService.removeContentFromList(user, 10L, 1000))
                 .isInstanceOf(RuntimeException.class)
                 .hasMessageContaining("El contenido no está en la lista");
     }
@@ -388,7 +395,7 @@ class ListServiceTest {
     private List buildListWithOneContent(User user) {
         Content content = new Content();
         content.setId(100L);
-        content.setTmdbId(999);
+        content.setTmdbId(1000);
         content.setTitle("Peli");
         content.setContentType( Content.ContentType.MOVIE);
         content.setReleaseDate(LocalDate.of(2020, 1, 1));

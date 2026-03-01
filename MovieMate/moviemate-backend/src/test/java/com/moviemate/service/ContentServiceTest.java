@@ -1,6 +1,8 @@
 package com.moviemate.service;
 
 import com.moviemate.dto.ContentResponse;
+import com.moviemate.dto.tmdb.MultiSearchResult;
+import com.moviemate.dto.tmdb.SearchResult;
 import com.moviemate.entity.Content;
 import com.moviemate.repository.ContentRepository;
 import org.junit.jupiter.api.BeforeEach;
@@ -12,7 +14,9 @@ import java.util.List;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.*;
 
 class ContentServiceTest {
@@ -118,25 +122,36 @@ class ContentServiceTest {
 
         when(contentRepository.findByTmdbId(100)).thenReturn(Optional.of(content));
 
-        Content result = contentService.getOrFetch(100, Content.ContentType.MOVIE);
+        // SIN type parameter
+        Content result = contentService.getOrFetch(100);
 
         assertThat(result).isNotNull();
         assertThat(result.getTmdbId()).isEqualTo(100);
         assertThat(result.getLastInteraction()).isNotNull();
 
         verify(contentRepository).findByTmdbId(100);
-        verify(tmdbService, never()).syncMovieFromTmdb(any());
+        verify(tmdbService, never()).detectContentType(any());
+        verify(contentRepository, never()).save(any()); // No save (cache hit)
     }
 
     @Test
     void getOrFetch_shouldFetchFromTmdb_whenContentDoesNotExist() {
         Content newContent = buildContent(1L, 100);
         
+        // Mock MultiSearch detect
+        MultiSearchResult multiResult = new MultiSearchResult();
+        SearchResult searchResult = new SearchResult();
+        searchResult.setId(100L);
+        searchResult.setMediaType("movie");
+        searchResult.setTitle("Shelter");
+        multiResult.setResults(List.of(searchResult));
+        
         when(contentRepository.findByTmdbId(100)).thenReturn(Optional.empty());
+        when(tmdbService.detectContentType(100)).thenReturn(multiResult);
         when(tmdbService.syncMovieFromTmdb(100)).thenReturn(newContent);
         when(contentRepository.save(any(Content.class))).thenAnswer(i -> i.getArgument(0));
 
-        Content result = contentService.getOrFetch(100, Content.ContentType.MOVIE);
+        Content result = contentService.getOrFetch(100);
 
         assertThat(result).isNotNull();
         assertThat(result.getTmdbId()).isEqualTo(100);
@@ -144,53 +159,75 @@ class ContentServiceTest {
         assertThat(result.getLastInteraction()).isNotNull();
 
         verify(contentRepository).findByTmdbId(100);
-        verify(tmdbService).syncMovieFromTmdb(100);
-        verify(contentRepository).save(any(Content.class));
+        verify(tmdbService).detectContentType(100);           // ✅ MultiSearch
+        verify(tmdbService).syncMovieFromTmdb(100);           // ✅ Details
+        verify(contentRepository).save(argThat(c -> c.getTmdbId().equals(100))); // ✅ Cache
     }
 
     @Test
-    void getOrFetch_shouldFetchTvShow_whenTypeIsTvShow() {
+    void getOrFetch_shouldFetchTvShow_whenTMDBDetectsTv() {
         Content tvShow = buildContent(1L, 200);
         tvShow.setContentType(Content.ContentType.TV);
 
+        MultiSearchResult multiResult = new MultiSearchResult();
+        SearchResult searchResult = new SearchResult();
+        searchResult.setId(200L);
+        searchResult.setMediaType("tv");  // ← TV detectado
+        searchResult.setName("Shogun");
+        multiResult.setResults(List.of(searchResult));
+        
         when(contentRepository.findByTmdbId(200)).thenReturn(Optional.empty());
+        when(tmdbService.detectContentType(200)).thenReturn(multiResult);
         when(tmdbService.syncTvShowFromTmdb(200)).thenReturn(tvShow);
         when(contentRepository.save(any(Content.class))).thenAnswer(i -> i.getArgument(0));
 
-        Content result = contentService.getOrFetch(200, Content.ContentType.TV);
+        Content result = contentService.getOrFetch(200);
 
         assertThat(result).isNotNull();
         assertThat(result.getContentType()).isEqualTo(Content.ContentType.TV);
 
-        verify(tmdbService).syncTvShowFromTmdb(200);
-        verify(tmdbService, never()).syncMovieFromTmdb(any());
+        verify(tmdbService).detectContentType(200);
+        verify(tmdbService).syncTvShowFromTmdb(200);        // ✅ TV path
+        verify(tmdbService, never()).syncMovieFromTmdb(any()); // ❌ NO movie
     }
 
     @Test
     void getOrFetch_shouldTriggerRefresh_whenContentIsStale() {
         Content staleContent = buildContent(1L, 100);
-        staleContent.setLastTmdbSync(LocalDateTime.now().minusDays(10)); // Stale (> 7 days)
+        staleContent.setLastTmdbSync(LocalDateTime.now().minusDays(10)); // Stale > TTL
 
         when(contentRepository.findByTmdbId(100)).thenReturn(Optional.of(staleContent));
 
-        Content result = contentService.getOrFetch(100, Content.ContentType.MOVIE);
+        Content result = contentService.getOrFetch(100);
 
         assertThat(result).isNotNull();
-        // refreshAsync se ejecuta de forma asíncrona, solo verificamos que se llamó
+        assertThat(result.getLastInteraction()).isAfterOrEqualTo(LocalDateTime.now().minusSeconds(1));
+        
+        // refreshAsync() asíncrono → verify eventual
         verify(contentRepository).findByTmdbId(100);
+        // No detect/sync (cache hit)
+        verify(tmdbService, never()).detectContentType(any());
     }
 
     @Test
     void getOrFetch_shouldTriggerRefresh_whenLastSyncIsNull() {
         Content content = buildContent(1L, 100);
-        content.setLastTmdbSync(null); // Nunca sincronizado
+        content.setLastTmdbSync(null); // Nunca sync
 
         when(contentRepository.findByTmdbId(100)).thenReturn(Optional.of(content));
 
-        Content result = contentService.getOrFetch(100, Content.ContentType.MOVIE);
+        Content result = contentService.getOrFetch(100);
 
         assertThat(result).isNotNull();
         verify(contentRepository).findByTmdbId(100);
+    }
+
+    @Test
+    void getOrFetch_shouldHandleDetectFailure() {
+        when(contentRepository.findByTmdbId(999)).thenReturn(Optional.empty());
+        when(tmdbService.detectContentType(999)).thenThrow(new RuntimeException("TMDB fail"));
+
+        assertThrows(RuntimeException.class, () -> contentService.getOrFetch(999));
     }
 
     // ---------- refreshAsync ----------

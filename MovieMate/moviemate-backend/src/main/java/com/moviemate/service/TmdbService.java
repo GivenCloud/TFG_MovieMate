@@ -1,5 +1,6 @@
 package com.moviemate.service;
 
+import com.moviemate.dto.tmdb.MultiSearchResult;
 import com.moviemate.dto.tmdb.TmdbMovieDetails;
 import com.moviemate.dto.tmdb.TmdbSearchResponse;
 import com.moviemate.dto.tmdb.TmdbTvDetails;
@@ -152,6 +153,23 @@ public class TmdbService {
         content.setTmdbVoteCount(response.getVote_count());
         content.setLastTmdbSync(LocalDate.now().atStartOfDay());
         return contentRepository.save(content);
+    }
+
+    
+    public MultiSearchResult detectContentType(Integer tmdbId) {
+        UriComponentsBuilder builder = buildTmdbUrl("/search/multi")
+            .queryParam("query", tmdbId)
+            .queryParam("language", language)
+            .queryParam("page", 1);
+        
+        String url = builder.build().toUriString();
+        
+        try {
+            return restTemplate.getForObject(url, MultiSearchResult.class);
+        } catch (Exception e) {
+            log.error("Error detectando tipo TMDB {}: {}", tmdbId, e.getMessage());
+            throw new RuntimeException("No se pudo detectar tipo de contenido");
+        }
     }
 
 

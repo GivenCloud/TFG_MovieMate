@@ -80,23 +80,22 @@ public class ListController {
             @org.springframework.web.bind.annotation.RequestBody AddToListRequest request) {
         User user = userDetails.getUser();
         com.moviemate.entity.Content content = contentService.getOrFetch(
-                request.getTmdbId().intValue(), 
-                request.getContentType()
+                request.getTmdbId().intValue()
         );
-        return ResponseEntity.ok(listService.addContentToList(user, listId, content.getId()));
+        return ResponseEntity.ok(listService.addContentToList(user, listId, content.getTmdbId()));
     }
 
     @Operation(
             summary = "Eliminar contenido de una lista",
             description = "Elimina un elemento asociado a una lista."
     )
-    @DeleteMapping("/{listId}/content/{contentId}")
+    @DeleteMapping("/{listId}/content/{tmdbId}")
     public ResponseEntity<Void> removeContentFromList(
             @AuthenticationPrincipal CustomUserDetails userDetails,
             @PathVariable Long listId,
-            @PathVariable Long contentId) {
+            @PathVariable Integer tmdbId) {
         User user = userDetails.getUser();
-        listService.removeContentFromList(user, listId, contentId);
+        listService.removeContentFromList(user, listId, tmdbId);
         return ResponseEntity.noContent().build();
     }
 

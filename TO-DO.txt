@@ -1,16 +1,5 @@
 Backend: 
-- Elimina o simplifica following-status devolviendo ese dato en el GET /api/users/{userId} o GET /api/users/{userId}/followers.
-
-
-- Hacer el test de este endpoint: Obtener valoraciones de un contenido
-
-Arreglar controlador content
-
-Hacer los test del resto de clases
-
-Añadir Docker y GitHub Actions
-
-Actualizar la memoria
+- Que se pueda actualizar una valoración
 
 
 Frontend:

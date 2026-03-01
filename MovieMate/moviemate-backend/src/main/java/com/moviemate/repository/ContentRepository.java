@@ -6,6 +6,7 @@ import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Optional;
 
 public interface ContentRepository extends JpaRepository<Content, Long> {
@@ -14,10 +15,12 @@ public interface ContentRepository extends JpaRepository<Content, Long> {
 
     @Modifying
     @Query("""
-    delete from Content c
-    where c.appVoteCount = 0
-    and c.lastInteraction < :threshold
-    """)
+        delete from Content c
+        where c.appVoteCount = 0
+        and c.lastInteraction < :threshold
+        """)
     void deleteUnused(LocalDateTime threshold);
 
+    @Query("SELECT c.id FROM Content c ORDER BY c.appVoteCount DESC")
+    List<Long> findTopViewedContentIds(int limit);
 }

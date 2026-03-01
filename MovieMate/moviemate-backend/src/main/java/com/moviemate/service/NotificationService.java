@@ -243,5 +243,9 @@ public class NotificationService {
         dto.setSenderUsername(user.getUsername());
         dto.setSenderAvatarUrl(user.getAvatarUrl());
     }
+
+    public int getUnreadCount(User user) {
+        return notificationRepository.countByUserAndReadFalse(user);
+    }
 }
 

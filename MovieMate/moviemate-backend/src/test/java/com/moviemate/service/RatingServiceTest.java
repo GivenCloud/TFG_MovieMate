@@ -45,7 +45,7 @@ class RatingServiceTest {
         RatingRequest request = buildRatingRequest();
 
         Content content = buildContent();
-        when(contentService.getOrFetch(request.getTmdbId().intValue(), request.getContentType()))
+        when(contentService.getOrFetch(request.getTmdbId()))
                 .thenReturn(content);
         when(ratingRepository.findByUserAndContent(user, content))
                 .thenReturn(Optional.empty());
@@ -82,11 +82,10 @@ class RatingServiceTest {
         assertThat(content.getAppRating()).isEqualTo(8.0);
         assertThat(content.getAppVoteCount()).isEqualTo(5);
 
-
         // verifica actualización de estadísticas
         verify(ratingRepository).calculateAverageRatingByContent(content.getId());
         verify(ratingRepository).countRatingsByContent(content.getId());
-        verify(contentRepository, times(1)).save(content);;
+        verify(contentRepository, times(1)).save(content);
     }
 
     @Test
@@ -95,7 +94,7 @@ class RatingServiceTest {
         RatingRequest request = buildRatingRequest();
 
         Content content = buildContent();
-        when(contentService.getOrFetch(request.getTmdbId().intValue(), request.getContentType()))
+        when(contentService.getOrFetch(request.getTmdbId()))
                 .thenReturn(content);
 
         Rating existing = new Rating();
@@ -134,7 +133,7 @@ class RatingServiceTest {
         RatingRequest request = buildRatingRequest();
         Content content = buildContent();
 
-        when(contentService.getOrFetch(anyInt(), any(Content.ContentType.class))).thenReturn(content);
+        when(contentService.getOrFetch(anyInt())).thenReturn(content);
         when(ratingRepository.findByUserAndContent(user, content)).thenReturn(Optional.empty());
 
         Rating saved = new Rating();
@@ -307,7 +306,7 @@ class RatingServiceTest {
     private Content buildContent() {
         Content c = new Content();
         c.setId(100L);
-        c.setTmdbId(999);
+        c.setTmdbId(1000);
         c.setTitle("Peli");
         c.setContentType(Content.ContentType.MOVIE);
         c.setReleaseDate(LocalDate.of(2020, 1, 1));
@@ -327,7 +326,7 @@ class RatingServiceTest {
 
     private RatingRequest buildRatingRequest() {
         RatingRequest req = new RatingRequest();
-        req.setTmdbId(999L);
+        req.setTmdbId(1000);
         req.setContentType(Content.ContentType.MOVIE);
         req.setRating(4);
         req.setReviewText("Muy buena");

@@ -11,7 +11,6 @@ import com.moviemate.exception.DuplicateListNameException;
 import com.moviemate.entity.Content;
 import com.moviemate.repository.ListRepository;
 import com.moviemate.repository.ListContentRepository;
-import com.moviemate.repository.ContentRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -24,7 +23,7 @@ public class ListService {
     
     private final ListRepository listRepository;
     private final ListContentRepository listContentRepository;
-    private final ContentRepository contentRepository;
+    private final ContentService contentService;
     
     @Transactional
     public ListResponse createList(User user, ListRequest request) {
@@ -52,7 +51,7 @@ public class ListService {
     }
     
     @Transactional
-    public ListResponse addContentToList(User user, Long listId, Long contentId) {
+    public ListResponse addContentToList(User user, Long listId, Integer tmdbId) {
         List list = listRepository.findById(listId)
             .orElseThrow(() -> new RuntimeException("Lista no encontrada"));
 
@@ -61,11 +60,7 @@ public class ListService {
             throw new RuntimeException("No tienes permisos para modificar esta lista");
         }
         
-        Content content = contentRepository.findById(contentId)
-            .orElseThrow(() -> new RuntimeException("Contenido no encontrado"));
-           
-        content.setLastInteraction(java.time.LocalDateTime.now());
-        contentRepository.save(content);    
+        Content content = contentService.getOrFetch(tmdbId);  
         
         // Verificar si el contenido ya está en la lista
         if (listContentRepository.existsByListAndContent(list, content)) {
@@ -83,7 +78,7 @@ public class ListService {
     }
     
     @Transactional
-    public void removeContentFromList(User user, Long listId, Long contentId) {
+    public void removeContentFromList(User user, Long listId, Integer tmdbId) {
         List list = listRepository.findById(listId)
             .orElseThrow(() -> new RuntimeException("Lista no encontrada"));
             
@@ -91,8 +86,7 @@ public class ListService {
             throw new RuntimeException("No tienes permisos para modificar esta lista");
         }
         
-        Content content = contentRepository.findById(contentId)
-            .orElseThrow(() -> new RuntimeException("Contenido no encontrado"));
+        Content content = contentService.getOrFetch(tmdbId);  
             
         ListContent listContent = listContentRepository.findByListAndContent(list, content)
             .orElseThrow(() -> new RuntimeException("El contenido no está en la lista"));

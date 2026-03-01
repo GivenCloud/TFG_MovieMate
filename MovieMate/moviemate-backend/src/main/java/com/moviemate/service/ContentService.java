@@ -9,6 +9,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.moviemate.dto.ContentResponse;
+import com.moviemate.dto.tmdb.MultiSearchResult;
+import com.moviemate.dto.tmdb.SearchResult;
 import com.moviemate.entity.Content;
 import com.moviemate.repository.ContentRepository;
 
@@ -21,8 +23,6 @@ public class ContentService {
 
     private final ContentRepository contentRepository;
     private final TmdbService tmdbService;
-
-    private static final int TTL_DAYS = 7;
 
     public ContentResponse getContentById(Long id) {
         Content content = contentRepository.findById(id)
@@ -42,26 +42,54 @@ public class ContentService {
                 .toList();
     }
 
-    @Transactional
-    public Content getOrFetch(Integer tmdbId, Content.ContentType type) {
-        Content content = contentRepository.findByTmdbId(tmdbId)
-                .orElseGet(() -> fetchFromTmdb(tmdbId, type));
+    @Transactional(readOnly = true)
+    public Content getOrFetch(Integer tmdbId) {
+        return contentRepository.findByTmdbId(tmdbId)
+            .map(content -> {
+                content.setLastInteraction(LocalDateTime.now());
+                if (isStale(content)) {
+                    refreshAsync(content.getId());
+                }
+                return content;
+            })
+            .orElseGet(() -> {
+                System.out.println("No encontrado en cache, fetching TMDB " + tmdbId);
+                MultiSearchResult result = tmdbService.detectContentType(tmdbId);
+                SearchResult match = result.getResults().stream()
+                    .filter(r -> r.getId().equals(tmdbId.longValue()))
+                    .findFirst()
+                    .orElseThrow(() -> new RuntimeException("Contenido no encontrado: " + tmdbId));
+                    
+                Content.ContentType type = switch (match.getMediaType()) {
+                    case "movie" -> Content.ContentType.MOVIE;
+                    case "tv" -> Content.ContentType.TV;
+                    default -> throw new RuntimeException("Tipo desconocido: " + match.getMediaType());
+                };
+                
+                Content newContent = fetchFromTmdb(tmdbId, type);
+                return newContent;
+            });
+    }
 
-        content.setLastInteraction(LocalDateTime.now());
 
-        if (isStale(content)) {
-            refreshAsync(content.getId());
-        }
 
-        return content;
+    private int getTtlDays(Content content) {
+        // Popular: 1 día
+        if (content.getAppVoteCount() > 50) return 1;
+        // Nueva: 3 días
+        if (content.getLastTmdbSync().isAfter(LocalDateTime.now().minusDays(7))) return 3;
+        // Resto: 14 días
+        return 14;
     }
 
     private boolean isStale(Content content) {
-        if (content.getLastTmdbSync() == null)
+        
+        if (content.getLastTmdbSync() == null) {
             return true;
-
-        return content.getLastTmdbSync()
-                .isBefore(LocalDateTime.now().minusDays(TTL_DAYS));
+        } else {
+            return content.getLastTmdbSync()
+                .isBefore(LocalDateTime.now().minusDays(getTtlDays(content)));
+        }
     }
 
     private Content fetchFromTmdb(Integer tmdbId, Content.ContentType type) {
