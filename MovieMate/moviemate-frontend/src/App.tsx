@@ -8,6 +8,7 @@ import DetailPage from './features/detail/DetailPage'
 import ProfilePage from './features/profile/ProfilePage'
 import ListsPage from './features/lists/ListsPage'
 import NotificationsPage from './features/notifications/NotificationsPage'
+import SettingsPage from './features/settings/SettingsPage'
 import LoginPage from './features/auth/LoginPage'
 import RegisterPage from './features/auth/RegisterPage'
 
@@ -70,6 +71,10 @@ export default function App() {
         <Route
           path="/notifications"
           element={<PrivateRoute><NotificationsPage /></PrivateRoute>}
+        />
+        <Route
+          path="/settings"
+          element={<PrivateRoute><SettingsPage /></PrivateRoute>}
         />
       </Route>
 
