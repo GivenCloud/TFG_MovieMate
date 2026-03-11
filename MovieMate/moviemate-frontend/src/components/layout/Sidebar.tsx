@@ -1,5 +1,6 @@
 import { NavLink, useNavigate } from 'react-router-dom'
 import { useAuthStore } from '../../store/authStore'
+import { useMyProfile } from '../../hooks/useAuth'
 import { useQuery } from '@tanstack/react-query'
 import { notificationsApi } from '../../api/notifications'
 import { queryKeys } from '../../lib/queryKeys'
@@ -11,12 +12,14 @@ const NAV_MAIN = [
   { to: '/activity',  icon: '📡', label: 'Actividad' },
 ]
 
-const NAV_PERSONAL = [
-  { to: '/ratings',   icon: '⭐', label: 'Valoraciones' },
-  { to: '/lists',     icon: '📋', label: 'Mis listas' },
-  { to: '/watchlist', icon: '🕐', label: 'Por ver' },
-  { to: '/favorites', icon: '❤️',  label: 'Favoritos' },
-]
+function getNavPersonal(username?: string) {
+  return [
+    { to: username ? `/profile/${username}` : '/', icon: '⭐', label: 'Valoraciones' },
+    { to: '/lists', icon: '📋', label: 'Mis listas' },
+    { to: '/lists', icon: '🕐', label: 'Por ver' },
+    { to: '/lists', icon: '❤️',  label: 'Favoritos' },
+  ]
+}
 
 function SidebarSection({ label, items }: { label: string; items: typeof NAV_MAIN }) {
   return (
@@ -49,6 +52,9 @@ function SidebarSection({ label, items }: { label: string; items: typeof NAV_MAI
 export default function Sidebar() {
   const { isAuthenticated, sessionUser } = useAuthStore()
   const navigate = useNavigate()
+  const { data: me } = useMyProfile()
+
+  const navPersonal = getNavPersonal(sessionUser?.username)
 
   const { data: unreadCount } = useQuery({
     queryKey: queryKeys.notifications.unreadCount(),
@@ -72,7 +78,7 @@ export default function Sidebar() {
 
       <nav className="flex-1 overflow-y-auto py-4 scrollbar-none">
         <SidebarSection label="Principal" items={NAV_MAIN} />
-        <SidebarSection label="Mi espacio" items={NAV_PERSONAL} />
+        <SidebarSection label="Mi espacio" items={navPersonal} />
 
         {/* Notificaciones con badge de no leídas */}
         <div className="px-3 mt-1">
@@ -102,8 +108,12 @@ export default function Sidebar() {
           className="px-4 py-3 border-t border-white/[0.06] flex items-center gap-2.5 cursor-pointer hover:bg-bg-2 transition-colors"
           onClick={() => navigate(`/profile/${sessionUser.username}`)}
         >
-          <div className="w-8 h-8 rounded-full bg-gradient-to-br from-accent to-pink-500 flex items-center justify-center text-xs font-bold text-bg-0 shrink-0">
-            {sessionUser.username.charAt(0).toUpperCase()}
+          <div className="w-8 h-8 rounded-full bg-gradient-to-br from-accent to-pink-500 flex items-center justify-center text-xs font-bold text-bg-0 shrink-0 overflow-hidden">
+            {me?.avatarUrl ? (
+              <img src={me.avatarUrl} alt={sessionUser.username} className="w-full h-full object-cover" />
+            ) : (
+              sessionUser.username.charAt(0).toUpperCase()
+            )}
           </div>
           <div className="min-w-0">
             <p className="text-sm text-white/90 truncate font-medium">{sessionUser.username}</p>

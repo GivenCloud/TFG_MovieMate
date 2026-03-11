@@ -225,9 +225,26 @@ queryClient.invalidateQueries({ queryKey: queryKeys.users.lists() })
 
 ## Pendiente para próximas sesiones
 
-1. **WebSocket tiempo real** — backend listo en `/ws` STOMP SockJS; notificaciones push sin polling
-2. **Sidebar links** — `/ratings`, `/watchlist`, `/favorites` redirigen a `/`; se podría redirigir a ProfilePage o ListsPage con filtro
-3. **Paginación en ReviewList** — actualmente sin paginar
+### Bugs / mejoras identificadas
+
+1. **Sidebar links rotos** — `/ratings`, `/watchlist`, `/favorites` redirigen a `/`.
+   - Solución propuesta: `/ratings` → `ProfilePage` del usuario actual; `/watchlist` y `/favorites` → `ListsPage` con filtro por nombre/tipo.
+   - Requiere pequeño cambio en `Sidebar.tsx` para leer el `username` del usuario actual.
+
+2. **Avatar en Topbar y Sidebar no se actualiza** — `Topbar.tsx` y el footer del `Sidebar.tsx` leen el avatar desde `sessionUser` (Zustand persist), pero `sessionUser` no se actualiza cuando se guarda un nuevo `avatarUrl` en SettingsPage.
+   - Solución: añadir `useMyProfile()` en `Topbar` / `Sidebar` y usar `me.avatarUrl` en vez de `sessionUser.avatarUrl`. La query ya está en caché, no supone coste extra.
+
+3. **Tabs "Valoraciones" y "Listas" vacías en perfiles ajenos** — el backend no expone `GET /users/:id/ratings` (solo `GET /users/me/ratings`). Las pestañas aparecen vacías para perfiles que no son el propio.
+   - Limitación de backend; requiere un nuevo endpoint o política de privacidad controlada. Baja prioridad para el TFG.
+
+4. **ListCard no navega** — las tarjetas de lista en `ListsPage` y en el tab "Listas" de `ProfilePage` no tienen `onClick`/`Link`.
+   - Solución: crear `ListDetailPage` (`/lists/:listId`) con los contenidos de la lista. Implica nuevo endpoint `GET /lists/:id/items` y nueva ruta.
+
+### Pendiente mayor
+
+5. **WebSocket tiempo real** — backend listo en `/ws` STOMP SockJS; notificaciones push sin polling. Requiere integrar `@stomp/stompjs` + `sockjs-client` en el cliente.
+
+6. **Paginación en ReviewList** — el backend devuelve `Page<T>` pero el frontend carga solo la primera página sin "Ver más".
 
 ---
 

@@ -428,7 +428,9 @@ export default function ProfilePage() {
               {lists.length > 0 ? (
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                   {lists.slice(0, 4).map((l) => (
-                    <ListCard key={l.id} list={l} />
+                    <Link key={l.id} to={`/lists/${l.id}`} state={{ list: l }} className="block">
+                      <ListCard list={l} />
+                    </Link>
                   ))}
                 </div>
               ) : (
@@ -476,7 +478,9 @@ export default function ProfilePage() {
               lists.length > 0 ? (
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                   {lists.map((l) => (
-                    <ListCard key={l.id} list={l} />
+                    <Link key={l.id} to={`/lists/${l.id}`} state={{ list: l }} className="block">
+                      <ListCard list={l} />
+                    </Link>
                   ))}
                 </div>
               ) : (

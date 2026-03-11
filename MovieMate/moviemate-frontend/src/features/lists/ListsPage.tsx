@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { Link } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { listsApi } from '../../api/lists'
 import { queryKeys } from '../../lib/queryKeys'
@@ -328,7 +329,9 @@ export default function ListsPage() {
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
               {filtered.map((list) => (
-                <ListCard key={list.id} list={list} />
+                <Link key={list.id} to={`/lists/${list.id}`} state={{ list }} className="block">
+                  <ListCard list={list} />
+                </Link>
               ))}
               {/* Tarjeta "Crear nueva lista" solo en la vista "Todas" */}
               {filter === 'all' && (

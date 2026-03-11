@@ -6,6 +6,10 @@ export const listsApi = {
   getMine: () =>
     apiClient.get<ListResponse[]>('/users/me/lists'),
 
+  // Lista por id — GET /api/lists/:id
+  getById: (listId: number) =>
+    apiClient.get<ListResponse>(`/lists/${listId}`),
+
   // Listas públicas — GET /api/lists/public
   getPublic: () =>
     apiClient.get<ListResponse[]>('/lists/public'),

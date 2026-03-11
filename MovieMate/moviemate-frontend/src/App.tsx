@@ -7,6 +7,7 @@ import DiscoverPage from './features/discover/DiscoverPage'
 import DetailPage from './features/detail/DetailPage'
 import ProfilePage from './features/profile/ProfilePage'
 import ListsPage from './features/lists/ListsPage'
+import ListDetailPage from './features/lists/ListDetailPage'
 import NotificationsPage from './features/notifications/NotificationsPage'
 import SettingsPage from './features/settings/SettingsPage'
 import ActivityPage from './features/activity/ActivityPage'
@@ -70,6 +71,7 @@ export default function App() {
           path="/lists"
           element={<PrivateRoute><ListsPage /></PrivateRoute>}
         />
+        <Route path="/lists/:listId" element={<ListDetailPage />} />
         <Route
           path="/notifications"
           element={<PrivateRoute><NotificationsPage /></PrivateRoute>}

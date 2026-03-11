@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { useLogout } from '../../hooks/useAuth'
+import { useLogout, useMyProfile } from '../../hooks/useAuth'
 import { useAuthStore } from '../../store/authStore'
 import {
   DropdownMenu,
@@ -15,6 +15,7 @@ export default function Topbar() {
   const navigate = useNavigate()
   const logout = useLogout()
   const { isAuthenticated, sessionUser } = useAuthStore()
+  const { data: me } = useMyProfile()
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault()
@@ -51,10 +52,14 @@ export default function Topbar() {
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <button
-                  className="w-8 h-8 rounded-full bg-gradient-to-br from-accent to-pink-500 flex items-center justify-center text-xs font-bold text-bg-0 hover:ring-2 hover:ring-accent/40 transition-all"
+                  className="w-8 h-8 rounded-full bg-gradient-to-br from-accent to-pink-500 flex items-center justify-center text-xs font-bold text-bg-0 hover:ring-2 hover:ring-accent/40 transition-all overflow-hidden"
                   aria-label="Menú de usuario"
                 >
-                  {sessionUser.username.charAt(0).toUpperCase()}
+                  {me?.avatarUrl ? (
+                    <img src={me.avatarUrl} alt={sessionUser.username} className="w-full h-full object-cover" />
+                  ) : (
+                    sessionUser.username.charAt(0).toUpperCase()
+                  )}
                 </button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-44 bg-bg-2 border-white/10 text-white">

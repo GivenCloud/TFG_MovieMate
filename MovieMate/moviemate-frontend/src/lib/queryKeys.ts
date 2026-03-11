@@ -41,6 +41,7 @@ export const queryKeys = {
   lists: {
     mine:   () => ['lists', 'mine'] as const,
     public: () => ['lists', 'public'] as const,
+    detail: (id: number) => ['lists', id] as const,
   },
   // Notificaciones
   notifications: {
