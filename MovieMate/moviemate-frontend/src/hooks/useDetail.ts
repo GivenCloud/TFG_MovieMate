@@ -9,7 +9,7 @@ import type { ContentResponse, RatingRequest } from '@/types'
 export function useSyncContent(
   tmdbId: number,
   contentType: 'MOVIE' | 'TV',
-  enabled: boolean           // false si ya tenemos el content en state
+  enabled: boolean
 ) {
   return useQuery({
     queryKey: queryKeys.tmdb.sync(tmdbId, contentType),
@@ -23,13 +23,25 @@ export function useSyncContent(
   })
 }
 
-// Reseñas del contenido (necesita el contentId de BD)
+// Reseñas del contenido (por contentId de BD)
 export function useReviews(contentId: number | undefined) {
   return useQuery({
     queryKey: queryKeys.ratings.byContent(contentId!),
     queryFn: () => ratingsApi.getByContent(contentId!),
     select: (res) => res.data,
     enabled: !!contentId,
+    staleTime: 1000 * 60 * 2,
+  })
+}
+
+// Valoración del usuario autenticado para este contenido concreto
+// Filtra del array de mis ratings usando el contentId de BD
+export function useMyRatingForContent(contentId: number | undefined, enabled: boolean) {
+  return useQuery({
+    queryKey: queryKeys.users.ratings(),
+    queryFn: () => ratingsApi.getMine().then((r) => r.data),
+    select: (ratings) => ratings.find((r) => r.content.id === contentId),
+    enabled: enabled && !!contentId,
     staleTime: 1000 * 60 * 2,
   })
 }
@@ -46,7 +58,6 @@ export function useCreateRating(content: ContentResponse) {
         contentType: content.contentType,
       }),
     onSuccess: () => {
-      // Invalida las reseñas del contenido y mis ratings
       if (content.id) {
         queryClient.invalidateQueries({ queryKey: queryKeys.ratings.byContent(content.id) })
       }
@@ -55,6 +66,39 @@ export function useCreateRating(content: ContentResponse) {
     },
     onError: (err: any) => {
       toast.error(err?.response?.data?.message || 'Error al guardar la valoración')
+    },
+  })
+}
+
+// Eliminar valoración
+export function useDeleteRating(contentId: number | undefined) {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: (ratingId: number) => ratingsApi.delete(ratingId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.users.ratings() })
+      if (contentId) {
+        queryClient.invalidateQueries({ queryKey: queryKeys.ratings.byContent(contentId) })
+      }
+      toast.success('Valoración eliminada')
+    },
+    onError: (err: any) => {
+      toast.error(err?.response?.data?.message || 'Error al eliminar la valoración')
+    },
+  })
+}
+
+// Toggle like en una reseña
+export function useToggleLike(ratingId: number, contentId: number | undefined) {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: () => ratingsApi.toggleLike(ratingId),
+    onSuccess: () => {
+      if (contentId) {
+        queryClient.invalidateQueries({ queryKey: queryKeys.ratings.byContent(contentId) })
+      }
     },
   })
 }

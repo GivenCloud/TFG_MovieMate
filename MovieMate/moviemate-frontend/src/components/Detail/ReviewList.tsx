@@ -1,6 +1,7 @@
-import { useReviews } from '@/hooks/useDetail'
+import { useReviews, useToggleLike } from '@/hooks/useDetail'
+import { useAuthStore } from '@/store/authStore'
 import { formatDate } from '@/lib/utils'
-import type { ContentResponse } from '@/types'
+import type { ContentResponse, RatingResponse } from '@/types'
 
 const TAG_LABELS: Record<string, string> = {
   INCREIBLE:     '🤩 Increíble',
@@ -8,6 +9,39 @@ const TAG_LABELS: Record<string, string> = {
   ENTRETENIDA:   '😊 Entretenida',
   REGULAR:       '😐 Regular',
   DECEPCIONANTE: '😞 Decepcionante',
+}
+
+// ── Botón de like por reseña ─────────────────────────────────
+function LikeButton({
+  review,
+  contentId,
+}: {
+  review: RatingResponse
+  contentId: number | undefined
+}) {
+  const { isAuthenticated } = useAuthStore()
+  const { mutate: toggleLike, isPending } = useToggleLike(review.id, contentId)
+
+  const likesCount = review.likesCount ?? 0
+  const isLiked = review.likedByCurrentUser ?? false
+
+  return (
+    <button
+      onClick={() => isAuthenticated && toggleLike()}
+      disabled={isPending || !isAuthenticated}
+      title={!isAuthenticated ? 'Inicia sesión para dar me gusta' : undefined}
+      className={`flex items-center gap-1 text-xs rounded-lg px-2 py-1 transition-colors disabled:cursor-default
+        ${isLiked
+          ? 'text-red-400 bg-red-500/10 hover:bg-red-500/15'
+          : isAuthenticated
+            ? 'text-muted hover:text-white hover:bg-white/[0.06]'
+            : 'text-muted/40'
+        }`}
+    >
+      <span>{isLiked ? '❤️' : '🤍'}</span>
+      {likesCount > 0 && <span className="font-mono">{likesCount}</span>}
+    </button>
+  )
 }
 
 interface Props {
@@ -53,24 +87,36 @@ export default function ReviewList({ content }: Props) {
           <div className="flex items-start justify-between gap-3 mb-3">
             <div className="flex items-center gap-2.5">
               {/* Avatar */}
-              <div className="w-8 h-8 rounded-full bg-gradient-to-br from-accent to-pink-500 flex items-center justify-center text-xs font-bold text-bg-0 shrink-0">
-                {review.user.username.charAt(0).toUpperCase()}
+              <div className="w-8 h-8 rounded-full bg-gradient-to-br from-accent to-pink-500 flex items-center justify-center text-xs font-bold text-bg-0 shrink-0 overflow-hidden">
+                {review.user.avatarUrl ? (
+                  <img
+                    src={review.user.avatarUrl}
+                    alt={review.user.username}
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  review.user.username.charAt(0).toUpperCase()
+                )}
               </div>
               <div>
                 <p className="text-sm font-semibold text-white/90">{review.user.username}</p>
                 <p className="text-xs text-muted">{formatDate(review.createdAt)}</p>
               </div>
             </div>
-            {/* Puntuación */}
-            <div className="flex items-center gap-0.5 shrink-0">
-              {[1, 2, 3, 4, 5].map((n) => (
-                <span
-                  key={n}
-                  className={`text-xs ${n <= review.rating ? 'text-yellow-400' : 'text-white/15'}`}
-                >
-                  ★
-                </span>
-              ))}
+
+            {/* Puntuación + like */}
+            <div className="flex items-center gap-2 shrink-0">
+              <div className="flex items-center gap-0.5">
+                {[1, 2, 3, 4, 5].map((n) => (
+                  <span
+                    key={n}
+                    className={`text-xs ${n <= review.rating ? 'text-yellow-400' : 'text-white/15'}`}
+                  >
+                    ★
+                  </span>
+                ))}
+              </div>
+              <LikeButton review={review} contentId={content.id} />
             </div>
           </div>
 

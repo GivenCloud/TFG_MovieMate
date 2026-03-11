@@ -129,6 +129,8 @@ export interface RatingResponse {
   createdAt: string
   user: UserResponse
   content: ContentResponse
+  likesCount?: number
+  likedByCurrentUser?: boolean
 }
 
 // ─── Listas ────────────────────────────────────────────────────
