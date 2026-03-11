@@ -104,7 +104,7 @@ export default function PosterCard({ content, userRating }: Props) {
         <div className="absolute bottom-1.5 left-2 flex items-center gap-1 text-yellow-400 text-[0.65rem] font-mono font-semibold">
           ⭐ {content.appRating > 0
             ? content.appRating.toFixed(1)
-            : content.tmdbRating.toFixed(1)}
+            : (content.tmdbRating?.toFixed(1) ?? '—')}
         </div>
 
         {/* Badge de tipo */}
@@ -137,7 +137,7 @@ export default function PosterCard({ content, userRating }: Props) {
       </p>
       <p className="text-[0.65rem] text-muted font-mono">
         {content.releaseDate ? new Date(content.releaseDate).getFullYear() : '—'}
-        {content.genres[0] ? ` · ${content.genres[0]}` : ''}
+        {content.genres?.[0] ? ` · ${content.genres[0]}` : ''}
       </p>
 
       {userRating != null && (

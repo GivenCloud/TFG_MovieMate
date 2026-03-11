@@ -47,7 +47,9 @@ export default function HomePage() {
 
   const isLoading = loadingMovies || loadingTv
   const featured: ContentResponse | undefined = popularMovies?.[0]
-  const rest = [...(popularMovies?.slice(1) ?? []), ...(popularTv ?? [])]
+  const rest = [...(popularMovies?.slice(1) ?? []), ...(popularTv ?? [])].filter(
+    (item) => item.tmdbId && item.contentType
+  )
 
   const featuredUrl = featured
     ? (() => {
@@ -109,10 +111,10 @@ export default function HomePage() {
               </h1>
               <div className="flex items-center gap-2.5 text-sm text-white/70 mb-5 flex-wrap">
                 <span className="flex items-center gap-1 bg-yellow-400/15 text-yellow-400 font-bold text-xs px-2 py-0.5 rounded">
-                  ⭐ {featured.tmdbRating.toFixed(1)}
+                  ⭐ {featured.tmdbRating?.toFixed(1) ?? '—'}
                 </span>
                 <span className="text-white/30">·</span>
-                <span>{new Date(featured.releaseDate).getFullYear()}</span>
+                <span>{featured.releaseDate ? new Date(featured.releaseDate).getFullYear() : '—'}</span>
                 <span className="text-white/30">·</span>
                 <span>{featured.contentType === 'MOVIE' ? 'Película' : 'Serie'}</span>
               </div>
@@ -163,7 +165,7 @@ export default function HomePage() {
         <div className="flex gap-3.5 overflow-x-auto scrollbar-none pb-1">
           {isLoading
             ? Array.from({ length: 7 }).map((_, i) => <PosterSkeleton key={i} />)
-            : rest.map((item) => <PosterCard key={item.id} content={item} />)
+            : rest.map((item) => <PosterCard key={`${item.tmdbId}-${item.contentType}`} content={item} />)
           }
         </div>
       </section>
