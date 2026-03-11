@@ -10,6 +10,7 @@ import com.moviemate.service.ListService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
@@ -105,8 +106,11 @@ public class ListController {
     )
     @GetMapping("/public")
     public ResponseEntity<List<ListResponse>> getPublicLists(
-                @AuthenticationPrincipal CustomUserDetails userDetails) {
-        User user = userDetails.getUser();
-        return ResponseEntity.ok(listService.getPublicLists(user.getId()));
+                Authentication authentication) {
+        Long userId = null;
+        if (authentication != null && authentication.isAuthenticated() && authentication.getPrincipal() instanceof CustomUserDetails userDetails) {
+            userId = userDetails.getUser().getId();
+        }
+        return ResponseEntity.ok(listService.getPublicLists(userId));
     }
 }
