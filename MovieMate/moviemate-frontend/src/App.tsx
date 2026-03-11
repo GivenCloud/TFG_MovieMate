@@ -8,6 +8,7 @@ import DetailPage from './features/detail/DetailPage'
 import ProfilePage from './features/profile/ProfilePage'
 import ListsPage from './features/lists/ListsPage'
 import ListDetailPage from './features/lists/ListDetailPage'
+import SpecialListPage from './features/lists/SpecialListPage'
 import NotificationsPage from './features/notifications/NotificationsPage'
 import SettingsPage from './features/settings/SettingsPage'
 import ActivityPage from './features/activity/ActivityPage'
@@ -72,6 +73,14 @@ export default function App() {
           element={<PrivateRoute><ListsPage /></PrivateRoute>}
         />
         <Route path="/lists/:listId" element={<ListDetailPage />} />
+        <Route
+          path="/watchlist"
+          element={<PrivateRoute><SpecialListPage listType="WATCHLIST" /></PrivateRoute>}
+        />
+        <Route
+          path="/favorites"
+          element={<PrivateRoute><SpecialListPage listType="FAVORITES" /></PrivateRoute>}
+        />
         <Route
           path="/notifications"
           element={<PrivateRoute><NotificationsPage /></PrivateRoute>}

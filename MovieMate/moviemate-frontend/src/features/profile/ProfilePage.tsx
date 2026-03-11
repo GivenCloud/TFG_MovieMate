@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { useParams, Link } from 'react-router-dom'
+import { useParams, Link, useSearchParams } from 'react-router-dom'
 import { useAuthStore } from '../../store/authStore'
 import {
   useUserByUsername,
@@ -237,7 +237,10 @@ export default function ProfilePage() {
   const { sessionUser, isAuthenticated } = useAuthStore()
 
   const isOwnProfile = isAuthenticated && sessionUser?.username === username
-  const [activeTab, setActiveTab] = useState<TabId>('activity')
+  const [searchParams] = useSearchParams()
+  const [activeTab, setActiveTab] = useState<TabId>(
+    (searchParams.get('tab') as TabId | null) ?? 'activity'
+  )
   const [editOpen, setEditOpen] = useState(false)
 
   // ── Datos ────────────────────────────────────────────────

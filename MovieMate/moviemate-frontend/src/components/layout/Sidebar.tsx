@@ -14,10 +14,10 @@ const NAV_MAIN = [
 
 function getNavPersonal(username?: string) {
   return [
-    { to: username ? `/profile/${username}` : '/', icon: '⭐', label: 'Valoraciones' },
-    { to: '/lists', icon: '📋', label: 'Mis listas' },
-    { to: '/lists', icon: '🕐', label: 'Por ver' },
-    { to: '/lists', icon: '❤️',  label: 'Favoritos' },
+    { to: username ? `/profile/${username}?tab=ratings` : '/', icon: '⭐', label: 'Valoraciones' },
+    { to: '/lists',     icon: '📋', label: 'Mis listas' },
+    { to: '/watchlist', icon: '🕐', label: 'Por ver' },
+    { to: '/favorites', icon: '❤️',  label: 'Favoritos' },
   ]
 }
 

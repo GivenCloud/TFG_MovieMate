@@ -1,7 +1,7 @@
 # MovieMate — Progreso del Frontend
 
 Resumen de todo lo implementado en el frontend durante el desarrollo del TFG.
-Actualizado: 2026-03-11
+Actualizado: 2026-03-12
 
 ---
 
@@ -22,6 +22,10 @@ Actualizado: 2026-03-11
 | Frontend — Hero CTAs conectados | ✅ Completo |
 | Frontend — SettingsPage | ✅ Completo |
 | Frontend — ActivityPage/Feed | ✅ Completo |
+| Frontend — Sidebar links + avatar en layout | ✅ Completo |
+| Frontend — ListDetailPage | ✅ Completo |
+| Frontend — WatchlistPage / FavoritesPage | ✅ Completo |
+| Frontend — ProfilePage deep-link por tab | ✅ Completo |
 | Frontend — WebSocket tiempo real | ❌ Pendiente |
 
 ---
@@ -36,13 +40,17 @@ Actualizado: 2026-03-11
 /content/:contentType/:tmdbId/:slug → DetailPage (pública)
 /profile/:username                  → ProfilePage (pública)
 /lists                              → ListsPage (PrivateRoute)
+/lists/:listId                      → ListDetailPage (pública)
+/watchlist                          → SpecialListPage WATCHLIST (PrivateRoute)
+/favorites                          → SpecialListPage FAVORITES (PrivateRoute)
 /notifications                      → NotificationsPage (PrivateRoute)
 ```
 
-Rutas en Sidebar que redirigen a `/` (sin página propia aún):
-- `/ratings` — mis valoraciones (podría ir en ProfilePage tab)
-- `/watchlist` — lista de "por ver" (podría ir en ListsPage filtrada)
-- `/favorites` — lista de favoritos (podría ir en ListsPage filtrada)
+Sidebar — "Mi espacio" (todas las rutas resueltas):
+- `⭐ Valoraciones` → `/profile/:username?tab=ratings` — abre la pestaña de valoraciones directamente
+- `📋 Mis listas` → `/lists` — todas las listas
+- `🕐 Por ver` → `/watchlist` — página dedicada con la lista WATCHLIST
+- `❤️ Favoritos` → `/favorites` — página dedicada con la lista FAVORITES
 
 ---
 
@@ -57,7 +65,10 @@ Rutas en Sidebar que redirigen a `/` (sin página propia aún):
 ### Layout
 - `src/components/layout/Layout.tsx` — Outlet con Sidebar + Topbar
 - `src/components/layout/Sidebar.tsx` — navegación + badge notificaciones no leídas
+  - Links "Mi espacio" resueltos (ratings → perfil, watchlist/favorites → /lists)
+  - Avatar del footer usa `useMyProfile().avatarUrl` — se actualiza al guardar en Settings
 - `src/components/layout/Topbar.tsx` — búsqueda + avatar + dropdown usuario
+  - Avatar del dropdown usa `useMyProfile().avatarUrl` — reactivo a cambios en Settings
 
 ### HomePage
 - `src/features/home/HomePage.tsx`
@@ -112,11 +123,25 @@ Rutas en Sidebar que redirigen a `/` (sin página propia aún):
   - Optimistic update en markAsRead
   - Acciones: Seguir/Siguiendo, Aceptar/Rechazar solicitud
 
-### ListsPage
+### ListsPage + ListDetailPage + SpecialListPage
 - `src/features/lists/ListsPage.tsx`
   - Filtros: Todas/Públicas/Privadas/Películas/Series
   - Mosaico 2×2 de posters por lista
   - Dialog crear lista: nombre + descripción + toggle público/privado
+  - `ListCard` envuelta con `<Link to="/lists/:id" state={{ list }}>` — navegación a detalle
+- `src/features/lists/ListDetailPage.tsx`
+  - Ruta: `/lists/:listId` (pública)
+  - `placeholderData` con `location.state.list` — carga instantánea al venir de ListCard
+  - Siempre re-fetchea la versión fresca del servidor
+  - Header: icono del tipo, nombre, descripción, enlace al autor, nº títulos, visibilidad
+  - Grid de `PosterCard`; si es el dueño: botón `×` al hover para eliminar de la lista
+  - `listsApi.getById(id)` + `queryKeys.lists.detail(id)`
+- `src/features/lists/SpecialListPage.tsx`
+  - Ruta: `/watchlist` y `/favorites` (ambas PrivateRoute)
+  - Recibe `listType: 'WATCHLIST' | 'FAVORITES'` como prop
+  - Reutiliza `queryKeys.users.lists()` (ya cacheado) y filtra por `listType`
+  - Mismo grid con botón `×` para eliminar — siempre es el propio usuario el dueño
+  - Título, subtítulo y estado vacío específicos por tipo
 
 ### Shared components
 - `src/components/shared/PosterCard.tsx` — dropdown lazy "+ Lista", cierre fuera, toast
@@ -227,18 +252,13 @@ queryClient.invalidateQueries({ queryKey: queryKeys.users.lists() })
 
 ### Bugs / mejoras identificadas
 
-1. **Sidebar links rotos** — `/ratings`, `/watchlist`, `/favorites` redirigen a `/`.
-   - Solución propuesta: `/ratings` → `ProfilePage` del usuario actual; `/watchlist` y `/favorites` → `ListsPage` con filtro por nombre/tipo.
-   - Requiere pequeño cambio en `Sidebar.tsx` para leer el `username` del usuario actual.
+1. ~~**Sidebar links rotos**~~ ✅ — rutas dedicadas para cada sección: `?tab=ratings`, `/watchlist`, `/favorites`
 
-2. **Avatar en Topbar y Sidebar no se actualiza** — `Topbar.tsx` y el footer del `Sidebar.tsx` leen el avatar desde `sessionUser` (Zustand persist), pero `sessionUser` no se actualiza cuando se guarda un nuevo `avatarUrl` en SettingsPage.
-   - Solución: añadir `useMyProfile()` en `Topbar` / `Sidebar` y usar `me.avatarUrl` en vez de `sessionUser.avatarUrl`. La query ya está en caché, no supone coste extra.
+2. ~~**Avatar en Topbar y Sidebar no se actualiza**~~ ✅ — `Topbar` y `Sidebar` usan `useMyProfile().avatarUrl`; se actualiza automáticamente al guardar en Settings
 
-3. **Tabs "Valoraciones" y "Listas" vacías en perfiles ajenos** — el backend no expone `GET /users/:id/ratings` (solo `GET /users/me/ratings`). Las pestañas aparecen vacías para perfiles que no son el propio.
-   - Limitación de backend; requiere un nuevo endpoint o política de privacidad controlada. Baja prioridad para el TFG.
+3. **Tabs "Valoraciones" y "Listas" vacías en perfiles ajenos** — limitación de backend (`GET /users/:id/ratings` no existe). Baja prioridad para el TFG.
 
-4. **ListCard no navega** — las tarjetas de lista en `ListsPage` y en el tab "Listas" de `ProfilePage` no tienen `onClick`/`Link`.
-   - Solución: crear `ListDetailPage` (`/lists/:listId`) con los contenidos de la lista. Implica nuevo endpoint `GET /lists/:id/items` y nueva ruta.
+4. ~~**ListCard no navega**~~ ✅ — `ListDetailPage` creada en `/lists/:listId`; ListCard envuelta con Link en ListsPage y ProfilePage
 
 ### Pendiente mayor
 
@@ -261,3 +281,4 @@ feat/frontend-pages
 | `@feat: completar DetailPage con edicion de valoracion, likes y guards de auth` | RatingWidget edit/delete, ReviewList likes, useDetail hooks nuevos |
 | `@feat: añadir SettingsPage con edicion de perfil, privacidad y cierre de sesion` | SettingsPage completa |
 | `@feat: añadir ActivityPage con feed global y personal` | ActivityPage, ruta /activity |
+| `@feat: arreglar sidebar links y avatar, añadir paginas de lista` | Sidebar/Topbar avatar reactivo, ListDetailPage, SpecialListPage watchlist/favorites, ProfilePage tab deep-link |
