@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useParams, Link, useSearchParams } from 'react-router-dom'
 import { useAuthStore } from '../../store/authStore'
 import {
@@ -242,6 +242,12 @@ export default function ProfilePage() {
     (searchParams.get('tab') as TabId | null) ?? 'activity'
   )
   const [editOpen, setEditOpen] = useState(false)
+
+  // Sincroniza el tab si el usuario navega al mismo perfil con distinto ?tab=
+  useEffect(() => {
+    const tab = searchParams.get('tab') as TabId | null
+    if (tab) setActiveTab(tab)
+  }, [searchParams])
 
   // ── Datos ────────────────────────────────────────────────
   const userQuery    = useUserByUsername(username)

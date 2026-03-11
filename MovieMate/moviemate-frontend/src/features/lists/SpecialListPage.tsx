@@ -59,7 +59,10 @@ export default function SpecialListPage({ listType }: { listType: SpecialListTyp
   const list = lists.find((l) => l.listType === listType)
 
   const { mutate: removeContent, isPending: isRemoving } = useMutation({
-    mutationFn: (tmdbId: number) => listsApi.removeContent(list!.id, tmdbId),
+    mutationFn: (tmdbId: number) => {
+      if (!list) return Promise.reject(new Error('Lista no disponible'))
+      return listsApi.removeContent(list.id, tmdbId)
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.users.lists() })
       queryClient.invalidateQueries({ queryKey: queryKeys.lists.mine() })

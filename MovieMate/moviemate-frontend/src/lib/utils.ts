@@ -47,7 +47,8 @@ export function timeAgo(isoString: string): string {
 
 // Genera un slug URL-friendly a partir del título
 // "The Dark Knight" → "the-dark-knight"
-export function toSlug(title: string): string | null {
+export function toSlug(title: string | null | undefined): string | null {
+  if (!title) return null
   const slug = title
     .toLowerCase()
     .normalize('NFD')

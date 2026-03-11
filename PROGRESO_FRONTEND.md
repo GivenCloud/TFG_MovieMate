@@ -260,11 +260,19 @@ queryClient.invalidateQueries({ queryKey: queryKeys.users.lists() })
 
 4. ~~**ListCard no navega**~~ ✅ — `ListDetailPage` creada en `/lists/:listId`; ListCard envuelta con Link en ListsPage y ProfilePage
 
+### Bugs corregidos (revisión de código)
+
+- ~~`toSlug(undefined)` crash en HomePage~~ ✅ — `utils.ts` acepta ahora `string | null | undefined`
+- ~~`activeTab` no se actualizaba al navegar al mismo perfil con distinto `?tab=`~~ ✅ — `useEffect` sincroniza searchParams → estado
+- ~~`list!.id` non-null assertion inseguro en `SpecialListPage`~~ ✅ — guard explícito con `Promise.reject`
+
 ### Pendiente mayor
 
-5. **WebSocket tiempo real** — backend listo en `/ws` STOMP SockJS; notificaciones push sin polling. Requiere integrar `@stomp/stompjs` + `sockjs-client` en el cliente.
+1. **WebSocket tiempo real** — backend listo en `/ws` STOMP SockJS; notificaciones push sin polling. Requiere integrar `@stomp/stompjs` + `sockjs-client` en el cliente.
 
-6. **Paginación en ReviewList** — el backend devuelve `Page<T>` pero el frontend carga solo la primera página sin "Ver más".
+2. **Paginación en ReviewList** — el backend devuelve `Page<T>` pero el frontend carga solo la primera página sin "Ver más".
+
+3. **Tabs "Valoraciones" y "Listas" en perfiles ajenos** — limitación de backend (`GET /users/:id/ratings` no existe). Baja prioridad para el TFG.
 
 ---
 
@@ -282,3 +290,4 @@ feat/frontend-pages
 | `@feat: añadir SettingsPage con edicion de perfil, privacidad y cierre de sesion` | SettingsPage completa |
 | `@feat: añadir ActivityPage con feed global y personal` | ActivityPage, ruta /activity |
 | `@feat: arreglar sidebar links y avatar, añadir paginas de lista` | Sidebar/Topbar avatar reactivo, ListDetailPage, SpecialListPage watchlist/favorites, ProfilePage tab deep-link |
+| `@fix: corregir toSlug con titulo undefined, tab deep-link en ProfilePage y mutacion segura en SpecialListPage` | 3 bugs corregidos tras revisión de código |
