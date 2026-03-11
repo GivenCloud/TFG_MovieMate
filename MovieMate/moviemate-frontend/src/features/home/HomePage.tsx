@@ -1,7 +1,11 @@
 import { useQuery } from '@tanstack/react-query'
+import { useNavigate } from 'react-router-dom'
 import { tmdbApi } from '../../api/tmdb'
 import { queryKeys } from '../../lib/queryKeys'
+import { toSlug } from '../../lib/utils'
+import { useAuthStore } from '../../store/authStore'
 import PosterCard from '@/components/shared/PosterdCard'
+import AddToListButton from '@/components/Detail/AddToListButton'
 import type { ContentResponse } from '../../types'
 
 function PosterSkeleton() {
@@ -24,6 +28,9 @@ function HeroSkeleton() {
 }
 
 export default function HomePage() {
+  const navigate = useNavigate()
+  const { isAuthenticated } = useAuthStore()
+
   const { data: popularMovies, isLoading: loadingMovies } = useQuery({
     queryKey: queryKeys.tmdb.popularMovies(),
     queryFn: () => tmdbApi.getPopularMovies(),
@@ -41,6 +48,15 @@ export default function HomePage() {
   const isLoading = loadingMovies || loadingTv
   const featured: ContentResponse | undefined = popularMovies?.[0]
   const rest = [...(popularMovies?.slice(1) ?? []), ...(popularTv ?? [])]
+
+  const featuredUrl = featured
+    ? (() => {
+        const slug = toSlug(featured.title)
+        return slug
+          ? `/content/${featured.contentType}/${featured.tmdbId}/${slug}`
+          : `/content/${featured.contentType}/${featured.tmdbId}`
+      })()
+    : null
 
   return (
     <div className="pb-10">
@@ -105,14 +121,31 @@ export default function HomePage() {
             <HeroSkeleton />
           )}
 
-          <div className="flex gap-2.5 flex-wrap">
-            <button className="bg-accent hover:bg-accent-light text-bg-0 font-semibold text-sm px-4 py-2 rounded-xl transition-all hover:-translate-y-0.5 hover:shadow-lg hover:shadow-accent/20">
-              + Añadir a lista
-            </button>
-            <button className="bg-white/8 hover:bg-white/[0.14] border border-white/10 text-white font-medium text-sm px-4 py-2 rounded-xl transition-colors">
+          <div className="flex gap-2.5 flex-wrap items-center">
+            {featured && (
+              isAuthenticated
+                ? <AddToListButton content={featured} />
+                : (
+                  <button
+                    onClick={() => navigate('/login')}
+                    className="flex items-center gap-2 bg-white/[0.08] hover:bg-white/[0.14] border border-white/[0.1] text-white font-medium text-sm px-5 py-2.5 rounded-xl transition-colors"
+                  >
+                    📋 Añadir a lista
+                  </button>
+                )
+            )}
+            <button
+              onClick={() => featuredUrl && navigate(featuredUrl, { state: { content: featured } })}
+              disabled={!featuredUrl}
+              className="bg-white/8 hover:bg-white/[0.14] border border-white/10 text-white font-medium text-sm px-4 py-2 rounded-xl transition-colors disabled:opacity-50"
+            >
               ⭐ Valorar
             </button>
-            <button className="bg-transparent hover:bg-white/6 border border-white/10 text-white/70 font-medium text-sm px-4 py-2 rounded-xl transition-colors">
+            <button
+              onClick={() => featuredUrl && navigate(featuredUrl, { state: { content: featured } })}
+              disabled={!featuredUrl}
+              className="bg-transparent hover:bg-white/6 border border-white/10 text-white/70 font-medium text-sm px-4 py-2 rounded-xl transition-colors disabled:opacity-50"
+            >
               Ver ficha →
             </button>
           </div>

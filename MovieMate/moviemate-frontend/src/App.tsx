@@ -6,7 +6,7 @@ import HomePage from './features/home/HomePage'
 import DiscoverPage from './features/discover/DiscoverPage'
 import DetailPage from './features/detail/DetailPage'
 import ProfilePage from './features/profile/ProfilePage'
-// import ListsPage from './features/lists/ListsPage'
+import ListsPage from './features/lists/ListsPage'
 import NotificationsPage from './features/notifications/NotificationsPage'
 import LoginPage from './features/auth/LoginPage'
 import RegisterPage from './features/auth/RegisterPage'
@@ -63,10 +63,10 @@ export default function App() {
         <Route path="/profile/:username" element={<ProfilePage />} />
 
         {/* Requieren login */}
-        {/* <Route
+        <Route
           path="/lists"
           element={<PrivateRoute><ListsPage /></PrivateRoute>}
-        /> */}
+        />
         <Route
           path="/notifications"
           element={<PrivateRoute><NotificationsPage /></PrivateRoute>}
