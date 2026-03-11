@@ -5,11 +5,11 @@ import Layout from './components/layout/Layout'
 import HomePage from './features/home/HomePage'
 import DiscoverPage from './features/discover/DiscoverPage'
 import DetailPage from './features/detail/DetailPage'
-// import ProfilePage from './features/profile/ProfilePage'
+import ProfilePage from './features/profile/ProfilePage'
 // import ListsPage from './features/lists/ListsPage'
-// import NotificationsPage from './features/notifications/NotificationsPage'
+import NotificationsPage from './features/notifications/NotificationsPage'
 import LoginPage from './features/auth/LoginPage'
-// import RegisterPage from './features/auth/RegisterPage'
+import RegisterPage from './features/auth/RegisterPage'
 
 // Protege rutas que requieren autenticación.
 // Muestra un spinner mientras Zustand se inicializa desde localStorage
@@ -53,24 +53,24 @@ export default function App() {
     <Routes>
       {/* Rutas públicas — sin sidebar ni topbar */}
       <Route path="/login" element={<LoginPage />} />
-      {/* <Route path="/register" element={<RegisterPage />} /> */}
+      <Route path="/register" element={<RegisterPage />} />
 
       {/* Rutas con layout (sidebar + topbar) */}
       <Route element={<Layout />}>
         <Route path="/" element={<HomePage />} />
         <Route path="/discover" element={<DiscoverPage />} />
         <Route path="/content/:contentType/:tmdbId/:slug?" element={<DetailPage />} />
-        {/* <Route path="/profile/:username" element={<ProfilePage />} /> */}
+        <Route path="/profile/:username" element={<ProfilePage />} />
 
         {/* Requieren login */}
         {/* <Route
           path="/lists"
           element={<PrivateRoute><ListsPage /></PrivateRoute>}
         /> */}
-        {/* <Route
+        <Route
           path="/notifications"
           element={<PrivateRoute><NotificationsPage /></PrivateRoute>}
-        /> */}
+        />
       </Route>
 
       {/* Ruta desconocida → inicio */}
