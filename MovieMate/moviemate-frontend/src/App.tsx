@@ -9,6 +9,7 @@ import ProfilePage from './features/profile/ProfilePage'
 import ListsPage from './features/lists/ListsPage'
 import NotificationsPage from './features/notifications/NotificationsPage'
 import SettingsPage from './features/settings/SettingsPage'
+import ActivityPage from './features/activity/ActivityPage'
 import LoginPage from './features/auth/LoginPage'
 import RegisterPage from './features/auth/RegisterPage'
 
@@ -62,6 +63,7 @@ export default function App() {
         <Route path="/discover" element={<DiscoverPage />} />
         <Route path="/content/:contentType/:tmdbId/:slug?" element={<DetailPage />} />
         <Route path="/profile/:username" element={<ProfilePage />} />
+        <Route path="/activity" element={<ActivityPage />} />
 
         {/* Requieren login */}
         <Route

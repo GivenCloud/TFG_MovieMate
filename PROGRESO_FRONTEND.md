@@ -20,8 +20,8 @@ Actualizado: 2026-03-11
 | Frontend — ListsPage | ✅ Completo |
 | Frontend — PosterCard interactivo | ✅ Completo |
 | Frontend — Hero CTAs conectados | ✅ Completo |
-| Frontend — SettingsPage | ❌ Pendiente |
-| Frontend — ActivityPage/Feed | ❌ Pendiente |
+| Frontend — SettingsPage | ✅ Completo |
+| Frontend — ActivityPage/Feed | ✅ Completo |
 | Frontend — WebSocket tiempo real | ❌ Pendiente |
 
 ---
@@ -203,13 +203,31 @@ queryClient.invalidateQueries({ queryKey: queryKeys.users.lists() })
 
 ---
 
+### SettingsPage
+- `src/features/settings/SettingsPage.tsx`
+  - Sección "Perfil público": avatar URL con preview en tiempo real (maneja error de carga) + bio con contador
+  - Sección "Privacidad": toggle público/privado (guarda inmediatamente con toast)
+  - Sección "Cuenta": username, email, fecha de registro (readonly con badge)
+  - Sección "Zona de peligro": cerrar sesión con confirmación en dos pasos
+  - Usa `useMyProfile()` para cargar datos, `useUpdateProfile()` + `usersApi.updatePublicStatus()` para guardar
+
+### ActivityPage
+- `src/features/activity/ActivityPage.tsx`
+  - Dos tabs: "Para ti" (feed personal, lazy) y "Global"; "Para ti" solo visible si autenticado
+  - Paginación "Ver más": re-fetcha con `size` creciente (0..20..40...) sin infinite scroll
+  - `ActivityItem`: renderizado diferente por tipo vía switch
+  - `RATING_*`: card con poster mini, estrellas, tag emocional, extracto de reseña, enlaza a DetailPage
+  - `LIST_*`: texto con nombre de lista
+  - `FOLLOW`: enlaza al perfil del targetUser
+  - Avatar con link al perfil; `key` compuesto (ActivityResponse no tiene id)
+
+---
+
 ## Pendiente para próximas sesiones
 
-1. **SettingsPage** (`/settings`) — cambiar contraseña, toggle perfil público/privado, danger zone
-2. **ActivityPage/Feed** — feed personal (seguidos) + feed global; API en `activityApi` ya lista
-3. **WebSocket tiempo real** — backend listo en `/ws` STOMP SockJS; notificaciones push sin polling
-4. **Sidebar links** — `/ratings`, `/watchlist`, `/favorites` redirigen a `/`; se puede redirigir a ProfilePage o ListsPage con filtro
-5. **Paginación** en ReviewList y feed (backend devuelve `Page<T>`)
+1. **WebSocket tiempo real** — backend listo en `/ws` STOMP SockJS; notificaciones push sin polling
+2. **Sidebar links** — `/ratings`, `/watchlist`, `/favorites` redirigen a `/`; se podría redirigir a ProfilePage o ListsPage con filtro
+3. **Paginación en ReviewList** — actualmente sin paginar
 
 ---
 
@@ -224,3 +242,5 @@ feat/frontend-pages
 | `@feat: añadir RegisterPage, ProfilePage y NotificationsPage al frontend` | Las tres páginas + hooks |
 | `@feat: añadir ListsPage y conectar botones interactivos del frontend` | ListsPage, PosterCard dropdown, hero CTAs, rutas activas |
 | `@feat: completar DetailPage con edicion de valoracion, likes y guards de auth` | RatingWidget edit/delete, ReviewList likes, useDetail hooks nuevos |
+| `@feat: añadir SettingsPage con edicion de perfil, privacidad y cierre de sesion` | SettingsPage completa |
+| `@feat: añadir ActivityPage con feed global y personal` | ActivityPage, ruta /activity |
