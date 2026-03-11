@@ -1,4 +1,4 @@
-import PosterCard from './shared/PosterdCard'
+import PosterCard from '../shared/PosterdCard'
 import type { ContentResponse } from '@/types'
 
 interface Props {

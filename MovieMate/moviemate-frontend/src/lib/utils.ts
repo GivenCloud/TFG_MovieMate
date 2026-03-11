@@ -44,3 +44,25 @@ export function timeAgo(isoString: string): string {
   }
   return 'ahora mismo'
 }
+
+// Genera un slug URL-friendly a partir del título
+// "The Dark Knight" → "the-dark-knight"
+export function toSlug(title: string): string | null {
+  const slug = title
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/[^a-z0-9\s-]/g, ' ')
+    .trim()
+    .replace(/\s+/g, '-')
+    .replace(/-+/g, '-')
+    .replace(/^-|-$/g, '')
+
+  // Mínimo 2 caracteres para considerar el slug válido
+  return slug.length >= 2 ? slug : null
+}
+
+// Extrae el año de una fecha ISO
+export function getYear(dateStr: string): string {
+  return dateStr ? new Date(dateStr).getFullYear().toString() : '—'
+}

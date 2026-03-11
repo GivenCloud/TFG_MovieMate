@@ -155,7 +155,6 @@ export interface ListResponse {
 
 export interface AddToListRequest {
   tmdbId: number
-  contentType: ContentType
 }
 
 // ─── Seguimiento ───────────────────────────────────────────────

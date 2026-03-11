@@ -42,8 +42,6 @@ export default function HomePage() {
   const featured: ContentResponse | undefined = popularMovies?.[0]
   const rest = [...(popularMovies?.slice(1) ?? []), ...(popularTv ?? [])]
 
-  console.log('Featured:', featured)
-
   return (
     <div className="pb-10">
       {/* ── HERO  ── */}

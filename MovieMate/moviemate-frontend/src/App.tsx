@@ -4,7 +4,7 @@ import { useAuthStore } from './store/authStore'
 import Layout from './components/layout/Layout'
 import HomePage from './features/home/HomePage'
 import DiscoverPage from './features/discover/DiscoverPage'
-// import DetailPage from './features/detail/DetailPage'
+import DetailPage from './features/detail/DetailPage'
 // import ProfilePage from './features/profile/ProfilePage'
 // import ListsPage from './features/lists/ListsPage'
 // import NotificationsPage from './features/notifications/NotificationsPage'
@@ -59,8 +59,8 @@ export default function App() {
       <Route element={<Layout />}>
         <Route path="/" element={<HomePage />} />
         <Route path="/discover" element={<DiscoverPage />} />
-        {/* <Route path="/content/:id" element={<DetailPage />} />
-        <Route path="/profile/:username" element={<ProfilePage />} /> */}
+        <Route path="/content/:contentType/:tmdbId/:slug?" element={<DetailPage />} />
+        {/* <Route path="/profile/:username" element={<ProfilePage />} /> */}
 
         {/* Requieren login */}
         {/* <Route

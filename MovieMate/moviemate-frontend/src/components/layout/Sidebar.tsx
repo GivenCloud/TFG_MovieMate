@@ -55,7 +55,7 @@ export default function Sidebar() {
     queryFn: () => notificationsApi.getUnreadCount(),
     enabled: isAuthenticated,
     refetchInterval: 60_000,
-    select: (res) => res.data.count,
+    select: (res) => res.data,
   })
 
   return (

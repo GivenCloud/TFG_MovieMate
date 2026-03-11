@@ -17,7 +17,7 @@ export const listsApi = {
   addContent: (listId: number, data: AddToListRequest) =>
     apiClient.post<ListResponse>(`/lists/${listId}/content`, data),
 
-  // Eliminar contenido — DELETE /api/lists/{listId}/content/{contentId}
-  removeContent: (listId: number, contentId: number) =>
-    apiClient.delete(`/lists/${listId}/content/${contentId}`),
+  // Eliminar contenido — DELETE /api/lists/{listId}/content/{tmdbId}
+  removeContent: (listId: number, tmdbId: number) =>
+    apiClient.delete(`/lists/${listId}/content/${tmdbId}`),
 }
