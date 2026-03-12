@@ -25,9 +25,9 @@ function ListDetailSkeleton() {
         <div className="h-4 bg-bg-3 rounded w-72" />
         <div className="h-3 bg-bg-3 rounded w-40 mt-2" />
       </div>
-      <div className="px-6 py-6 grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-4">
+      <div className="px-4 lg:px-6 py-6 flex flex-wrap gap-3">
         {[1, 2, 3, 4, 5, 6].map((i) => (
-          <div key={i} className="aspect-[2/3] bg-bg-3 rounded-xl" />
+          <div key={i} className="w-36 aspect-[2/3] bg-bg-3 rounded-xl" />
         ))}
       </div>
     </div>
@@ -82,12 +82,10 @@ export default function ListDetailPage() {
   return (
     <div className="pb-12">
       {/* Cabecera */}
-      <div className="px-6 py-5 border-b border-white/[0.06]">
-        <div className="flex items-start justify-between gap-4 mb-1.5">
-          <div className="flex items-center gap-2">
-            <span className="text-xl">{cfg.icon}</span>
-            <h1 className="font-display font-bold italic text-2xl">{list.name}</h1>
-          </div>
+      <div className="px-4 lg:px-6 py-5 border-b border-white/[0.06]">
+        <div className="flex items-center gap-4 mb-1.5">
+          <span className="text-xl shrink-0">{cfg.icon}</span>
+          <h1 className="font-display font-bold italic text-2xl">{list.name}</h1>
           {isOwner && (
             <button
               onClick={() => setAddDialogOpen(true)}
@@ -121,7 +119,7 @@ export default function ListDetailPage() {
       </div>
 
       {/* Grid de contenidos */}
-      <div className="px-6 py-6">
+      <div className="px-4 lg:px-6 py-6">
         {list.contents.length === 0 ? (
           <EmptyState
             icon="🎬"
@@ -133,9 +131,9 @@ export default function ListDetailPage() {
             }
           />
         ) : (
-          <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-7 gap-4">
+          <div className="flex flex-wrap gap-3">
             {list.contents.map((content) => (
-              <div key={content.id} className="relative group w-fit">
+              <div key={content.id} className="relative group">
                 <PosterCard content={content} />
                 {isOwner && (
                   <button
