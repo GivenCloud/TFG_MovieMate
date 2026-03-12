@@ -82,7 +82,8 @@ public class SecurityConfig {
                                  "/api/users/username/**",
                                  "/api/ratings/{ratingId:[0-9]+}/likes",
                                  "/api/tmdb/tv/**",
-                                 "/api/tmdb/movies/**"
+                                 "/api/tmdb/movies/**",
+                                 "/ws/**"
                 ).permitAll()
                 .anyRequest().authenticated()
             )

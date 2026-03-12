@@ -1,7 +1,10 @@
+import { useState } from 'react'
 import { useReviews, useToggleLike } from '@/hooks/useDetail'
 import { useAuthStore } from '@/store/authStore'
 import { formatDate } from '@/lib/utils'
 import type { ContentResponse, RatingResponse } from '@/types'
+
+const PAGE_SIZE = 5
 
 const TAG_LABELS: Record<string, string> = {
   INCREIBLE:     '🤩 Increíble',
@@ -44,12 +47,75 @@ function LikeButton({
   )
 }
 
+// ── Tarjeta de reseña ────────────────────────────────────────
+function ReviewCard({
+  review,
+  contentId,
+}: {
+  review: RatingResponse
+  contentId: number | undefined
+}) {
+  return (
+    <div className="bg-bg-2 border border-white/[0.06] rounded-xl p-4">
+      <div className="flex items-start justify-between gap-3 mb-3">
+        <div className="flex items-center gap-2.5">
+          {/* Avatar */}
+          <div className="w-8 h-8 rounded-full bg-gradient-to-br from-accent to-pink-500 flex items-center justify-center text-xs font-bold text-bg-0 shrink-0 overflow-hidden">
+            {review.user.avatarUrl ? (
+              <img
+                src={review.user.avatarUrl}
+                alt={review.user.username}
+                className="w-full h-full object-cover"
+              />
+            ) : (
+              review.user.username.charAt(0).toUpperCase()
+            )}
+          </div>
+          <div>
+            <p className="text-sm font-semibold text-white/90">{review.user.username}</p>
+            <p className="text-xs text-muted">{formatDate(review.createdAt)}</p>
+          </div>
+        </div>
+
+        {/* Puntuación + like */}
+        <div className="flex items-center gap-2 shrink-0">
+          <div className="flex items-center gap-0.5">
+            {[1, 2, 3, 4, 5].map((n) => (
+              <span
+                key={n}
+                className={`text-xs ${n <= review.rating ? 'text-yellow-400' : 'text-white/15'}`}
+              >
+                ★
+              </span>
+            ))}
+          </div>
+          <LikeButton review={review} contentId={contentId} />
+        </div>
+      </div>
+
+      {/* Tag emocional */}
+      {review.emotionalTag && (
+        <span className="inline-block text-xs font-medium bg-accent/10 text-accent border border-accent/20 px-2 py-0.5 rounded-full mb-2">
+          {TAG_LABELS[review.emotionalTag] ?? review.emotionalTag}
+        </span>
+      )}
+
+      {/* Texto de reseña */}
+      {review.reviewText && (
+        <p className="text-sm text-white/70 leading-relaxed">{review.reviewText}</p>
+      )}
+    </div>
+  )
+}
+
+// ── Componente principal ─────────────────────────────────────
 interface Props {
   content: ContentResponse
 }
 
 export default function ReviewList({ content }: Props) {
   const { data: reviews, isLoading } = useReviews(content.id)
+  const [visibleCount, setVisibleCount] = useState(PAGE_SIZE)
 
   if (isLoading) {
     return (
@@ -80,59 +146,26 @@ export default function ReviewList({ content }: Props) {
     )
   }
 
+  const visible = reviews.slice(0, visibleCount)
+  const hasMore = visibleCount < reviews.length
+  const remaining = reviews.length - visibleCount
+
   return (
     <div className="space-y-4">
-      {reviews.map((review) => (
-        <div key={review.id} className="bg-bg-2 border border-white/[0.06] rounded-xl p-4">
-          <div className="flex items-start justify-between gap-3 mb-3">
-            <div className="flex items-center gap-2.5">
-              {/* Avatar */}
-              <div className="w-8 h-8 rounded-full bg-gradient-to-br from-accent to-pink-500 flex items-center justify-center text-xs font-bold text-bg-0 shrink-0 overflow-hidden">
-                {review.user.avatarUrl ? (
-                  <img
-                    src={review.user.avatarUrl}
-                    alt={review.user.username}
-                    className="w-full h-full object-cover"
-                  />
-                ) : (
-                  review.user.username.charAt(0).toUpperCase()
-                )}
-              </div>
-              <div>
-                <p className="text-sm font-semibold text-white/90">{review.user.username}</p>
-                <p className="text-xs text-muted">{formatDate(review.createdAt)}</p>
-              </div>
-            </div>
-
-            {/* Puntuación + like */}
-            <div className="flex items-center gap-2 shrink-0">
-              <div className="flex items-center gap-0.5">
-                {[1, 2, 3, 4, 5].map((n) => (
-                  <span
-                    key={n}
-                    className={`text-xs ${n <= review.rating ? 'text-yellow-400' : 'text-white/15'}`}
-                  >
-                    ★
-                  </span>
-                ))}
-              </div>
-              <LikeButton review={review} contentId={content.id} />
-            </div>
-          </div>
-
-          {/* Tag emocional */}
-          {review.emotionalTag && (
-            <span className="inline-block text-xs font-medium bg-accent/10 text-accent border border-accent/20 px-2 py-0.5 rounded-full mb-2">
-              {TAG_LABELS[review.emotionalTag] ?? review.emotionalTag}
-            </span>
-          )}
-
-          {/* Texto de reseña */}
-          {review.reviewText && (
-            <p className="text-sm text-white/70 leading-relaxed">{review.reviewText}</p>
-          )}
-        </div>
+      {visible.map((review) => (
+        <ReviewCard key={review.id} review={review} contentId={content.id} />
       ))}
+
+      {/* Botón "Ver más" */}
+      {hasMore && (
+        <button
+          onClick={() => setVisibleCount((c) => c + PAGE_SIZE)}
+          className="w-full py-2.5 text-sm text-muted hover:text-white border border-white/[0.08] hover:border-white/[0.15] rounded-xl transition-colors"
+        >
+          Ver {Math.min(remaining, PAGE_SIZE)} más
+          <span className="text-xs text-muted/60 ml-1">({remaining} restantes)</span>
+        </button>
+      )}
     </div>
   )
 }

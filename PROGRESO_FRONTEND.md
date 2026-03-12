@@ -26,7 +26,8 @@ Actualizado: 2026-03-12
 | Frontend — ListDetailPage | ✅ Completo |
 | Frontend — WatchlistPage / FavoritesPage | ✅ Completo |
 | Frontend — ProfilePage deep-link por tab | ✅ Completo |
-| Frontend — WebSocket tiempo real | ❌ Pendiente |
+| Frontend — WebSocket tiempo real | ✅ Completo |
+| Frontend — Paginación ReviewList | ✅ Completo |
 
 ---
 
@@ -228,6 +229,26 @@ queryClient.invalidateQueries({ queryKey: queryKeys.users.lists() })
 
 ---
 
+### WebSocket — notificaciones tiempo real ⭐ NUEVO
+- `src/hooks/useWebSocket.ts`
+  - Conecta al broker STOMP SockJS en `/ws` (URL derivada de `VITE_API_BASE_URL`)
+  - Pasa JWT en `connectHeaders: { Authorization: Bearer <token> }` del CONNECT frame
+  - `reconnectDelay: 5000` — reconexión automática en caso de caída
+  - Suscripción a `/user/queue/notifications` (canal privado por usuario)
+  - Al recibir notificación: prepende a `queryKeys.users.notifications()` + invalida `queryKeys.notifications.unreadCount()`
+  - Solo se activa cuando `isAuthenticated && !!token`
+- `src/components/layout/Layout.tsx` — llama `useWebSocket()` (se monta una sola vez con el layout)
+- Backend — `WebSocketAuthInterceptor.java` (`@Component`) lee JWT del STOMP CONNECT frame y asigna el principal a la sesión WebSocket
+- Backend — `WebSocketConfig.java` registra el interceptor en `configureClientInboundChannel`
+- Backend — `SecurityConfig.java` permite `/ws/**` en `permitAll()` (SockJS necesita el handshake HTTP sin auth previa)
+
+### ReviewList con paginación ⭐ NUEVO
+- `src/components/Detail/ReviewList.tsx`
+  - Muestra `PAGE_SIZE = 5` reseñas inicialmente
+  - Estado `visibleCount` crecer de 5 en 5 al pulsar "Ver más"
+  - El botón muestra cuántas quedan: "Ver N más (M restantes)"
+  - Al resetear el contenido (nueva página), `visibleCount` vuelve a 5 automáticamente
+
 ### SettingsPage
 - `src/features/settings/SettingsPage.tsx`
   - Sección "Perfil público": avatar URL con preview en tiempo real (maneja error de carga) + bio con contador
@@ -268,9 +289,9 @@ queryClient.invalidateQueries({ queryKey: queryKeys.users.lists() })
 
 ### Pendiente mayor
 
-1. **WebSocket tiempo real** — backend listo en `/ws` STOMP SockJS; notificaciones push sin polling. Requiere integrar `@stomp/stompjs` + `sockjs-client` en el cliente.
+1. ~~**WebSocket tiempo real**~~ ✅ — `@stomp/stompjs` + `sockjs-client` integrados. `useWebSocket` en `Layout.tsx` conecta al broker, suscribe a `/user/queue/notifications`, prepende la notificación al cache y refresca el badge automáticamente. Backend: `WebSocketAuthInterceptor` valida el JWT del frame CONNECT, `/ws/**` en permitAll.
 
-2. **Paginación en ReviewList** — el backend devuelve `Page<T>` pero el frontend carga solo la primera página sin "Ver más".
+2. ~~**Paginación en ReviewList**~~ ✅ — Paginación cliente de 5 en 5 con botón "Ver más" que muestra los restantes. El backend devuelve lista plana; no requiere cambios de API.
 
 3. **Tabs "Valoraciones" y "Listas" en perfiles ajenos** — limitación de backend (`GET /users/:id/ratings` no existe). Baja prioridad para el TFG.
 
@@ -291,3 +312,4 @@ feat/frontend-pages
 | `@feat: añadir ActivityPage con feed global y personal` | ActivityPage, ruta /activity |
 | `@feat: arreglar sidebar links y avatar, añadir paginas de lista` | Sidebar/Topbar avatar reactivo, ListDetailPage, SpecialListPage watchlist/favorites, ProfilePage tab deep-link |
 | `@fix: corregir toSlug con titulo undefined, tab deep-link en ProfilePage y mutacion segura en SpecialListPage` | 3 bugs corregidos tras revisión de código |
+| `@feat: integrar WebSocket STOMP para notificaciones en tiempo real y paginacion en ReviewList` | useWebSocket hook, Layout integración, backend WebSocketAuthInterceptor, ReviewList "Ver más" |
