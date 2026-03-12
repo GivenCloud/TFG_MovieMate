@@ -29,6 +29,7 @@ Registradas el 2026-03-12. Marcar con ✅ conforme se vayan completando.
 | M7 | ✅ | **Logo "MovieMate" del sidebar clicable** — el icono 🎬 + texto "MovieMate" en la parte superior del sidebar debe ser un `<Link to="/">` para volver al inicio. | `Sidebar.tsx` |
 | M8 | ✅ | **HomePage: más secciones de contenido** — añadir más carruseles además de "Populares ahora". Ideas: "Mejor valorados", "Tendencias esta semana", "Series populares", "Películas recientes". Cada sección es un carrusel horizontal independiente. | `HomePage.tsx`, `useDiscover.ts` o nuevo `useHome.ts` |
 | M9 | ✅ | **Mezclar películas y series en carruseles y búsqueda** — actualmente los carruseles del home y la búsqueda muestran primero películas y luego series. Deben estar mezclados (por popularidad/relevancia sin separar por tipo). Afecta a: carrusel del home, resultados de búsqueda en `DiscoverPage`. | `HomePage.tsx`, `DiscoverPage.tsx`, `useDiscover.ts`, posiblemente ajuste en backend TMDB API |
+| M10 | ⬜ | **Logo MovieMate en Sidebar al mismo alto que la Topbar** — el icono 🎬 + texto "MovieMate" en la parte superior del sidebar no coincide en altura con la Topbar (`h-13` = 52px). Ajustar: bien ampliar la zona de marca en el sidebar para que tenga `h-13`, bien reducir el tamaño del icono para que encaje sin necesitar más espacio. | `Sidebar.tsx`, `Topbar.tsx` |
 
 ---
 

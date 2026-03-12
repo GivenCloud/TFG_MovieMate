@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { toast } from 'sonner'
 import { listsApi } from '../../api/lists'
 import { queryKeys } from '../../lib/queryKeys'
 import EmptyState from '../../components/shared/EmptyState'
@@ -76,6 +77,179 @@ function ListCard({ list }: { list: ListResponse }) {
         </div>
       </div>
     </div>
+  )
+}
+
+// ── Dialog: editar lista ─────────────────────────────────────
+function EditListDialog({
+  list,
+  onClose,
+}: {
+  list: ListResponse
+  onClose: () => void
+}) {
+  const queryClient = useQueryClient()
+  const [name, setName] = useState(list.name)
+  const [description, setDescription] = useState(list.description ?? '')
+  const [isPublic, setIsPublic] = useState(list.isPublic)
+  const [nameError, setNameError] = useState('')
+
+  const update = useMutation({
+    mutationFn: () =>
+      listsApi.updateList(list.id, {
+        name: name.trim(),
+        description: description.trim() || undefined,
+        isPublic,
+      }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.users.lists() })
+      toast.success('Lista actualizada')
+      onClose()
+    },
+    onError: (err: any) => {
+      setNameError(err?.response?.data?.message ?? 'No se pudo actualizar la lista.')
+    },
+  })
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!name.trim()) { setNameError('El nombre es obligatorio.'); return }
+    if (name.trim().length < 2) { setNameError('Mínimo 2 caracteres.'); return }
+    setNameError('')
+    update.mutate()
+  }
+
+  return (
+    <Dialog open onOpenChange={(v) => !v && onClose()}>
+      <DialogContent className="bg-bg-1 border-white/[0.1] text-white max-w-md">
+        <DialogHeader>
+          <DialogTitle className="font-display font-bold italic text-xl">Editar lista</DialogTitle>
+        </DialogHeader>
+
+        <form onSubmit={handleSubmit} className="space-y-4 mt-2">
+          <div>
+            <label className="block font-mono text-xs text-muted tracking-wider uppercase mb-1.5">
+              Nombre
+            </label>
+            <input
+              type="text"
+              required
+              maxLength={80}
+              value={name}
+              onChange={(e) => { setName(e.target.value); setNameError('') }}
+              className={`w-full bg-bg-2 border rounded-xl px-3.5 py-2.5 text-sm text-white placeholder:text-muted outline-none transition-all
+                ${nameError
+                  ? 'border-red-500/60 focus:border-red-500/80 focus:ring-2 focus:ring-red-500/10'
+                  : 'border-white/[0.1] focus:border-accent/50 focus:ring-2 focus:ring-accent/10'
+                }`}
+            />
+            {nameError && <p className="text-xs text-red-400 mt-1.5">{nameError}</p>}
+          </div>
+
+          <div>
+            <label className="block font-mono text-xs text-muted tracking-wider uppercase mb-1.5">
+              Descripción <span className="normal-case">(opcional)</span>
+            </label>
+            <textarea
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              maxLength={300}
+              rows={2}
+              placeholder="Describe tu lista..."
+              className="w-full bg-bg-2 border border-white/[0.1] rounded-xl px-3.5 py-2.5 text-sm text-white placeholder:text-muted outline-none focus:border-accent/50 focus:ring-2 focus:ring-accent/10 transition-all resize-none"
+            />
+          </div>
+
+          <div className="flex items-center justify-between bg-bg-2 border border-white/[0.06] rounded-xl px-4 py-3">
+            <div>
+              <p className="text-sm font-medium text-white/90">
+                {isPublic ? '🔓 Lista pública' : '🔒 Lista privada'}
+              </p>
+              <p className="text-xs text-muted mt-0.5">
+                {isPublic ? 'Otros usuarios pueden ver esta lista.' : 'Solo tú puedes ver esta lista.'}
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={() => setIsPublic((v) => !v)}
+              className={`relative w-11 h-6 rounded-full transition-colors shrink-0
+                ${isPublic ? 'bg-accent' : 'bg-bg-3 border border-white/[0.1]'}`}
+            >
+              <span
+                className={`absolute top-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform
+                  ${isPublic ? 'translate-x-5' : 'translate-x-0.5'}`}
+              />
+            </button>
+          </div>
+
+          <DialogFooter>
+            <button
+              type="button"
+              onClick={onClose}
+              className="px-4 py-2 text-sm text-muted hover:text-white border border-white/[0.1] rounded-xl transition-colors"
+            >
+              Cancelar
+            </button>
+            <button
+              type="submit"
+              disabled={update.isPending}
+              className="px-4 py-2 text-sm font-semibold bg-accent hover:bg-accent-light text-bg-0 rounded-xl disabled:opacity-60 transition-colors"
+            >
+              {update.isPending ? 'Guardando…' : 'Guardar'}
+            </button>
+          </DialogFooter>
+        </form>
+      </DialogContent>
+    </Dialog>
+  )
+}
+
+// ── Tarjeta de lista propia (con botones edit/delete en CUSTOM) ──
+function MyListCard({ list }: { list: ListResponse }) {
+  const [editOpen, setEditOpen] = useState(false)
+  const queryClient = useQueryClient()
+
+  const deleteMutation = useMutation({
+    mutationFn: () => listsApi.deleteList(list.id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.users.lists() })
+      toast.success('Lista eliminada')
+    },
+    onError: (err: any) => {
+      toast.error(err?.response?.data?.message ?? 'No se pudo eliminar la lista.')
+    },
+  })
+
+  const isCustom = list.listType === 'CUSTOM'
+
+  return (
+    <>
+      <div className="relative group">
+        <Link to={`/lists/${list.id}`} state={{ list }} className="block">
+          <ListCard list={list} />
+        </Link>
+        {isCustom && (
+          <div className="absolute top-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity z-10">
+            <button
+              onClick={(e) => { e.preventDefault(); e.stopPropagation(); setEditOpen(true) }}
+              className="w-7 h-7 bg-bg-0/80 hover:bg-accent text-white hover:text-bg-0 rounded-lg flex items-center justify-center text-xs transition-colors"
+              title="Editar lista"
+            >
+              ✏
+            </button>
+            <button
+              onClick={(e) => { e.preventDefault(); e.stopPropagation(); deleteMutation.mutate() }}
+              disabled={deleteMutation.isPending}
+              className="w-7 h-7 bg-bg-0/80 hover:bg-red-500 text-white rounded-lg flex items-center justify-center text-sm font-bold transition-colors disabled:opacity-50"
+              title="Eliminar lista"
+            >
+              ×
+            </button>
+          </div>
+        )}
+      </div>
+      {editOpen && <EditListDialog list={list} onClose={() => setEditOpen(false)} />}
+    </>
   )
 }
 
@@ -360,9 +534,7 @@ export default function ListsPage() {
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
               {filtered.map((list) => (
-                <Link key={list.id} to={`/lists/${list.id}`} state={{ list }} className="block">
-                  <ListCard list={list} />
-                </Link>
+                <MyListCard key={list.id} list={list} />
               ))}
               {filter === 'all' && (
                 <CreateListCard onClick={() => setCreateOpen(true)} />

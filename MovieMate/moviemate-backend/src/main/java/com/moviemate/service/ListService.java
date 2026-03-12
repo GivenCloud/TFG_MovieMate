@@ -132,6 +132,47 @@ public class ListService {
             .collect(Collectors.toList());
     }
     
+    @Transactional
+    public void deleteList(User user, Long listId) {
+        List list = listRepository.findById(listId)
+            .orElseThrow(() -> new RuntimeException("Lista no encontrada"));
+
+        if (!list.getUser().getId().equals(user.getId())) {
+            throw new RuntimeException("No tienes permisos para eliminar esta lista");
+        }
+
+        if (list.getListType() != List.ListType.CUSTOM) {
+            throw new RuntimeException("Solo se pueden eliminar listas personalizadas");
+        }
+
+        listRepository.delete(list);
+    }
+
+    @Transactional
+    public ListResponse updateList(User user, Long listId, ListRequest request) {
+        List list = listRepository.findById(listId)
+            .orElseThrow(() -> new RuntimeException("Lista no encontrada"));
+
+        if (!list.getUser().getId().equals(user.getId())) {
+            throw new RuntimeException("No tienes permisos para modificar esta lista");
+        }
+
+        if (list.getListType() != List.ListType.CUSTOM) {
+            throw new RuntimeException("Solo se pueden modificar listas personalizadas");
+        }
+
+        if (!list.getName().equals(request.getName()) &&
+                listRepository.existsByUserAndName(user, request.getName())) {
+            throw new DuplicateListNameException(request.getName());
+        }
+
+        list.setName(request.getName());
+        list.setDescription(request.getDescription());
+        list.setIsPublic(request.getIsPublic());
+
+        return mapToListResponse(listRepository.save(list));
+    }
+
     public ListResponse mapToListResponse(List list) {
         return ListResponse.builder()
             .id(list.getId())

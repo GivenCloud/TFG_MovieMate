@@ -63,16 +63,16 @@ export default function RegisterPage() {
   return (
     <div className="min-h-screen grid grid-cols-1 lg:grid-cols-2 bg-bg-0">
       {/* Panel izquierdo — presentación (solo desktop) */}
-      <div className="hidden lg:flex flex-col justify-center px-16 bg-bg-1 border-r border-white/[0.06] relative overflow-hidden">
+      <div className="hidden lg:flex flex-col items-center justify-center px-8 bg-bg-1 border-r border-white/[0.06] relative overflow-hidden">
         <div className="absolute w-[500px] h-[500px] rounded-full bg-accent/[0.06] blur-3xl top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none" />
-        <div className="relative">
+        <div className="relative w-full max-w-xs">
           <div className="flex items-center gap-3 mb-8">
-            <div className="w-11 h-11 bg-accent rounded-xl flex items-center justify-center text-xl">
+            <div className="w-11 h-11 bg-accent rounded-xl flex items-center justify-center text-xl shrink-0">
               🎬
             </div>
             <span className="font-display font-bold italic text-2xl tracking-tight">MovieMate</span>
           </div>
-          <p className="font-mono text-xs text-muted tracking-wider uppercase mb-10">
+          <p className="font-mono text-xs text-white/50 tracking-wider uppercase mb-10">
             Tu diario cinematográfico social
           </p>
           {[
@@ -87,7 +87,7 @@ export default function RegisterPage() {
               </div>
               <div>
                 <p className="text-sm font-semibold text-white/90">{title}</p>
-                <p className="text-xs text-muted mt-0.5">{desc}</p>
+                <p className="text-xs text-white/50 mt-0.5">{desc}</p>
               </div>
             </div>
           ))}
@@ -117,7 +117,7 @@ export default function RegisterPage() {
                 autoComplete="username"
                 placeholder="cinefilo99"
                 {...field('username')}
-                className={`w-full bg-bg-2 border rounded-xl px-3.5 py-2.5 text-sm text-white placeholder:text-muted outline-none transition-all
+                className={`w-full bg-bg-2 border rounded-xl px-3.5 py-2.5 text-sm text-white placeholder:text-white/30 outline-none transition-all
                   ${errors.username
                     ? 'border-red-500/60 focus:border-red-500/80 focus:ring-2 focus:ring-red-500/10'
                     : 'border-white/[0.1] focus:border-accent/50 focus:ring-2 focus:ring-accent/10'
@@ -139,7 +139,7 @@ export default function RegisterPage() {
                 autoComplete="email"
                 placeholder="usuario@email.com"
                 {...field('email')}
-                className={`w-full bg-bg-2 border rounded-xl px-3.5 py-2.5 text-sm text-white placeholder:text-muted outline-none transition-all
+                className={`w-full bg-bg-2 border rounded-xl px-3.5 py-2.5 text-sm text-white placeholder:text-white/30 outline-none transition-all
                   ${errors.email
                     ? 'border-red-500/60 focus:border-red-500/80 focus:ring-2 focus:ring-red-500/10'
                     : 'border-white/[0.1] focus:border-accent/50 focus:ring-2 focus:ring-accent/10'
@@ -161,7 +161,7 @@ export default function RegisterPage() {
                 autoComplete="new-password"
                 placeholder="Mínimo 8 caracteres"
                 {...field('password')}
-                className={`w-full bg-bg-2 border rounded-xl px-3.5 py-2.5 text-sm text-white placeholder:text-muted outline-none transition-all
+                className={`w-full bg-bg-2 border rounded-xl px-3.5 py-2.5 text-sm text-white placeholder:text-white/30 outline-none transition-all
                   ${errors.password
                     ? 'border-red-500/60 focus:border-red-500/80 focus:ring-2 focus:ring-red-500/10'
                     : 'border-white/[0.1] focus:border-accent/50 focus:ring-2 focus:ring-accent/10'
@@ -183,7 +183,7 @@ export default function RegisterPage() {
                 autoComplete="new-password"
                 placeholder="••••••••"
                 {...field('confirmPassword')}
-                className={`w-full bg-bg-2 border rounded-xl px-3.5 py-2.5 text-sm text-white placeholder:text-muted outline-none transition-all
+                className={`w-full bg-bg-2 border rounded-xl px-3.5 py-2.5 text-sm text-white placeholder:text-white/30 outline-none transition-all
                   ${errors.confirmPassword
                     ? 'border-red-500/60 focus:border-red-500/80 focus:ring-2 focus:ring-red-500/10'
                     : 'border-white/[0.1] focus:border-accent/50 focus:ring-2 focus:ring-accent/10'

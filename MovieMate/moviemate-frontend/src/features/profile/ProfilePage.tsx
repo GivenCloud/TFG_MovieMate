@@ -1,5 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useParams, Link, useSearchParams } from 'react-router-dom'
+import { useMutation, useQueryClient } from '@tanstack/react-query'
+import { toast } from 'sonner'
 import { useAuthStore } from '../../store/authStore'
 import {
   useUserByUsername,
@@ -13,6 +15,9 @@ import {
   useUnfollowUser,
   useUpdateProfile,
 } from '../../hooks/useProfile'
+import { useCreateRating } from '../../hooks/useDetail'
+import { ratingsApi } from '../../api/ratings'
+import { queryKeys } from '../../lib/queryKeys'
 import PosterCard from '../../components/shared/PosterdCard'
 import EmptyState from '../../components/shared/EmptyState'
 import {
@@ -22,7 +27,7 @@ import {
   DialogTitle,
   DialogFooter,
 } from '../../components/ui/dialog'
-import type { ContentResponse, ListResponse, UserResponse } from '../../types'
+import type { ContentResponse, ListResponse, UserResponse, RatingResponse, EmotionalTag, Status } from '../../types'
 import { timeAgo } from '../../lib/utils'
 
 // ── Skeleton ────────────────────────────────────────────────
@@ -82,6 +87,210 @@ function AvatarCircle({ user, size = 'lg' }: { user: UserResponse; size?: 'sm' |
       className={`${dim} rounded-full bg-gradient-to-br from-accent/70 to-purple-500/70 flex items-center justify-center font-bold text-bg-0 shrink-0`}
     >
       {user.username[0].toUpperCase()}
+    </div>
+  )
+}
+
+// ── Constantes para edición de valoraciones ──────────────────
+const EMOTIONAL_TAGS: { value: EmotionalTag; label: string }[] = [
+  { value: 'INCREIBLE',     label: '🤩 Increíble' },
+  { value: 'RECOMENDADA',   label: '👍 Recomendada' },
+  { value: 'ENTRETENIDA',   label: '😊 Entretenida' },
+  { value: 'REGULAR',       label: '😐 Regular' },
+  { value: 'DECEPCIONANTE', label: '😞 Decepcionante' },
+]
+
+const STATUS_OPTIONS: { value: Status; label: string }[] = [
+  { value: 'VISTA',        label: '✅ Vista' },
+  { value: 'EN_PROGRESO',  label: '▶️ En progreso' },
+  { value: 'PAUSADA',      label: '⏸️ Pausada' },
+  { value: 'ABANDONADA',   label: '❌ Abandonada' },
+  { value: 'POR_VER',      label: '🕐 Por ver' },
+]
+
+// ── Dialog: edición rápida de valoración ─────────────────────
+function QuickEditRatingDialog({ r, onClose }: { r: RatingResponse; onClose: () => void }) {
+  const [rating, setRating] = useState(r.rating)
+  const [hovered, setHovered] = useState(0)
+  const [reviewText, setReviewText] = useState(r.reviewText ?? '')
+  const [emotionalTag, setEmotionalTag] = useState<EmotionalTag>(r.emotionalTag)
+  const [status, setStatus] = useState<Status>(r.status)
+  const [watchedDate, setWatchedDate] = useState(r.watchedDate ? r.watchedDate.split('T')[0] : '')
+
+  const save = useCreateRating(r.content)
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault()
+    save.mutate(
+      { rating, reviewText: reviewText.trim() || undefined, emotionalTag, status, watchedDate },
+      { onSuccess: onClose }
+    )
+  }
+
+  return (
+    <Dialog open onOpenChange={(v) => !v && onClose()}>
+      <DialogContent className="bg-bg-1 border-white/[0.1] text-white max-w-md">
+        <DialogHeader>
+          <DialogTitle className="font-display font-bold italic text-xl">Editar valoración</DialogTitle>
+          <p className="text-sm text-muted mt-0.5">{r.content.title}</p>
+        </DialogHeader>
+        <form onSubmit={handleSubmit} className="space-y-4 mt-2">
+          {/* Puntuación */}
+          <div>
+            <label className="block font-mono text-xs text-muted tracking-wider uppercase mb-2">
+              Puntuación
+            </label>
+            <div className="flex gap-1 flex-wrap">
+              {Array.from({ length: 10 }, (_, i) => i + 1).map((n) => (
+                <button
+                  key={n}
+                  type="button"
+                  onClick={() => setRating(n)}
+                  onMouseEnter={() => setHovered(n)}
+                  onMouseLeave={() => setHovered(0)}
+                  className={`w-8 h-8 rounded-lg text-sm font-bold transition-all
+                    ${n <= (hovered || rating)
+                      ? 'bg-accent text-bg-0'
+                      : 'bg-bg-3 text-muted hover:bg-bg-3/80'
+                    }`}
+                >
+                  {n}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Etiqueta emocional */}
+          <div>
+            <label className="block font-mono text-xs text-muted tracking-wider uppercase mb-2">
+              Etiqueta
+            </label>
+            <div className="flex flex-wrap gap-2">
+              {EMOTIONAL_TAGS.map(({ value, label }) => (
+                <button
+                  key={value}
+                  type="button"
+                  onClick={() => setEmotionalTag(value)}
+                  className={`px-2.5 py-1 rounded-full text-xs font-medium transition-colors
+                    ${emotionalTag === value
+                      ? 'bg-accent text-bg-0'
+                      : 'bg-bg-3 text-muted hover:text-white'
+                    }`}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Estado */}
+          <div>
+            <label className="block font-mono text-xs text-muted tracking-wider uppercase mb-2">
+              Estado
+            </label>
+            <div className="flex flex-wrap gap-2">
+              {STATUS_OPTIONS.map(({ value, label }) => (
+                <button
+                  key={value}
+                  type="button"
+                  onClick={() => setStatus(value)}
+                  className={`px-2.5 py-1 rounded-full text-xs font-medium transition-colors
+                    ${status === value
+                      ? 'bg-accent/20 text-accent border border-accent/40'
+                      : 'bg-bg-3 text-muted hover:text-white'
+                    }`}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Fecha */}
+          <div>
+            <label className="block font-mono text-xs text-muted tracking-wider uppercase mb-1.5">
+              Fecha de visionado
+            </label>
+            <input
+              type="date"
+              value={watchedDate}
+              onChange={(e) => setWatchedDate(e.target.value)}
+              className="w-full bg-bg-2 border border-white/[0.1] rounded-xl px-3.5 py-2.5 text-sm text-white outline-none focus:border-accent/50 focus:ring-2 focus:ring-accent/10 transition-all"
+            />
+          </div>
+
+          {/* Reseña */}
+          <div>
+            <label className="block font-mono text-xs text-muted tracking-wider uppercase mb-1.5">
+              Reseña <span className="normal-case">(opcional)</span>
+            </label>
+            <textarea
+              value={reviewText}
+              onChange={(e) => setReviewText(e.target.value)}
+              maxLength={1000}
+              rows={3}
+              placeholder="Tu opinión..."
+              className="w-full bg-bg-2 border border-white/[0.1] rounded-xl px-3.5 py-2.5 text-sm text-white placeholder:text-muted outline-none focus:border-accent/50 focus:ring-2 focus:ring-accent/10 transition-all resize-none"
+            />
+          </div>
+
+          <DialogFooter>
+            <button
+              type="button"
+              onClick={onClose}
+              className="px-4 py-2 text-sm text-muted hover:text-white border border-white/[0.1] rounded-xl transition-colors"
+            >
+              Cancelar
+            </button>
+            <button
+              type="submit"
+              disabled={save.isPending}
+              className="px-4 py-2 text-sm font-semibold bg-accent hover:bg-accent-light text-bg-0 rounded-xl disabled:opacity-60 transition-colors"
+            >
+              {save.isPending ? 'Guardando…' : 'Guardar'}
+            </button>
+          </DialogFooter>
+        </form>
+      </DialogContent>
+    </Dialog>
+  )
+}
+
+// ── Item de valoración con botones de acción ──────────────────
+function RatingPosterItem({ r }: { r: RatingResponse }) {
+  const [editOpen, setEditOpen] = useState(false)
+  const queryClient = useQueryClient()
+
+  const deleteMutation = useMutation({
+    mutationFn: () => ratingsApi.delete(r.id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.users.ratings() })
+      toast.success('Valoración eliminada')
+    },
+    onError: () => toast.error('Error al eliminar la valoración'),
+  })
+
+  return (
+    <div className="relative group">
+      <PosterCard content={r.content} userRating={r.rating} />
+      <div className="absolute top-1 right-1 flex flex-col gap-1 opacity-0 group-hover:opacity-100 transition-opacity z-10">
+        <button
+          onClick={(e) => { e.preventDefault(); e.stopPropagation(); setEditOpen(true) }}
+          className="w-6 h-6 bg-bg-0/80 hover:bg-accent text-white hover:text-bg-0 rounded-md flex items-center justify-center text-xs transition-colors"
+          title="Editar valoración"
+        >
+          ✏
+        </button>
+        <button
+          onClick={(e) => { e.preventDefault(); e.stopPropagation(); deleteMutation.mutate() }}
+          disabled={deleteMutation.isPending}
+          className="w-6 h-6 bg-bg-0/80 hover:bg-red-500 text-white rounded-md flex items-center justify-center text-sm font-bold transition-colors disabled:opacity-50"
+          title="Eliminar valoración"
+        >
+          ×
+        </button>
+      </div>
+      {editOpen && <QuickEditRatingDialog r={r} onClose={() => setEditOpen(false)} />}
     </div>
   )
 }
@@ -404,17 +613,17 @@ export default function ProfilePage() {
             <div className="flex items-center gap-5 mt-3 text-sm">
               <button
                 onClick={() => setFollowDialog('followers')}
-                className="hover:text-accent transition-colors text-left"
+                className="group hover:text-accent transition-colors text-left"
               >
-                <span className="font-semibold text-white/90">{followersCount}</span>
-                <span className="text-muted ml-1">seguidores</span>
+                <span className="font-semibold text-white/90 group-hover:text-accent transition-colors">{followersCount}</span>
+                <span className="text-muted ml-1 group-hover:text-accent/70 group-hover:underline transition-colors">seguidores</span>
               </button>
               <button
                 onClick={() => setFollowDialog('following')}
-                className="hover:text-accent transition-colors text-left"
+                className="group hover:text-accent transition-colors text-left"
               >
-                <span className="font-semibold text-white/90">{followingCount}</span>
-                <span className="text-muted ml-1">siguiendo</span>
+                <span className="font-semibold text-white/90 group-hover:text-accent transition-colors">{followingCount}</span>
+                <span className="text-muted ml-1 group-hover:text-accent/70 group-hover:underline transition-colors">siguiendo</span>
               </button>
             </div>
           </div>
@@ -475,9 +684,9 @@ export default function ProfilePage() {
                 )}
               </div>
               {ratings.length > 0 ? (
-                <div className="flex gap-4 overflow-x-auto scrollbar-none pb-2">
+                <div className="flex gap-3 overflow-x-auto scrollbar-none pb-2">
                   {ratings.slice(0, 8).map((r) => (
-                    <PosterCard key={r.id} content={r.content} userRating={r.rating} />
+                    <RatingPosterItem key={r.id} r={r} />
                   ))}
                 </div>
               ) : (
@@ -526,9 +735,9 @@ export default function ProfilePage() {
           <>
             {isOwnProfile ? (
               ratings.length > 0 ? (
-                <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-7 gap-4">
+                <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-7 gap-3">
                   {ratings.map((r) => (
-                    <PosterCard key={r.id} content={r.content} userRating={r.rating} />
+                    <RatingPosterItem key={r.id} r={r} />
                   ))}
                 </div>
               ) : (

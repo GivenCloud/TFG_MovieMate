@@ -101,6 +101,32 @@ public class ListController {
     }
 
     @Operation(
+            summary = "Eliminar una lista",
+            description = "Elimina una lista personalizada del usuario autenticado."
+    )
+    @DeleteMapping("/{listId}")
+    public ResponseEntity<Void> deleteList(
+            @AuthenticationPrincipal CustomUserDetails userDetails,
+            @PathVariable Long listId) {
+        User user = userDetails.getUser();
+        listService.deleteList(user, listId);
+        return ResponseEntity.noContent().build();
+    }
+
+    @Operation(
+            summary = "Actualizar una lista",
+            description = "Actualiza el nombre, descripción o visibilidad de una lista personalizada."
+    )
+    @PutMapping("/{listId}")
+    public ResponseEntity<ListResponse> updateList(
+            @AuthenticationPrincipal CustomUserDetails userDetails,
+            @PathVariable Long listId,
+            @Valid @org.springframework.web.bind.annotation.RequestBody ListRequest request) {
+        User user = userDetails.getUser();
+        return ResponseEntity.ok(listService.updateList(user, listId, request));
+    }
+
+    @Operation(
             summary = "Obtener una lista por ID",
             description = "Devuelve una lista pública a cualquier usuario, o una lista privada solo a su propietario."
     )

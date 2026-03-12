@@ -77,7 +77,7 @@ export default function HomePage() {
             className="absolute inset-0 w-full h-full object-cover object-top scale-105"
             style={{
               backgroundImage: `url(${featured.backdropUrl})`,
-              filter: 'brightness(0.15) saturate(1.3)',
+              filter: 'brightness(0.28) saturate(1.3)',
             }}
           />
         ) : (

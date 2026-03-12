@@ -15,7 +15,7 @@ export default function DetailHero({ content }: Props) {
             src={content.backdropUrl}
             alt=""
             aria-hidden="true"
-            className="w-full h-full object-cover object-top brightness-[0.15] saturate-150 scale-105"
+            className="w-full h-full object-cover object-top brightness-[0.3] saturate-150 scale-105"
           />
         ) : (
           <div className="w-full h-full bg-gradient-to-br from-[#1a0a2e] to-[#0a1628]" />

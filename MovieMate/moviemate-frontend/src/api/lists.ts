@@ -24,4 +24,12 @@ export const listsApi = {
   // Eliminar contenido — DELETE /api/lists/{listId}/content/{tmdbId}
   removeContent: (listId: number, tmdbId: number) =>
     apiClient.delete(`/lists/${listId}/content/${tmdbId}`),
+
+  // Eliminar lista — DELETE /api/lists/{listId}
+  deleteList: (listId: number) =>
+    apiClient.delete(`/lists/${listId}`),
+
+  // Actualizar lista — PUT /api/lists/{listId}
+  updateList: (listId: number, data: { name: string; description?: string; isPublic: boolean }) =>
+    apiClient.put<ListResponse>(`/lists/${listId}`, data),
 }
