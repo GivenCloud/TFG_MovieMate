@@ -59,7 +59,7 @@ export default function DetailPage() {
       <DetailHero content={content} />
 
       {/* Acciones y valoración */}
-      <div className="px-8 py-8 max-w-5xl">
+      <div className="px-8 py-8 max-w-5xl mx-auto">
         <div className="flex gap-3 flex-wrap mb-8">
           {/* RatingWidget gestiona internamente el estado de auth */}
           <RatingWidget content={content} />
@@ -89,7 +89,7 @@ export default function DetailPage() {
 
           {/* Info adicional */}
           <aside className="space-y-5">
-            {content.genres.length > 0 && (
+            {content.genres?.length > 0 && (
               <div>
                 <h3 className="text-xs font-mono text-muted uppercase tracking-wider mb-2">
                   Géneros
@@ -104,15 +104,6 @@ export default function DetailPage() {
                     </span>
                   ))}
                 </div>
-              </div>
-            )}
-
-            {content.synopsis && (
-              <div>
-                <h3 className="text-xs font-mono text-muted uppercase tracking-wider mb-2">
-                  Sinopsis
-                </h3>
-                <p className="text-sm text-white/70 leading-relaxed">{content.synopsis}</p>
               </div>
             )}
 

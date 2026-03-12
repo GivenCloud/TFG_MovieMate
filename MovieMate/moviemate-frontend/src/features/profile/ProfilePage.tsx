@@ -8,6 +8,7 @@ import {
   useMyProfileRatings,
   useMyProfileLists,
   useUserFollowing,
+  useUserFollowers,
   useFollowUser,
   useUnfollowUser,
   useUpdateProfile,
@@ -222,6 +223,65 @@ function EditProfileDialog({
   )
 }
 
+// ── Dialog: lista de seguidores/siguiendo ────────────────────
+function FollowListDialog({
+  open,
+  onClose,
+  title,
+  users,
+  isLoading,
+}: {
+  open: boolean
+  onClose: () => void
+  title: string
+  users: UserResponse[]
+  isLoading: boolean
+}) {
+  return (
+    <Dialog open={open} onOpenChange={(v) => !v && onClose()}>
+      <DialogContent className="bg-bg-1 border-white/[0.1] text-white max-w-sm p-0 overflow-hidden">
+        <DialogHeader className="px-5 pt-5 pb-3 border-b border-white/[0.06]">
+          <DialogTitle className="font-display font-bold italic text-xl">{title}</DialogTitle>
+        </DialogHeader>
+        <div className="max-h-96 overflow-y-auto">
+          {isLoading ? (
+            <div className="space-y-1 p-3">
+              {[1, 2, 3].map((i) => (
+                <div key={i} className="flex items-center gap-3 px-3 py-2.5 animate-pulse">
+                  <div className="w-9 h-9 rounded-full bg-bg-3 shrink-0" />
+                  <div className="space-y-1.5 flex-1">
+                    <div className="h-3 bg-bg-3 rounded w-28" />
+                    <div className="h-2.5 bg-bg-3 rounded w-40" />
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : users.length === 0 ? (
+            <p className="text-sm text-muted text-center py-10">Nadie todavía</p>
+          ) : (
+            <div className="divide-y divide-white/[0.04]">
+              {users.map((u) => (
+                <Link
+                  key={u.id}
+                  to={`/profile/${u.username}`}
+                  onClick={onClose}
+                  className="flex items-center gap-3 px-5 py-3 hover:bg-bg-2 transition-colors"
+                >
+                  <AvatarCircle user={u} size="sm" />
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-semibold text-white/90">{u.username}</p>
+                    {u.bio && <p className="text-xs text-muted truncate">{u.bio}</p>}
+                  </div>
+                </Link>
+              ))}
+            </div>
+          )}
+        </div>
+      </DialogContent>
+    </Dialog>
+  )
+}
+
 // ── Página principal ─────────────────────────────────────────
 const TABS = [
   { id: 'activity',  label: 'Actividad' },
@@ -242,6 +302,7 @@ export default function ProfilePage() {
     (searchParams.get('tab') as TabId | null) ?? 'activity'
   )
   const [editOpen, setEditOpen] = useState(false)
+  const [followDialog, setFollowDialog] = useState<'followers' | 'following' | null>(null)
 
   // Sincroniza el tab si el usuario navega al mismo perfil con distinto ?tab=
   useEffect(() => {
@@ -256,7 +317,8 @@ export default function ProfilePage() {
   const statsQuery   = useUserStats(userId)
   const ratingsQuery = useMyProfileRatings(isOwnProfile)
   const listsQuery   = useMyProfileLists(isOwnProfile)
-  const followingQuery = useUserFollowing(userId, activeTab === 'following')
+  const followingQuery  = useUserFollowing(userId, activeTab === 'following' || followDialog === 'following')
+  const followersQuery  = useUserFollowers(userId, followDialog === 'followers')
 
   const followMutation   = useFollowUser(userId ?? 0)
   const unfollowMutation = useUnfollowUser(userId ?? 0)
@@ -340,14 +402,20 @@ export default function ProfilePage() {
             )}
 
             <div className="flex items-center gap-5 mt-3 text-sm">
-              <span>
+              <button
+                onClick={() => setFollowDialog('followers')}
+                className="hover:text-accent transition-colors text-left"
+              >
                 <span className="font-semibold text-white/90">{followersCount}</span>
                 <span className="text-muted ml-1">seguidores</span>
-              </span>
-              <span>
+              </button>
+              <button
+                onClick={() => setFollowDialog('following')}
+                className="hover:text-accent transition-colors text-left"
+              >
                 <span className="font-semibold text-white/90">{followingCount}</span>
                 <span className="text-muted ml-1">siguiendo</span>
-              </span>
+              </button>
             </div>
           </div>
         </div>
@@ -551,6 +619,22 @@ export default function ProfilePage() {
           username={username}
         />
       )}
+
+      {/* ── Dialogs seguidores / siguiendo ──────────────── */}
+      <FollowListDialog
+        open={followDialog === 'followers'}
+        onClose={() => setFollowDialog(null)}
+        title="Seguidores"
+        users={followersQuery.data ?? []}
+        isLoading={followersQuery.isLoading}
+      />
+      <FollowListDialog
+        open={followDialog === 'following'}
+        onClose={() => setFollowDialog(null)}
+        title="Siguiendo"
+        users={followingQuery.data ?? []}
+        isLoading={followingQuery.isLoading}
+      />
     </div>
   )
 }

@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { useParams, useLocation, Link } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
@@ -6,6 +7,7 @@ import { queryKeys } from '../../lib/queryKeys'
 import { useAuthStore } from '../../store/authStore'
 import PosterCard from '../../components/shared/PosterdCard'
 import EmptyState from '../../components/shared/EmptyState'
+import AddContentToListDialog from './AddContentToListDialog'
 import type { ListResponse, ListType } from '../../types'
 
 const LIST_TYPE_CONFIG: Record<ListType, { icon: string; label: string }> = {
@@ -37,6 +39,7 @@ export default function ListDetailPage() {
   const location = useLocation()
   const { isAuthenticated, sessionUser } = useAuthStore()
   const queryClient = useQueryClient()
+  const [addDialogOpen, setAddDialogOpen] = useState(false)
 
   const stateList = location.state?.list as ListResponse | undefined
   const parsedId = Number(listId)
@@ -80,9 +83,19 @@ export default function ListDetailPage() {
     <div className="pb-12">
       {/* Cabecera */}
       <div className="px-6 py-5 border-b border-white/[0.06]">
-        <div className="flex items-center gap-2 mb-1.5">
-          <span className="text-xl">{cfg.icon}</span>
-          <h1 className="font-display font-bold italic text-2xl">{list.name}</h1>
+        <div className="flex items-start justify-between gap-4 mb-1.5">
+          <div className="flex items-center gap-2">
+            <span className="text-xl">{cfg.icon}</span>
+            <h1 className="font-display font-bold italic text-2xl">{list.name}</h1>
+          </div>
+          {isOwner && (
+            <button
+              onClick={() => setAddDialogOpen(true)}
+              className="shrink-0 flex items-center gap-1.5 px-3.5 py-2 text-sm font-semibold bg-accent hover:bg-accent-light text-bg-0 rounded-xl transition-colors"
+            >
+              + Añadir
+            </button>
+          )}
         </div>
         {list.description && (
           <p className="text-sm text-muted mt-1 max-w-xl">{list.description}</p>
@@ -113,12 +126,16 @@ export default function ListDetailPage() {
           <EmptyState
             icon="🎬"
             title="Lista vacía"
-            description="Esta lista aún no tiene ningún título."
+            description={
+              isOwner
+                ? 'Pulsa "+ Añadir" para agregar títulos a esta lista.'
+                : 'Esta lista aún no tiene ningún título.'
+            }
           />
         ) : (
           <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-7 gap-4">
             {list.contents.map((content) => (
-              <div key={content.id} className="relative group">
+              <div key={content.id} className="relative group w-fit">
                 <PosterCard content={content} />
                 {isOwner && (
                   <button
@@ -135,6 +152,16 @@ export default function ListDetailPage() {
           </div>
         )}
       </div>
+
+      {isOwner && (
+        <AddContentToListDialog
+          open={addDialogOpen}
+          onClose={() => setAddDialogOpen(false)}
+          listId={parsedId}
+          listName={list.name}
+          existingTmdbIds={new Set(list.contents.map((c) => c.tmdbId))}
+        />
+      )}
     </div>
   )
 }

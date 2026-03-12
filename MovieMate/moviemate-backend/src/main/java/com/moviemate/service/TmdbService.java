@@ -232,8 +232,33 @@ public class TmdbService {
                 .queryParam("page", page != null ? page : 1)
                 .build()
                 .toUriString();
-        
+
         return fetchAndMapContent(url, Content.ContentType.TV);
+    }
+
+    public List<Content> getTrendingAll(Integer page) {
+        String url = buildTmdbUrl("/trending/all/week")
+                .queryParam("page", page != null ? page : 1)
+                .build()
+                .toUriString();
+
+        try {
+            TmdbSearchResponse response = restTemplate.getForObject(url, TmdbSearchResponse.class);
+            if (response != null && response.getResults() != null) {
+                return response.getResults().stream()
+                        .filter(r -> "movie".equals(r.getMediaType()) || "tv".equals(r.getMediaType()))
+                        .map(r -> {
+                            Content.ContentType type = "tv".equals(r.getMediaType())
+                                    ? Content.ContentType.TV
+                                    : Content.ContentType.MOVIE;
+                            return mapSearchResultToContent(r, type);
+                        })
+                        .collect(Collectors.toList());
+            }
+        } catch (Exception e) {
+            log.error("Error fetching trending content: {}", e.getMessage());
+        }
+        return Collections.emptyList();
     }
 
     private List<Content> fetchAndMapContent(String url, Content.ContentType contentType) {
@@ -268,7 +293,10 @@ public class TmdbService {
         if (result.getPosterPath() != null) {
             content.setPosterUrl(imageBaseUrl + "/w500" + result.getPosterPath());
         }
-        
+        if (result.getBackdropPath() != null) {
+            content.setBackdropUrl(imageBaseUrl + "/w1280" + result.getBackdropPath());
+        }
+
         String date = result.getReleaseDate();
         if (date == null || date.isBlank()) {
             date = result.getFirstAirDate(); // para TV

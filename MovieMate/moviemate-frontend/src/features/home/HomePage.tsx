@@ -31,6 +31,13 @@ export default function HomePage() {
   const navigate = useNavigate()
   const { isAuthenticated } = useAuthStore()
 
+  const { data: trending, isLoading: loadingTrending } = useQuery({
+    queryKey: queryKeys.tmdb.trending(),
+    queryFn: () => tmdbApi.getTrending(),
+    select: (res) => res.data,
+    staleTime: 1000 * 60 * 10,
+  })
+
   const { data: popularMovies, isLoading: loadingMovies } = useQuery({
     queryKey: queryKeys.tmdb.popularMovies(),
     queryFn: () => tmdbApi.getPopularMovies(),
@@ -45,11 +52,11 @@ export default function HomePage() {
     staleTime: 1000 * 60 * 10,
   })
 
-  const isLoading = loadingMovies || loadingTv
-  const featured: ContentResponse | undefined = popularMovies?.[0]
-  const rest = [...(popularMovies?.slice(1) ?? []), ...(popularTv ?? [])].filter(
-    (item) => item.tmdbId && item.contentType
-  )
+  const isLoading = loadingTrending || loadingMovies || loadingTv
+  const featured: ContentResponse | undefined = trending?.[0] ?? popularMovies?.[0]
+  const trendingRest = (trending ?? []).slice(1).filter((item) => item.tmdbId && item.contentType)
+  const popularMoviesFiltered = (popularMovies ?? []).filter((item) => item.tmdbId && item.contentType)
+  const popularTvFiltered = (popularTv ?? []).filter((item) => item.tmdbId && item.contentType)
 
   const featuredUrl = featured
     ? (() => {
@@ -70,7 +77,7 @@ export default function HomePage() {
             className="absolute inset-0 w-full h-full object-cover object-top scale-105"
             style={{
               backgroundImage: `url(${featured.backdropUrl})`,
-              filter: 'brightness(0.28) saturate(1.3)', 
+              filter: 'brightness(0.15) saturate(1.3)',
             }}
           />
         ) : (
@@ -154,18 +161,41 @@ export default function HomePage() {
         </div>
       </div>
 
-      {/* ── POPULARES ── */}
+      {/* ── TENDENCIAS ── */}
       <section className="px-6 pt-8">
         <div className="flex items-baseline justify-between mb-4">
-          <h2 className="font-display font-bold italic text-xl">Populares ahora 🔥</h2>
-          <button className="text-xs text-accent hover:text-accent-light font-medium transition-colors">
-            Ver todo →
-          </button>
+          <h2 className="font-display font-bold italic text-xl">Tendencias esta semana 🔥</h2>
         </div>
         <div className="flex gap-3.5 overflow-x-auto scrollbar-none pb-1">
-          {isLoading
+          {loadingTrending
             ? Array.from({ length: 7 }).map((_, i) => <PosterSkeleton key={i} />)
-            : rest.map((item) => <PosterCard key={`${item.tmdbId}-${item.contentType}`} content={item} />)
+            : trendingRest.map((item) => <PosterCard key={`${item.tmdbId}-${item.contentType}`} content={item} />)
+          }
+        </div>
+      </section>
+
+      {/* ── PELÍCULAS POPULARES ── */}
+      <section className="px-6 pt-8">
+        <div className="flex items-baseline justify-between mb-4">
+          <h2 className="font-display font-bold italic text-xl">Películas populares 🎬</h2>
+        </div>
+        <div className="flex gap-3.5 overflow-x-auto scrollbar-none pb-1">
+          {loadingMovies
+            ? Array.from({ length: 7 }).map((_, i) => <PosterSkeleton key={i} />)
+            : popularMoviesFiltered.map((item) => <PosterCard key={`${item.tmdbId}-${item.contentType}`} content={item} />)
+          }
+        </div>
+      </section>
+
+      {/* ── SERIES POPULARES ── */}
+      <section className="px-6 pt-8">
+        <div className="flex items-baseline justify-between mb-4">
+          <h2 className="font-display font-bold italic text-xl">Series populares 📺</h2>
+        </div>
+        <div className="flex gap-3.5 overflow-x-auto scrollbar-none pb-1">
+          {loadingTv
+            ? Array.from({ length: 7 }).map((_, i) => <PosterSkeleton key={i} />)
+            : popularTvFiltered.map((item) => <PosterCard key={`${item.tmdbId}-${item.contentType}`} content={item} />)
           }
         </div>
       </section>

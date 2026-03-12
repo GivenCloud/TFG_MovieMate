@@ -15,7 +15,7 @@ export default function DetailHero({ content }: Props) {
             src={content.backdropUrl}
             alt=""
             aria-hidden="true"
-            className="w-full h-full object-cover object-top brightness-[0.3] saturate-150 scale-105"
+            className="w-full h-full object-cover object-top brightness-[0.15] saturate-150 scale-105"
           />
         ) : (
           <div className="w-full h-full bg-gradient-to-br from-[#1a0a2e] to-[#0a1628]" />
@@ -59,7 +59,7 @@ export default function DetailHero({ content }: Props) {
             {/* Metadata */}
             <div className="flex items-center gap-3 text-sm text-white/60 mb-4 flex-wrap">
               <span>{getYear(content.releaseDate)}</span>
-              {content.genres.slice(0, 3).map((g) => (
+              {content.genres?.slice(0, 3).map((g) => (
                 <span key={g} className="bg-white/[0.08] px-2.5 py-0.5 rounded-full text-xs">
                   {g}
                 </span>

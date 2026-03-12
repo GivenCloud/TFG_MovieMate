@@ -56,8 +56,8 @@ function ReviewCard({
   contentId: number | undefined
 }) {
   return (
-    <div className="bg-bg-2 border border-white/[0.06] rounded-xl p-4">
-      <div className="flex items-start justify-between gap-3 mb-3">
+    <div className="bg-bg-2 border border-white/[0.06] rounded-xl p-3">
+      <div className="flex items-start justify-between gap-3 mb-2">
         <div className="flex items-center gap-2.5">
           {/* Avatar */}
           <div className="w-8 h-8 rounded-full bg-gradient-to-br from-accent to-pink-500 flex items-center justify-center text-xs font-bold text-bg-0 shrink-0 overflow-hidden">
@@ -119,9 +119,9 @@ export default function ReviewList({ content }: Props) {
 
   if (isLoading) {
     return (
-      <div className="space-y-4">
+      <div className="space-y-2">
         {[1, 2, 3].map((i) => (
-          <div key={i} className="bg-bg-2 rounded-xl p-4 animate-pulse">
+          <div key={i} className="bg-bg-2 rounded-xl p-3 animate-pulse">
             <div className="flex gap-3 mb-3">
               <div className="w-8 h-8 rounded-full bg-bg-3" />
               <div className="flex-1">
@@ -151,7 +151,7 @@ export default function ReviewList({ content }: Props) {
   const remaining = reviews.length - visibleCount
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-2">
       {visible.map((review) => (
         <ReviewCard key={review.id} review={review} contentId={content.id} />
       ))}

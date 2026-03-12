@@ -20,6 +20,10 @@ export const tmdbApi = {
   searchTvShows: (query: string, page = 1) =>
     apiClient.get<ContentResponse[]>('/tmdb/tv', { params: { query, page } }),
 
+  // Trending (mix películas + series) — GET /api/tmdb/trending
+  getTrending: (page = 1) =>
+    apiClient.get<ContentResponse[]>('/tmdb/trending', { params: { page } }),
+
   // Sync: obtiene detalles completos Y guarda en BD.
   // Se usa cuando DetailPage se abre por URL directa (sin location.state).
   syncMovie: (tmdbId: number) =>

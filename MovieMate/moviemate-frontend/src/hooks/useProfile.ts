@@ -61,6 +61,15 @@ export function useUserFollowing(userId: number | undefined, enabled: boolean) {
   })
 }
 
+export function useUserFollowers(userId: number | undefined, enabled: boolean) {
+  return useQuery({
+    queryKey: queryKeys.users.followers(userId!),
+    queryFn: () => usersApi.getFollowers(userId!).then((r) => r.data),
+    enabled: enabled && !!userId,
+    staleTime: 1000 * 60 * 2,
+  })
+}
+
 // ── Mutaciones ────────────────────────────────────────────────
 
 export function useFollowUser(userId: number) {

@@ -26,6 +26,9 @@ public class TmdbSearchResponse {
         private String name;
         private String overview;
 
+        @JsonProperty("media_type")
+        private String mediaType;
+
         @JsonProperty("poster_path")
         private String posterPath;
 
@@ -41,15 +44,15 @@ public class TmdbSearchResponse {
         @JsonProperty("vote_average")
         private Double voteAverage;
 
-        @JsonProperty("vote_count") 
-        private Integer voteCount; 
-        
-        private List<Genre> genres; 
-        
-        @Data 
-        public static class Genre { 
-            private Integer id; 
-            private String name; 
+        @JsonProperty("vote_count")
+        private Integer voteCount;
+
+        private List<Genre> genres;
+
+        @Data
+        public static class Genre {
+            private Integer id;
+            private String name;
         }
     }
 }

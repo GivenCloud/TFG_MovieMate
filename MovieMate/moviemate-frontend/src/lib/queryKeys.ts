@@ -5,9 +5,10 @@ export const queryKeys = {
   tmdb: {
     popularMovies: () => ['tmdb', 'popular', 'movies'] as const,
     popularTv:     () => ['tmdb', 'popular', 'tv'] as const,
+    trending:      () => ['tmdb', 'trending'] as const,
     searchMovies:  (q: string) => ['tmdb', 'search', 'movies', q] as const,
     searchTv:      (q: string) => ['tmdb', 'search', 'tv', q] as const,
-    sync: (tmdbId: number, type: string) => ['tmdb', 'sync', type, tmdbId] as const,  
+    sync: (tmdbId: number, type: string) => ['tmdb', 'sync', type, tmdbId] as const,
   },
   // Contenido en BD (caché local — ficha de detalle)
   content: {

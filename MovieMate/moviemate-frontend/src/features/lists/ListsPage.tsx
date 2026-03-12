@@ -243,19 +243,29 @@ function ListsSkeleton() {
   )
 }
 
+type Tab = 'mine' | 'explore'
+
 // ── Página principal ─────────────────────────────────────────
 export default function ListsPage() {
+  const [tab, setTab] = useState<Tab>('mine')
   const [filter, setFilter] = useState<Filter>('all')
   const [createOpen, setCreateOpen] = useState(false)
 
-  const { data: lists = [], isLoading } = useQuery({
+  const { data: myLists = [], isLoading: loadingMine } = useQuery({
     queryKey: queryKeys.users.lists(),
     queryFn: () => listsApi.getMine().then((r) => r.data),
     staleTime: 1000 * 60 * 2,
   })
 
-  // Filtrado
-  const filtered = lists.filter((l) => {
+  const { data: publicLists = [], isLoading: loadingPublic } = useQuery({
+    queryKey: queryKeys.lists.public(),
+    queryFn: () => listsApi.getPublic().then((r) => r.data),
+    enabled: tab === 'explore',
+    staleTime: 1000 * 60 * 5,
+  })
+
+  // Filtrado de mis listas
+  const filtered = myLists.filter((l) => {
     if (filter === 'public')  return l.isPublic
     if (filter === 'private') return !l.isPublic
     if (filter === 'movies')  return l.contents.some((c) => c.contentType === 'MOVIE')
@@ -271,11 +281,13 @@ export default function ListsPage() {
     { id: 'series',  label: 'Series' },
   ]
 
+  const isLoading = tab === 'mine' ? loadingMine : loadingPublic
+
   return (
     <div className="pb-12">
       {/* ── Cabecera ─────────────────────────────────────── */}
       <div className="flex items-center justify-between px-6 py-5 border-b border-white/[0.06]">
-        <h1 className="font-display font-bold italic text-2xl">Mis listas</h1>
+        <h1 className="font-display font-bold italic text-2xl">Listas</h1>
         <button
           onClick={() => setCreateOpen(true)}
           className="flex items-center gap-1.5 px-4 py-2 text-sm font-semibold bg-accent hover:bg-accent-light text-bg-0 rounded-xl transition-all hover:-translate-y-0.5 hover:shadow-lg hover:shadow-accent/20"
@@ -284,27 +296,46 @@ export default function ListsPage() {
         </button>
       </div>
 
-      {/* ── Filtros ───────────────────────────────────────── */}
-      <div className="flex gap-2 px-6 py-3 border-b border-white/[0.06] overflow-x-auto scrollbar-none">
-        {FILTERS.map(({ id, label }) => (
+      {/* ── Tabs ──────────────────────────────────────────── */}
+      <div className="flex gap-1 px-6 border-b border-white/[0.06]">
+        {(['mine', 'explore'] as const).map((t) => (
           <button
-            key={id}
-            onClick={() => setFilter(id)}
-            className={`px-3.5 py-1.5 rounded-full text-xs font-medium whitespace-nowrap transition-colors
-              ${filter === id
-                ? 'bg-accent text-bg-0'
-                : 'bg-bg-2 text-muted hover:text-white border border-white/[0.06]'
+            key={t}
+            onClick={() => setTab(t)}
+            className={`px-4 py-3 text-sm font-medium border-b-2 -mb-px transition-colors
+              ${tab === t
+                ? 'text-accent border-accent'
+                : 'text-muted hover:text-white border-transparent'
               }`}
           >
-            {label}
+            {t === 'mine' ? 'Mis listas' : 'Explorar'}
           </button>
         ))}
       </div>
 
+      {/* ── Filtros (solo en "Mis listas") ─────────────────── */}
+      {tab === 'mine' && (
+        <div className="flex gap-2 px-6 py-3 border-b border-white/[0.06] overflow-x-auto scrollbar-none">
+          {FILTERS.map(({ id, label }) => (
+            <button
+              key={id}
+              onClick={() => setFilter(id)}
+              className={`px-3.5 py-1.5 rounded-full text-xs font-medium whitespace-nowrap transition-colors
+                ${filter === id
+                  ? 'bg-accent text-bg-0'
+                  : 'bg-bg-2 text-muted hover:text-white border border-white/[0.06]'
+                }`}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
+      )}
+
       {/* ── Contenido ─────────────────────────────────────── */}
       {isLoading ? (
         <ListsSkeleton />
-      ) : (
+      ) : tab === 'mine' ? (
         <div className="px-6 py-6">
           {filtered.length === 0 && filter === 'all' ? (
             <EmptyState
@@ -333,10 +364,27 @@ export default function ListsPage() {
                   <ListCard list={list} />
                 </Link>
               ))}
-              {/* Tarjeta "Crear nueva lista" solo en la vista "Todas" */}
               {filter === 'all' && (
                 <CreateListCard onClick={() => setCreateOpen(true)} />
               )}
+            </div>
+          )}
+        </div>
+      ) : (
+        <div className="px-6 py-6">
+          {publicLists.length === 0 ? (
+            <EmptyState
+              icon="🌐"
+              title="No hay listas públicas"
+              description="Aún no hay listas públicas de otros usuarios."
+            />
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              {publicLists.map((list) => (
+                <Link key={list.id} to={`/lists/${list.id}`} state={{ list }} className="block">
+                  <ListCard list={list} />
+                </Link>
+              ))}
             </div>
           )}
         </div>

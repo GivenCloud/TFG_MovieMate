@@ -92,6 +92,18 @@ public class TmdbController {
     }
 
     @Operation(
+            summary = "Obtener contenido trending",
+            description = "Devuelve una lista mixta de películas y series en tendencia esta semana."
+    )
+    @GetMapping("/trending")
+    public ResponseEntity<List<Content>> getTrending(
+            @Parameter(description = "Número de página", example = "1")
+            @RequestParam(required = false, defaultValue = "1") Integer page
+    ) {
+        return ResponseEntity.ok(tmdbService.getTrendingAll(page));
+    }
+
+    @Operation(
             summary = "Sincronizar película desde TMDB",
             description = "Obtiene información detallada de una película desde TMDB y la guarda en la base de datos."
     )
