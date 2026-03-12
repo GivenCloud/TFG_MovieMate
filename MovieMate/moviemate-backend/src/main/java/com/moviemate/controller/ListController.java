@@ -101,6 +101,18 @@ public class ListController {
     }
 
     @Operation(
+            summary = "Obtener una lista por ID",
+            description = "Devuelve una lista pública a cualquier usuario, o una lista privada solo a su propietario."
+    )
+    @GetMapping("/{listId}")
+    public ResponseEntity<ListResponse> getListById(
+            @AuthenticationPrincipal CustomUserDetails userDetails,
+            @PathVariable Long listId) {
+        Long currentUserId = userDetails != null ? userDetails.getUser().getId() : null;
+        return ResponseEntity.ok(listService.getListById(listId, currentUserId));
+    }
+
+    @Operation(
             summary = "Obtener todas las listas públicas",
             description = "Devuelve todas las listas visibles para cualquier usuario."
     )

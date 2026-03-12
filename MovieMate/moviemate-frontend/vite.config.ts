@@ -5,6 +5,10 @@ import tailwindcss from '@tailwindcss/vite'
 
 export default defineConfig({
   plugins: [react(), tailwindcss()],
+  define: {
+    // sockjs-client usa el global "global" de Node.js — este polyfill lo resuelve en el browser
+    global: 'globalThis',
+  },
   resolve: {
     alias: { "@": path.resolve(__dirname, "./src") },
   },
@@ -14,6 +18,11 @@ export default defineConfig({
         target: 'http://localhost:8080',
         changeOrigin: true,
         secure: false,
+      },
+      '/ws': {
+        target: 'http://localhost:8080',
+        changeOrigin: true,
+        ws: true,
       },
     },
   },

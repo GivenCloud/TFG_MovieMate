@@ -2,6 +2,7 @@ package com.moviemate.service;
 
 import com.moviemate.dto.ListRequest;
 import com.moviemate.dto.ListResponse;
+import com.moviemate.exception.ListPrivateException;
 import com.moviemate.dto.UserResponse;
 import com.moviemate.dto.ContentResponse;
 import com.moviemate.entity.List;
@@ -94,6 +95,19 @@ public class ListService {
         listContentRepository.delete(listContent);
     }
     
+    @Transactional(readOnly = true)
+    public ListResponse getListById(Long listId, Long currentUserId) {
+        List list = listRepository.findById(listId)
+            .orElseThrow(() -> new RuntimeException("Lista no encontrada"));
+
+        // Las listas privadas solo las puede ver su propietario
+        if (!list.getIsPublic() && !list.getUser().getId().equals(currentUserId)) {
+            throw new ListPrivateException("Esta lista es privada");
+        }
+
+        return mapToListResponse(list);
+    }
+
     @Transactional(readOnly = true)
     public java.util.List<ListResponse> getUserLists(User user) {
         return listRepository.findByUserWithContents(user)

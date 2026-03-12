@@ -76,6 +76,7 @@ public class SecurityConfig {
                                  "/api/auth/**",
                                  "/api/content/**",
                                  "/api/lists/public",
+                                 "/api/lists/{listId:[0-9]+}",
                                  "/api/users",
                                  "/api/users/{userId:[0-9]+}",
                                  "/api/users/{userId:[0-9]+}/profile",

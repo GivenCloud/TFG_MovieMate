@@ -87,10 +87,20 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler(ProfilePrivateException.class)
-    public ResponseEntity<ErrorResponse> handleAccessDenied(ProfilePrivateException ex) {
+    public ResponseEntity<ErrorResponse> handlePrivateProfile(ProfilePrivateException ex) {
         ErrorResponse error = new ErrorResponse(
-            "PRIVATE_PROFILE", 
-            "Este perfil es privado y no puedes consultarlo", 
+            "PRIVATE_PROFILE",
+            "Este perfil es privado y no puedes consultarlo",
+            HttpStatus.FORBIDDEN.value()
+        );
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(error);
+    }
+
+    @ExceptionHandler(ListPrivateException.class)
+    public ResponseEntity<ErrorResponse> handlePrivateList(ListPrivateException ex) {
+        ErrorResponse error = new ErrorResponse(
+            "PRIVATE_LIST",
+            "Esta lista es privada y no puedes consultarla",
             HttpStatus.FORBIDDEN.value()
         );
         return ResponseEntity.status(HttpStatus.FORBIDDEN).body(error);

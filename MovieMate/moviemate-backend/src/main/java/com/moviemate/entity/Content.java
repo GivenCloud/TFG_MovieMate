@@ -34,8 +34,9 @@ public class Content {
     private String posterUrl;
     private String backdropUrl;
 
-    @ElementCollection 
-    @CollectionTable(name = "content_genres", joinColumns = @JoinColumn(name = "content_id")) @Column(name = "genre")
+    @ElementCollection(fetch = FetchType.EAGER)
+    @CollectionTable(name = "content_genres", joinColumns = @JoinColumn(name = "content_id"))
+    @Column(name = "genre")
     private List<String> genres;
 
     private Double tmdbRating = 0.0;
