@@ -25,7 +25,7 @@ export default function Topbar() {
   }
 
   return (
-    <header className="h-13 flex items-center gap-3 px-6 bg-bg-1 border-b border-white/[0.06] sticky top-0 z-10">
+    <header className="h-13 flex items-center gap-3 px-3 lg:px-6 bg-bg-1 border-b border-white/[0.06] sticky top-0 z-10">
       <form onSubmit={handleSearch} className="flex-1 max-w-md">
         <div className="flex items-center gap-2 bg-bg-2 border border-white/[0.06] rounded-xl px-3.5 py-2 text-sm text-muted hover:border-white/[0.12] transition-colors focus-within:border-accent/50">
           <span>🔍</span>

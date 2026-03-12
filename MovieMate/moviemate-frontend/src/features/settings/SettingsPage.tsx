@@ -97,12 +97,12 @@ export default function SettingsPage() {
   return (
     <div className="pb-12">
       {/* Cabecera */}
-      <div className="px-6 py-5 border-b border-white/[0.06]">
+      <div className="px-4 lg:px-6 py-5 border-b border-white/[0.06]">
         <h1 className="font-display font-bold italic text-2xl">Ajustes</h1>
         <p className="text-sm text-muted mt-0.5">Gestiona tu cuenta y preferencias</p>
       </div>
 
-      <div className="max-w-2xl px-6 py-6 space-y-5">
+      <div className="max-w-2xl mx-auto px-4 lg:px-6 py-6 space-y-5">
 
         {/* ── Perfil público ─────────────────────────────── */}
         <section className="bg-bg-1 border border-white/[0.06] rounded-2xl overflow-hidden">

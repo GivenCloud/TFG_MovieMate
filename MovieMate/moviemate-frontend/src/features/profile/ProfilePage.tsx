@@ -572,7 +572,7 @@ export default function ProfilePage() {
   return (
     <div className="pb-12">
       {/* ── Header ─────────────────────────────────────────── */}
-      <div className="px-6 pt-8 pb-6 border-b border-white/[0.06]">
+      <div className="px-4 lg:px-6 pt-6 lg:pt-8 pb-6 border-b border-white/[0.06]">
         <div className="flex items-start gap-5 flex-wrap">
           <AvatarCircle user={user} size="lg" />
 
@@ -665,7 +665,7 @@ export default function ProfilePage() {
       </div>
 
       {/* ── Contenido de tabs ──────────────────────────────── */}
-      <div className="px-6 py-6">
+      <div className="px-4 lg:px-6 py-6">
 
         {/* Actividad ─────────────────────────────────────── */}
         {activeTab === 'activity' && (
@@ -735,7 +735,7 @@ export default function ProfilePage() {
           <>
             {isOwnProfile ? (
               ratings.length > 0 ? (
-                <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-7 gap-3">
+                <div className="flex flex-wrap gap-3">
                   {ratings.map((r) => (
                     <RatingPosterItem key={r.id} r={r} />
                   ))}

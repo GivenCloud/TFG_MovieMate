@@ -37,9 +37,9 @@ function SpecialListSkeleton() {
         <div className="h-7 bg-bg-3 rounded w-40" />
         <div className="h-3 bg-bg-3 rounded w-56 mt-1" />
       </div>
-      <div className="px-6 py-6 grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-4">
+      <div className="px-6 py-6 flex flex-wrap gap-3">
         {[1, 2, 3, 4, 5, 6].map((i) => (
-          <div key={i} className="aspect-[2/3] bg-bg-3 rounded-xl" />
+          <div key={i} className="w-36 aspect-[2/3] bg-bg-3 rounded-xl" />
         ))}
       </div>
     </div>
@@ -77,7 +77,7 @@ export default function SpecialListPage({ listType }: { listType: SpecialListTyp
   return (
     <div className="pb-12">
       {/* Cabecera */}
-      <div className="px-6 py-5 border-b border-white/[0.06]">
+      <div className="px-4 lg:px-6 py-5 border-b border-white/[0.06]">
         <div className="flex items-center gap-2 mb-1">
           <span className="text-xl">{cfg.icon}</span>
           <h1 className="font-display font-bold italic text-2xl">{cfg.title}</h1>
@@ -95,7 +95,7 @@ export default function SpecialListPage({ listType }: { listType: SpecialListTyp
       </div>
 
       {/* Contenido */}
-      <div className="px-6 py-6">
+      <div className="px-4 lg:px-6 py-6">
         {!list || list.contents.length === 0 ? (
           <EmptyState
             icon={cfg.icon}
@@ -103,7 +103,7 @@ export default function SpecialListPage({ listType }: { listType: SpecialListTyp
             description={cfg.emptyDesc}
           />
         ) : (
-          <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-7 gap-4">
+          <div className="flex flex-wrap gap-3">
             {list.contents.map((content) => (
               <div key={content.id} className="relative group">
                 <PosterCard content={content} />

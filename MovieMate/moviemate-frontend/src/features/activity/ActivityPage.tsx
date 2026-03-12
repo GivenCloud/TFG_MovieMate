@@ -239,7 +239,7 @@ export default function ActivityPage() {
   return (
     <div className="pb-12">
       {/* Cabecera */}
-      <div className="px-6 py-5 border-b border-white/[0.06]">
+      <div className="px-4 lg:px-6 py-5 border-b border-white/[0.06]">
         <h1 className="font-display font-bold italic text-2xl">Actividad</h1>
         <p className="text-sm text-muted mt-0.5">
           {tab === 'personal'
@@ -249,7 +249,7 @@ export default function ActivityPage() {
       </div>
 
       {/* Tabs */}
-      <div className="flex gap-2 px-6 py-3 border-b border-white/[0.06]">
+      <div className="flex gap-2 px-4 lg:px-6 py-3 border-b border-white/[0.06]">
         {isAuthenticated && (
           <button
             onClick={() => setTab('personal')}
@@ -291,7 +291,7 @@ export default function ActivityPage() {
         )
       ) : (
         <>
-          <div className="divide-y divide-white/[0.04]">
+          <div className="max-w-2xl mx-auto divide-y divide-white/[0.04]">
             {items.map((activity, i) => (
               <ActivityItem
                 key={`${activity.user.id}-${activity.type}-${activity.createdAt}-${i}`}

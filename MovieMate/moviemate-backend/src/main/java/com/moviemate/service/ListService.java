@@ -157,16 +157,15 @@ public class ListService {
             throw new RuntimeException("No tienes permisos para modificar esta lista");
         }
 
-        if (list.getListType() != List.ListType.CUSTOM) {
-            throw new RuntimeException("Solo se pueden modificar listas personalizadas");
+        // Solo las listas CUSTOM permiten cambiar el nombre
+        if (list.getListType() == List.ListType.CUSTOM) {
+            if (!list.getName().equals(request.getName()) &&
+                    listRepository.existsByUserAndName(user, request.getName())) {
+                throw new DuplicateListNameException(request.getName());
+            }
+            list.setName(request.getName());
         }
 
-        if (!list.getName().equals(request.getName()) &&
-                listRepository.existsByUserAndName(user, request.getName())) {
-            throw new DuplicateListNameException(request.getName());
-        }
-
-        list.setName(request.getName());
         list.setDescription(request.getDescription());
         list.setIsPublic(request.getIsPublic());
 

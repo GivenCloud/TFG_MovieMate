@@ -15,7 +15,7 @@ const NAV_MAIN = [
 function getNavPersonal(username?: string) {
   return [
     { to: username ? `/profile/${username}?tab=ratings` : '/', icon: '⭐', label: 'Valoraciones', neverActive: true },
-    { to: '/lists',     icon: '📋', label: 'Mis listas' },
+    { to: '/lists',     icon: '📋', label: 'Listas' },
     { to: '/watchlist', icon: '🕐', label: 'Por ver' },
     { to: '/favorites', icon: '❤️',  label: 'Favoritos' },
   ]
@@ -76,7 +76,7 @@ export default function Sidebar() {
   })
 
   return (
-    <aside className="w-56 shrink-0 bg-bg-1 border-r border-white/[0.06] flex flex-col h-full">
+    <aside className="w-56 shrink-0 bg-bg-1 border-r border-white/[0.06] hidden lg:flex flex-col h-full">
       {/* Brand */}
       <Link to="/" className="flex items-center gap-2.5 px-4 py-5 border-b border-white/[0.06] hover:bg-bg-2 transition-colors">
         <div className="w-8 h-8 bg-accent rounded-lg flex items-center justify-center text-bg-0 font-bold text-sm shrink-0">

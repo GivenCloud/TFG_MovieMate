@@ -97,7 +97,7 @@ function EditListDialog({
   const update = useMutation({
     mutationFn: () =>
       listsApi.updateList(list.id, {
-        name: name.trim(),
+        name: list.listType === 'CUSTOM' ? name.trim() : list.name,
         description: description.trim() || undefined,
         isPublic,
       }),
@@ -131,19 +131,30 @@ function EditListDialog({
             <label className="block font-mono text-xs text-muted tracking-wider uppercase mb-1.5">
               Nombre
             </label>
-            <input
-              type="text"
-              required
-              maxLength={80}
-              value={name}
-              onChange={(e) => { setName(e.target.value); setNameError('') }}
-              className={`w-full bg-bg-2 border rounded-xl px-3.5 py-2.5 text-sm text-white placeholder:text-muted outline-none transition-all
-                ${nameError
-                  ? 'border-red-500/60 focus:border-red-500/80 focus:ring-2 focus:ring-red-500/10'
-                  : 'border-white/[0.1] focus:border-accent/50 focus:ring-2 focus:ring-accent/10'
-                }`}
-            />
-            {nameError && <p className="text-xs text-red-400 mt-1.5">{nameError}</p>}
+            {list.listType === 'CUSTOM' ? (
+              <>
+                <input
+                  type="text"
+                  required
+                  maxLength={80}
+                  value={name}
+                  onChange={(e) => { setName(e.target.value); setNameError('') }}
+                  className={`w-full bg-bg-2 border rounded-xl px-3.5 py-2.5 text-sm text-white placeholder:text-muted outline-none transition-all
+                    ${nameError
+                      ? 'border-red-500/60 focus:border-red-500/80 focus:ring-2 focus:ring-red-500/10'
+                      : 'border-white/[0.1] focus:border-accent/50 focus:ring-2 focus:ring-accent/10'
+                    }`}
+                />
+                {nameError && <p className="text-xs text-red-400 mt-1.5">{nameError}</p>}
+              </>
+            ) : (
+              <div className="flex items-center gap-3 bg-bg-2 border border-white/[0.06] rounded-xl px-3.5 py-2.5">
+                <span className="text-sm text-white/60 flex-1">{list.name}</span>
+                <span className="text-[0.65rem] font-mono text-muted bg-bg-3 px-2 py-0.5 rounded shrink-0">
+                  No editable
+                </span>
+              </div>
+            )}
           </div>
 
           <div>
@@ -228,15 +239,15 @@ function MyListCard({ list }: { list: ListResponse }) {
         <Link to={`/lists/${list.id}`} state={{ list }} className="block">
           <ListCard list={list} />
         </Link>
-        {isCustom && (
-          <div className="absolute top-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity z-10">
-            <button
-              onClick={(e) => { e.preventDefault(); e.stopPropagation(); setEditOpen(true) }}
-              className="w-7 h-7 bg-bg-0/80 hover:bg-accent text-white hover:text-bg-0 rounded-lg flex items-center justify-center text-xs transition-colors"
-              title="Editar lista"
-            >
-              ✏
-            </button>
+        <div className="absolute top-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity z-10">
+          <button
+            onClick={(e) => { e.preventDefault(); e.stopPropagation(); setEditOpen(true) }}
+            className="w-7 h-7 bg-bg-0/80 hover:bg-accent text-white hover:text-bg-0 rounded-lg flex items-center justify-center text-xs transition-colors"
+            title="Editar lista"
+          >
+            ✏
+          </button>
+          {isCustom && (
             <button
               onClick={(e) => { e.preventDefault(); e.stopPropagation(); deleteMutation.mutate() }}
               disabled={deleteMutation.isPending}
@@ -245,8 +256,8 @@ function MyListCard({ list }: { list: ListResponse }) {
             >
               ×
             </button>
-          </div>
-        )}
+          )}
+        </div>
       </div>
       {editOpen && <EditListDialog list={list} onClose={() => setEditOpen(false)} />}
     </>
@@ -460,7 +471,7 @@ export default function ListsPage() {
   return (
     <div className="pb-12">
       {/* ── Cabecera ─────────────────────────────────────── */}
-      <div className="flex items-center justify-between px-6 py-5 border-b border-white/[0.06]">
+      <div className="flex items-center justify-between px-4 lg:px-6 py-5 border-b border-white/[0.06]">
         <h1 className="font-display font-bold italic text-2xl">Listas</h1>
         <button
           onClick={() => setCreateOpen(true)}
@@ -471,7 +482,7 @@ export default function ListsPage() {
       </div>
 
       {/* ── Tabs ──────────────────────────────────────────── */}
-      <div className="flex gap-1 px-6 border-b border-white/[0.06]">
+      <div className="flex gap-1 px-4 lg:px-6 border-b border-white/[0.06]">
         {(['mine', 'explore'] as const).map((t) => (
           <button
             key={t}
@@ -489,7 +500,7 @@ export default function ListsPage() {
 
       {/* ── Filtros (solo en "Mis listas") ─────────────────── */}
       {tab === 'mine' && (
-        <div className="flex gap-2 px-6 py-3 border-b border-white/[0.06] overflow-x-auto scrollbar-none">
+        <div className="flex gap-2 px-4 lg:px-6 py-3 border-b border-white/[0.06] overflow-x-auto scrollbar-none">
           {FILTERS.map(({ id, label }) => (
             <button
               key={id}
@@ -510,7 +521,7 @@ export default function ListsPage() {
       {isLoading ? (
         <ListsSkeleton />
       ) : tab === 'mine' ? (
-        <div className="px-6 py-6">
+        <div className="px-4 lg:px-6 py-6">
           {filtered.length === 0 && filter === 'all' ? (
             <EmptyState
               icon="📋"
@@ -543,7 +554,7 @@ export default function ListsPage() {
           )}
         </div>
       ) : (
-        <div className="px-6 py-6">
+        <div className="px-4 lg:px-6 py-6">
           {publicLists.length === 0 ? (
             <EmptyState
               icon="🌐"

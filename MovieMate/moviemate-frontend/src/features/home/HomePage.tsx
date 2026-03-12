@@ -70,7 +70,7 @@ export default function HomePage() {
   return (
     <div className="pb-10">
       {/* ── HERO  ── */}
-      <div className="relative h-115 overflow-hidden">
+      <div className="relative h-72 lg:h-115 overflow-hidden">
         {featured?.backdropUrl ? (
           // backgroundImage + filter CSS 
           <div 
@@ -96,7 +96,7 @@ export default function HomePage() {
 
         {/* Poster */}
         {featured?.posterUrl && (
-          <div className="absolute right-20 top-8 -bottom-7.5 w-48 z-10">
+          <div className="hidden lg:block absolute right-20 top-8 -bottom-7.5 w-48 z-10">
             <img
               src={featured.posterUrl}
               alt={`Poster de ${featured.title}`}
@@ -106,14 +106,14 @@ export default function HomePage() {
         )}
 
         {/* CONTENIDO */}
-        <div className="relative z-10 h-full flex flex-col justify-end px-9 pb-10 max-w-lg">
+        <div className="relative z-10 h-full flex flex-col justify-end px-4 lg:px-9 pb-6 lg:pb-10 max-w-lg">
           <div className="inline-flex items-center gap-1.5 bg-accent/10 border border-accent/30 text-accent text-xs font-semibold px-2.5 py-1 rounded-full mb-3 w-fit">
             ✨ Tendencia esta semana
           </div>
 
           {featured ? (
             <>
-              <h1 className="font-display font-bold text-[2.8rem] leading-[1.05] tracking-tight mb-2.5">
+              <h1 className="font-display font-bold text-2xl lg:text-[2.8rem] leading-[1.05] tracking-tight mb-2.5">
                 {featured.title}
               </h1>
               <div className="flex items-center gap-2.5 text-sm text-white/70 mb-5 flex-wrap">
@@ -162,7 +162,7 @@ export default function HomePage() {
       </div>
 
       {/* ── TENDENCIAS ── */}
-      <section className="px-6 pt-8">
+      <section className="px-4 lg:px-6 pt-8">
         <div className="flex items-baseline justify-between mb-4">
           <h2 className="font-display font-bold italic text-xl">Tendencias esta semana 🔥</h2>
         </div>
@@ -175,7 +175,7 @@ export default function HomePage() {
       </section>
 
       {/* ── PELÍCULAS POPULARES ── */}
-      <section className="px-6 pt-8">
+      <section className="px-4 lg:px-6 pt-8">
         <div className="flex items-baseline justify-between mb-4">
           <h2 className="font-display font-bold italic text-xl">Películas populares 🎬</h2>
         </div>
@@ -188,7 +188,7 @@ export default function HomePage() {
       </section>
 
       {/* ── SERIES POPULARES ── */}
-      <section className="px-6 pt-8">
+      <section className="px-4 lg:px-6 pt-8">
         <div className="flex items-baseline justify-between mb-4">
           <h2 className="font-display font-bold italic text-xl">Series populares 📺</h2>
         </div>

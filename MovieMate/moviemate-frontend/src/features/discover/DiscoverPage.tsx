@@ -46,7 +46,7 @@ export default function DiscoverPage() {
     : 'Tendencias ahora 🔥'
 
   return (
-    <div className="px-6 py-8 max-w-350">
+    <div className="px-4 lg:px-8 py-6 lg:py-8 max-w-6xl mx-auto">
       {/* Cabecera */}
       <div className="mb-8">
         <h1 className="font-display font-bold italic text-3xl mb-1">Descubrir</h1>
