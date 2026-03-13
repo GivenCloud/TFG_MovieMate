@@ -12,8 +12,7 @@ fullnameOverride: ""
 # ── Backend (Spring Boot) ──────────────────────────────────────────────────────
 backend:
   image:
-    # Cambia YOUR_GITHUB_USERNAME por tu usuario de GitHub
-    repository: ghcr.io/YOUR_GITHUB_USERNAME/moviemate-backend
+    repository: ghcr.io/GivenCloud/moviemate-backend
     tag: latest
     pullPolicy: IfNotPresent
 
@@ -61,7 +60,7 @@ backend:
 # ── Frontend (nginx + Vite SPA) ───────────────────────────────────────────────
 frontend:
   image:
-    repository: ghcr.io/YOUR_GITHUB_USERNAME/moviemate-frontend
+    repository: ghcr.io/GivenCloud/moviemate-frontend
     tag: latest
     pullPolicy: IfNotPresent
 
@@ -136,5 +135,7 @@ ingress:
   tls:
     enabled: false       # true en producción con cert-manager
     secretName: moviemate-tls
-    # En producción añadir anotación:
-    # cert-manager.io/cluster-issuer: letsencrypt-prod
+
+  # Nombre del ClusterIssuer de cert-manager (solo en prod, cuando tls.enabled=true)
+  # Ejemplo: "letsencrypt-prod"
+  certManagerIssuer: ""

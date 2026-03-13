@@ -15,8 +15,8 @@ metadata:
     nginx.ingress.kubernetes.io/proxy-http-version: "1.1"
 
     # ── cert-manager (solo en producción con TLS habilitado) ─────
-    {{- if and .Values.ingress.tls.enabled ((.Values.ingress.annotations).cert-manager\.io/cluster-issuer) }}
-    cert-manager.io/cluster-issuer: {{ index .Values.ingress.annotations "cert-manager.io/cluster-issuer" | quote }}
+    {{- if and .Values.ingress.tls.enabled .Values.ingress.certManagerIssuer }}
+    cert-manager.io/cluster-issuer: {{ .Values.ingress.certManagerIssuer | quote }}
     {{- end }}
 spec:
   {{- if .Values.ingress.className }}
