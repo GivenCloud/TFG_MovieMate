@@ -1,0 +1,48 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "moviemate.fullname" . }}-frontend
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "moviemate.labels" . | nindent 4 }}
+    {{- include "moviemate.frontend.selectorLabels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.frontend.replicaCount }}
+  selector:
+    matchLabels:
+      {{- include "moviemate.frontend.selectorLabels" . | nindent 6 }}
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 0
+      maxSurge: 1
+  template:
+    metadata:
+      labels:
+        {{- include "moviemate.labels" . | nindent 8 }}
+        {{- include "moviemate.frontend.selectorLabels" . | nindent 8 }}
+    spec:
+      containers:
+        - name: frontend
+          image: "{{ .Values.frontend.image.repository }}:{{ .Values.frontend.image.tag }}"
+          imagePullPolicy: {{ .Values.frontend.image.pullPolicy }}
+          ports:
+            - name: http
+              containerPort: 80
+              protocol: TCP
+
+          # BACKEND_HOST: nombre del Service del backend dentro del cluster.
+          # nginx.conf.template usa esta variable para el proxy_pass en docker-compose.
+          # En k8s el Ingress ya enruta /api y /ws al backend, pero este env var
+          # permite que el contenedor funcione también fuera de k8s (docker-compose).
+          env:
+            - name: BACKEND_HOST
+              value: "{{ include "moviemate.fullname" . }}-backend"
+
+          livenessProbe:
+            {{- toYaml .Values.frontend.livenessProbe | nindent 12 }}
+          readinessProbe:
+            {{- toYaml .Values.frontend.readinessProbe | nindent 12 }}
+
+          resources:
+            {{- toYaml .Values.frontend.resources | nindent 12 }}

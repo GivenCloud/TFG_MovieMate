@@ -1,0 +1,60 @@
+MovieMate desplegado correctamente.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  Release:    {{ .Release.Name }}
+  Namespace:  {{ .Release.Namespace }}
+  Versión:    {{ .Chart.AppVersion }}
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+{{- if .Values.ingress.enabled }}
+
+🌐  Acceso a la aplicación:
+
+  {{- if .Values.ingress.tls.enabled }}
+  Frontend:  https://{{ .Values.ingress.host }}
+  Swagger:   https://{{ .Values.ingress.host }}/swagger-ui.html
+  {{- else }}
+  Frontend:  http://{{ .Values.ingress.host }}
+  Swagger:   http://{{ .Values.ingress.host }}/swagger-ui.html
+
+  {{- if eq .Values.ingress.host "moviemate.local" }}
+
+  ⚠️  Estás usando el host "moviemate.local" (minikube).
+  Añade esta línea a /etc/hosts:
+
+    $(minikube ip)  moviemate.local
+
+  Si minikube no está arrancado:
+    minikube start
+    minikube addons enable ingress
+  {{- end }}
+  {{- end }}
+
+{{- else }}
+
+  Ingress desactivado. Para acceder localmente:
+
+  kubectl port-forward svc/{{ include "moviemate.fullname" . }}-frontend 3000:80 -n {{ .Release.Namespace }}
+  kubectl port-forward svc/{{ include "moviemate.fullname" . }}-backend  8080:8080 -n {{ .Release.Namespace }}
+
+{{- end }}
+
+📋  Comandos útiles:
+
+  # Ver todos los pods
+  kubectl get pods -n {{ .Release.Namespace }}
+
+  # Ver logs del backend
+  kubectl logs -l app.kubernetes.io/name={{ include "moviemate.fullname" . }}-backend -n {{ .Release.Namespace }} -f
+
+  # Ver logs del frontend
+  kubectl logs -l app.kubernetes.io/name={{ include "moviemate.fullname" . }}-frontend -n {{ .Release.Namespace }} -f
+
+  # Actualizar con nueva imagen (CD pipeline)
+  helm upgrade {{ .Release.Name }} ./k8s/moviemate \
+    --set backend.image.tag=<git-sha> \
+    --set frontend.image.tag=<git-sha> \
+    -n {{ .Release.Namespace }}
+
+  # Desinstalar (los PVCs de PostgreSQL se conservan)
+  helm uninstall {{ .Release.Name }} -n {{ .Release.Namespace }}

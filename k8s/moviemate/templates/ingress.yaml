@@ -1,0 +1,64 @@
+{{- if .Values.ingress.enabled }}
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: {{ include "moviemate.fullname" . }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "moviemate.labels" . | nindent 4 }}
+  annotations:
+    # ── nginx-ingress ────────────────────────────────────────────
+    # Timeouts largos necesarios para WebSocket (STOMP/SockJS)
+    nginx.ingress.kubernetes.io/proxy-read-timeout: "3600"
+    nginx.ingress.kubernetes.io/proxy-send-timeout: "3600"
+    # Permite el header Upgrade para WebSocket
+    nginx.ingress.kubernetes.io/proxy-http-version: "1.1"
+
+    # ── cert-manager (solo en producción con TLS habilitado) ─────
+    {{- if and .Values.ingress.tls.enabled ((.Values.ingress.annotations).cert-manager\.io/cluster-issuer) }}
+    cert-manager.io/cluster-issuer: {{ index .Values.ingress.annotations "cert-manager.io/cluster-issuer" | quote }}
+    {{- end }}
+spec:
+  {{- if .Values.ingress.className }}
+  ingressClassName: {{ .Values.ingress.className }}
+  {{- end }}
+
+  {{- if .Values.ingress.tls.enabled }}
+  tls:
+    - hosts:
+        - {{ .Values.ingress.host | quote }}
+      secretName: {{ .Values.ingress.tls.secretName }}
+  {{- end }}
+
+  rules:
+    - host: {{ .Values.ingress.host | quote }}
+      http:
+        paths:
+          # ── API REST → backend ──────────────────────────────────
+          - path: /api
+            pathType: Prefix
+            backend:
+              service:
+                name: {{ include "moviemate.fullname" . }}-backend
+                port:
+                  number: {{ .Values.backend.service.port }}
+
+          # ── WebSocket (STOMP sobre SockJS) → backend ────────────
+          - path: /ws
+            pathType: Prefix
+            backend:
+              service:
+                name: {{ include "moviemate.fullname" . }}-backend
+                port:
+                  number: {{ .Values.backend.service.port }}
+
+          # ── SPA (React) → frontend ──────────────────────────────
+          # Debe ir al final: / es el path menos específico
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: {{ include "moviemate.fullname" . }}-frontend
+                port:
+                  number: {{ .Values.frontend.service.port }}
+{{- end }}

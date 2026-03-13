@@ -1,0 +1,140 @@
+# ──────────────────────────────────────────────────────────────────────────────
+# values.yaml — valores por defecto (minikube / desarrollo local)
+#
+# Para producción, sobreescribe con:
+#   helm upgrade --install moviemate ./k8s/moviemate -f k8s/moviemate/values-prod.yaml
+# ──────────────────────────────────────────────────────────────────────────────
+
+# Sobreescribe el nombre completo del release (opcional)
+nameOverride: ""
+fullnameOverride: ""
+
+# ── Backend (Spring Boot) ──────────────────────────────────────────────────────
+backend:
+  image:
+    # Cambia YOUR_GITHUB_USERNAME por tu usuario de GitHub
+    repository: ghcr.io/YOUR_GITHUB_USERNAME/moviemate-backend
+    tag: latest
+    pullPolicy: IfNotPresent
+
+  replicaCount: 1
+
+  service:
+    type: ClusterIP
+    port: 8080
+
+  resources:
+    requests:
+      cpu: 250m
+      memory: 512Mi
+    limits:
+      cpu: 1000m
+      memory: 1024Mi
+
+  # Variables de entorno no sensibles
+  env:
+    jwtExpiration: "86400000"           # 24 h en milisegundos
+    tmdbApiBaseUrl: "https://api.themoviedb.org/3"
+    tmdbApiImageBaseUrl: "https://image.tmdb.org/t/p"
+    tmdbApiLanguage: "es-ES"
+    springProfilesActive: "prod"
+    javaOpts: "-Xms512m -Xmx1024m"
+
+  # Probes — Spring Boot Actuator en /actuator/health
+  # initialDelaySeconds largo porque la JVM tarda en arrancar
+  livenessProbe:
+    httpGet:
+      path: /actuator/health
+      port: 8080
+    initialDelaySeconds: 90
+    periodSeconds: 30
+    failureThreshold: 3
+
+  readinessProbe:
+    httpGet:
+      path: /actuator/health
+      port: 8080
+    initialDelaySeconds: 60
+    periodSeconds: 10
+    failureThreshold: 5
+
+# ── Frontend (nginx + Vite SPA) ───────────────────────────────────────────────
+frontend:
+  image:
+    repository: ghcr.io/YOUR_GITHUB_USERNAME/moviemate-frontend
+    tag: latest
+    pullPolicy: IfNotPresent
+
+  replicaCount: 1
+
+  service:
+    type: ClusterIP
+    port: 80
+
+  resources:
+    requests:
+      cpu: 50m
+      memory: 64Mi
+    limits:
+      cpu: 200m
+      memory: 128Mi
+
+  livenessProbe:
+    httpGet:
+      path: /
+      port: 80
+    initialDelaySeconds: 10
+    periodSeconds: 30
+
+  readinessProbe:
+    httpGet:
+      path: /
+      port: 80
+    initialDelaySeconds: 5
+    periodSeconds: 10
+
+# ── PostgreSQL ────────────────────────────────────────────────────────────────
+postgres:
+  image: postgres:16-alpine
+
+  service:
+    port: 5432
+
+  database: moviemate
+
+  storage:
+    size: 5Gi
+    # Vacío → usa el StorageClass por defecto del cluster
+    # En k3s: "local-path"   En minikube: "standard"
+    storageClass: ""
+
+  resources:
+    requests:
+      cpu: 100m
+      memory: 256Mi
+    limits:
+      cpu: 500m
+      memory: 512Mi
+
+# ── Secrets ───────────────────────────────────────────────────────────────────
+# ⚠️  NUNCA comitees valores reales aquí.
+# Para producción usa:
+#   --set secrets.dbPassword=... --set secrets.jwtSecret=... etc.
+# O mejor: gestión externa (Sealed Secrets, External Secrets Operator, Vault).
+secrets:
+  dbUsername: moviemate
+  dbPassword: "changeme"
+  jwtSecret: "changeme-at-least-32-chars-long!!"
+  tmdbApiKey: "changeme"
+
+# ── Ingress ───────────────────────────────────────────────────────────────────
+ingress:
+  enabled: true
+  className: nginx   # ingress-nginx (instalado en minikube con addons)
+  host: moviemate.local   # en minikube: añadir a /etc/hosts → $(minikube ip) moviemate.local
+
+  tls:
+    enabled: false       # true en producción con cert-manager
+    secretName: moviemate-tls
+    # En producción añadir anotación:
+    # cert-manager.io/cluster-issuer: letsencrypt-prod

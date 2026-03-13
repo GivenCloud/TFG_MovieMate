@@ -1,0 +1,49 @@
+# ──────────────────────────────────────────────────────────────────────────────
+# values-prod.yaml — overrides para Oracle Cloud (k3s)
+#
+# Uso en el pipeline:
+#   helm upgrade --install moviemate ./k8s/moviemate \
+#     -f k8s/moviemate/values-prod.yaml \
+#     --set backend.image.tag=${GIT_SHA} \
+#     --set frontend.image.tag=${GIT_SHA} \
+#     --set secrets.dbPassword=${DB_PASSWORD} \
+#     --set secrets.jwtSecret=${JWT_SECRET} \
+#     --set secrets.tmdbApiKey=${TMDB_API_KEY}
+#
+# Los secrets NUNCA van en este archivo — se pasan con --set desde GitHub Secrets.
+# ──────────────────────────────────────────────────────────────────────────────
+
+backend:
+  image:
+    # El tag se sobreescribe con --set backend.image.tag={git-sha} en el pipeline
+    pullPolicy: Always
+
+  # Ajustar según la RAM de la instancia Oracle Cloud ARM (24 GB totales)
+  resources:
+    requests:
+      cpu: 500m
+      memory: 512Mi
+    limits:
+      cpu: 1500m
+      memory: 1280Mi
+
+frontend:
+  image:
+    pullPolicy: Always
+
+postgres:
+  storage:
+    size: 10Gi
+    storageClass: local-path   # StorageClass por defecto de k3s
+
+ingress:
+  # Sustituye por tu dominio real (o la IP pública de Oracle Cloud)
+  host: moviemate.example.com
+
+  tls:
+    enabled: true
+    secretName: moviemate-tls
+
+  # Añadir en el Ingress cuando TLS esté activo:
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-prod

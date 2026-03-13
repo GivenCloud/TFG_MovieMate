@@ -1,0 +1,82 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "moviemate.fullname" . }}-backend
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "moviemate.labels" . | nindent 4 }}
+    {{- include "moviemate.backend.selectorLabels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.backend.replicaCount }}
+  selector:
+    matchLabels:
+      {{- include "moviemate.backend.selectorLabels" . | nindent 6 }}
+  # RollingUpdate: sin downtime al actualizar la imagen
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 0
+      maxSurge: 1
+  template:
+    metadata:
+      labels:
+        {{- include "moviemate.labels" . | nindent 8 }}
+        {{- include "moviemate.backend.selectorLabels" . | nindent 8 }}
+    spec:
+      # Esperar al pod de postgres antes de arrancar
+      initContainers:
+        - name: wait-for-postgres
+          image: busybox:1.36
+          command:
+            - sh
+            - -c
+            - |
+              until nc -z {{ include "moviemate.fullname" . }}-postgres {{ .Values.postgres.service.port }}; do
+                echo "Esperando a PostgreSQL..."; sleep 2;
+              done
+              echo "PostgreSQL disponible."
+      containers:
+        - name: backend
+          image: "{{ .Values.backend.image.repository }}:{{ .Values.backend.image.tag }}"
+          imagePullPolicy: {{ .Values.backend.image.pullPolicy }}
+          ports:
+            - name: http
+              containerPort: 8080
+              protocol: TCP
+
+          # Variables no sensibles desde ConfigMap
+          envFrom:
+            - configMapRef:
+                name: {{ include "moviemate.backend.configMapName" . }}
+
+          # Variables sensibles desde Secret (referenciadas individualmente)
+          env:
+            - name: SPRING_DATASOURCE_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "moviemate.secretName" . }}
+                  key: db-username
+            - name: SPRING_DATASOURCE_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "moviemate.secretName" . }}
+                  key: db-password
+            - name: JWT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "moviemate.secretName" . }}
+                  key: jwt-secret
+            - name: TMDB_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "moviemate.secretName" . }}
+                  key: tmdb-api-key
+
+          # Probes con Spring Boot Actuator
+          livenessProbe:
+            {{- toYaml .Values.backend.livenessProbe | nindent 12 }}
+          readinessProbe:
+            {{- toYaml .Values.backend.readinessProbe | nindent 12 }}
+
+          resources:
+            {{- toYaml .Values.backend.resources | nindent 12 }}

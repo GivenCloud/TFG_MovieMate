@@ -1,0 +1,14 @@
+apiVersion: v2
+name: moviemate
+description: MovieMate — plataforma de valoración de películas y series
+type: application
+version: 0.1.0
+appVersion: "1.0.0"
+
+keywords:
+  - moviemate
+  - spring-boot
+  - react
+
+maintainers:
+  - name: Christian Matas
