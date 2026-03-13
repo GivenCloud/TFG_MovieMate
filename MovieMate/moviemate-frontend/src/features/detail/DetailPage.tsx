@@ -1,5 +1,5 @@
 import { useParams, useLocation, useNavigate } from 'react-router-dom'
-import { useSyncContent } from '@/hooks/useDetail'
+import { useSyncContent, useReviews } from '@/hooks/useDetail'
 import { useAuthStore } from '@/store/authStore'
 import DetailHero from '@/components/Detail/DetailHero'
 import RatingWidget from '@/components/Detail/RatingWidget'
@@ -41,6 +41,13 @@ export default function DetailPage() {
   )
 
   const content = syncedContent ?? stateContent
+
+  // Las stats se derivan de las reseñas reales (misma caché que ReviewList, cero coste extra)
+  const { data: reviews = [] } = useReviews(content?.id)
+  const communityCount = reviews.length
+  const communityAvg = communityCount > 0
+    ? reviews.reduce((sum, r) => sum + r.rating, 0) / communityCount
+    : 0
 
   if (isLoading && !content) return <DetailSkeleton />
 
@@ -117,19 +124,21 @@ export default function DetailPage() {
                 <div className="flex items-center justify-between text-sm">
                   <span className="text-muted">Valoraciones</span>
                   <span className="font-mono text-white/70">
-                    {content.appVoteCount > 0 ? content.appVoteCount : '—'}
+                    {communityCount > 0 ? communityCount : '—'}
                   </span>
                 </div>
                 <div className="flex items-center justify-between text-sm">
                   <span className="text-muted">Nota MovieMate</span>
                   <span className="font-mono text-accent font-semibold">
-                    {content.appRating > 0 ? content.appRating.toFixed(1) : '—'}
+                    {communityCount > 0
+                      ? <>{communityAvg.toFixed(1)}<span className="text-white/30 font-normal">/5</span></>
+                      : '—'}
                   </span>
                 </div>
                 <div className="flex items-center justify-between text-sm">
                   <span className="text-muted">Nota TMDB</span>
                   <span className="font-mono text-yellow-400 font-semibold">
-                    {content.tmdbRating.toFixed(1)}
+                    {content.tmdbRating.toFixed(1)}<span className="text-white/30 font-normal">/10</span>
                   </span>
                 </div>
               </div>

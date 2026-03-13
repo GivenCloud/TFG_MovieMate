@@ -5,7 +5,7 @@ import { ratingsApi } from '@/api/ratings'
 import { queryKeys } from '@/lib/queryKeys'
 import type { ContentResponse, RatingRequest } from '@/types'
 
-// Carga el contenido por sync cuando no viene por location.state
+// Carga el contenido sincronizando con BD para tener stats actualizadas (appRating, appVoteCount)
 export function useSyncContent(
   tmdbId: number,
   contentType: 'MOVIE' | 'TV',
@@ -19,7 +19,8 @@ export function useSyncContent(
         : tmdbApi.syncTvShow(tmdbId),
     select: (res) => res.data,
     enabled,
-    staleTime: 1000 * 60 * 10,
+    staleTime: 0,         // siempre refresca al montar para tener appRating/appVoteCount frescos
+    gcTime: 1000 * 60 * 5,
   })
 }
 
@@ -62,6 +63,8 @@ export function useCreateRating(content: ContentResponse) {
         queryClient.invalidateQueries({ queryKey: queryKeys.ratings.byContent(content.id) })
       }
       queryClient.invalidateQueries({ queryKey: queryKeys.users.ratings() })
+      // Invalidar sync para que appRating/appVoteCount se actualicen en el aside
+      queryClient.invalidateQueries({ queryKey: queryKeys.tmdb.sync(content.tmdbId, content.contentType) })
       toast.success('Valoración guardada')
     },
     onError: (err: any) => {
@@ -81,6 +84,8 @@ export function useDeleteRating(contentId: number | undefined) {
       if (contentId) {
         queryClient.invalidateQueries({ queryKey: queryKeys.ratings.byContent(contentId) })
       }
+      // Invalida todos los sync de contenido para refrescar appRating/appVoteCount
+      queryClient.invalidateQueries({ queryKey: ['tmdb', 'sync'] })
       toast.success('Valoración eliminada')
     },
     onError: (err: any) => {

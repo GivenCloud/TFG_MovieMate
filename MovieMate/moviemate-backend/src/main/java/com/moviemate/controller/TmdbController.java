@@ -1,6 +1,8 @@
 package com.moviemate.controller;
 
+import com.moviemate.dto.ContentResponse;
 import com.moviemate.entity.Content;
+import com.moviemate.service.ContentService;
 import com.moviemate.service.TmdbService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -18,6 +20,7 @@ import io.swagger.v3.oas.annotations.media.ExampleObject;
 public class TmdbController {
 
     private final TmdbService tmdbService;
+    private final ContentService contentService;
 
     @Operation(
             summary = "Buscar películas por nombre",
@@ -108,7 +111,7 @@ public class TmdbController {
             description = "Obtiene información detallada de una película desde TMDB y la guarda en la base de datos."
     )
     @PostMapping("/movies/{tmdbId}/sync")
-    public ResponseEntity<Content> syncMovie(
+    public ResponseEntity<ContentResponse> syncMovie(
             @Parameter(
                     description = "ID de película en TMDB",
                     examples = {
@@ -118,7 +121,7 @@ public class TmdbController {
             @PathVariable Integer tmdbId
     ) {
         Content content = tmdbService.syncMovieFromTmdb(tmdbId);
-        return ResponseEntity.ok(content);
+        return ResponseEntity.ok(contentService.mapToContentResponse(content));
     }
 
     @Operation(
@@ -126,7 +129,7 @@ public class TmdbController {
             description = "Obtiene información detallada de una serie desde TMDB y la guarda en la base de datos."
     )
     @PostMapping("/tv/{tmdbId}/sync")
-    public ResponseEntity<Content> syncTvShow(
+    public ResponseEntity<ContentResponse> syncTvShow(
             @Parameter(
                     description = "ID de serie en TMDB",
                     examples = {
@@ -136,6 +139,6 @@ public class TmdbController {
             @PathVariable Integer tmdbId
     ) {
         Content content = tmdbService.syncTvShowFromTmdb(tmdbId);
-        return ResponseEntity.ok(content);
+        return ResponseEntity.ok(contentService.mapToContentResponse(content));
     }
 }
