@@ -1,0 +1,13 @@
+node_modules/
+dist/
+
+# Variables de entorno locales (nunca en la imagen)
+.env
+.env.local
+.env.*.local
+
+# Archivos de desarrollo
+*.log
+.DS_Store
+.vscode/
+.idea/

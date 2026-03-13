@@ -1,0 +1,124 @@
+name: CI — Tests & Build
+
+# Se ejecuta en cada push y en PRs a main
+on:
+  push:
+    branches-ignore:
+      - main        # main lo maneja cd.yml
+  pull_request:
+    branches:
+      - main
+
+jobs:
+
+  # ── Backend: tests + compilación ───────────────────────────────
+  backend-test:
+    name: Backend — Tests
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: temurin
+          cache: maven
+          cache-dependency-path: MovieMate/moviemate-backend/pom.xml
+
+      - name: Run tests
+        working-directory: MovieMate/moviemate-backend
+        run: mvn test --batch-mode -Dspring.profiles.active=test
+
+      - name: Upload coverage report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: backend-coverage
+          path: MovieMate/moviemate-backend/target/site/jacoco/
+          retention-days: 7
+
+  backend-build:
+    name: Backend — Build JAR
+    runs-on: ubuntu-latest
+    needs: backend-test
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: temurin
+          cache: maven
+          cache-dependency-path: MovieMate/moviemate-backend/pom.xml
+
+      - name: Build JAR (skip tests — ya pasaron)
+        working-directory: MovieMate/moviemate-backend
+        run: mvn clean package -DskipTests --batch-mode
+
+  # ── Frontend: build de verificación ───────────────────────────
+  frontend-build:
+    name: Frontend — Build check
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: MovieMate/moviemate-frontend/package-lock.json
+
+      - name: Install dependencies
+        working-directory: MovieMate/moviemate-frontend
+        run: npm ci --ignore-scripts
+
+      - name: Build (verifica que TypeScript y Vite compilan sin errores)
+        working-directory: MovieMate/moviemate-frontend
+        run: npm run build
+        env:
+          VITE_API_BASE_URL: /api
+          VITE_TMDB_IMAGE_BASE: https://image.tmdb.org/t/p
+
+  # ── Docker build local (sin push) ─────────────────────────────
+  # Verifica que los Dockerfiles son correctos antes de mergear a main
+  docker-lint:
+    name: Docker — Build check (no push)
+    runs-on: ubuntu-latest
+    needs: [backend-build, frontend-build]
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build backend image (sin push)
+        uses: docker/build-push-action@v6
+        with:
+          context: MovieMate/moviemate-backend
+          push: false
+          tags: moviemate-backend:ci
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Build frontend image (sin push)
+        uses: docker/build-push-action@v6
+        with:
+          context: MovieMate/moviemate-frontend
+          push: false
+          tags: moviemate-frontend:ci
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          build-args: |
+            VITE_API_BASE_URL=/api
+            VITE_TMDB_IMAGE_BASE=https://image.tmdb.org/t/p

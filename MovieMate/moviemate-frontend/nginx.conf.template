@@ -1,0 +1,54 @@
+server {
+    listen 80;
+    server_name _;
+
+    # Compresión gzip para assets estáticos
+    gzip on;
+    gzip_vary on;
+    gzip_proxied any;
+    gzip_types text/plain text/css application/json application/javascript
+               text/xml application/xml text/javascript image/svg+xml;
+
+    root /usr/share/nginx/html;
+    index index.html;
+
+    # Assets con cache larga (Vite genera nombres con hash)
+    location ~* \.(js|css|png|jpg|jpeg|gif|ico|svg|woff|woff2|ttf|eot|webp)$ {
+        expires 1y;
+        add_header Cache-Control "public, immutable";
+        try_files $uri =404;
+    }
+
+    # SPA routing — cualquier ruta desconocida devuelve index.html
+    location / {
+        try_files $uri $uri/ /index.html;
+    }
+
+    # ── Proxy al backend ────────────────────────────────────────
+    # En docker-compose: este bloque maneja las llamadas /api/*
+    # En k8s: el Ingress enruta /api/* directamente al backend
+    #         antes de llegar aquí, así que este bloque es redundante
+    #         pero inocuo.
+    # BACKEND_HOST se inyecta vía envsubst al arrancar el contenedor.
+    location /api/ {
+        proxy_pass http://${BACKEND_HOST}:8080/api/;
+        proxy_set_header Host              $host;
+        proxy_set_header X-Real-IP         $remote_addr;
+        proxy_set_header X-Forwarded-For   $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_connect_timeout 30s;
+        proxy_read_timeout    60s;
+    }
+
+    # ── WebSocket (STOMP sobre SockJS) ──────────────────────────
+    location /ws {
+        proxy_pass http://${BACKEND_HOST}:8080/ws;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade    $http_upgrade;
+        proxy_set_header Connection "upgrade";
+        proxy_set_header Host       $host;
+        proxy_set_header X-Real-IP  $remote_addr;
+        proxy_read_timeout  3600s;
+        proxy_send_timeout  3600s;
+    }
+}

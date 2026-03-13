@@ -1,0 +1,91 @@
+# docker-compose.yml — Stack completo: frontend + backend + PostgreSQL
+#
+# Uso:
+#   cp moviemate-backend/.env.example .env   # y rellena las variables
+#   docker compose up --build
+#
+# Puertos expuestos al host:
+#   http://localhost:3000  → frontend (nginx)
+#   http://localhost:8080  → backend  (Spring Boot, acceso directo para Swagger)
+#   localhost:5434         → PostgreSQL (solo si se necesita acceso externo)
+
+services:
+
+  # ── Base de datos ─────────────────────────────────────────────
+  postgres:
+    image: postgres:16-alpine
+    container_name: moviemate-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB:       moviemate
+      POSTGRES_USER:     ${DB_POSTGRE_USERNAME}
+      POSTGRES_PASSWORD: ${DB_POSTGRE_PASSWORD}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5434:5432"
+    networks:
+      - moviemate-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_POSTGRE_USERNAME} -d moviemate"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ── Backend (Spring Boot) ─────────────────────────────────────
+  backend:
+    build:
+      context: ./moviemate-backend
+      dockerfile: Dockerfile
+    container_name: moviemate-backend
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      SPRING_DATASOURCE_URL:      jdbc:postgresql://postgres:5432/moviemate
+      SPRING_DATASOURCE_USERNAME: ${DB_POSTGRE_USERNAME}
+      SPRING_DATASOURCE_PASSWORD: ${DB_POSTGRE_PASSWORD}
+      JWT_SECRET:                 ${JWT_SECRET}
+      JWT_EXPIRATION:             ${JWT_EXPIRATION}
+      TMDB_API_KEY:               ${TMDB_API_KEY}
+      TMDB_API_BASE_URL:          https://api.themoviedb.org/3
+      TMDB_API_IMAGE_BASE_URL:    https://image.tmdb.org/t/p
+      TMDB_API_LANGUAGE:          es-ES
+      # El frontend está en el mismo host: puerto 3000
+      CORS_ALLOWED_ORIGINS:       http://localhost:3000
+      SPRING_PROFILES_ACTIVE:     prod
+      JAVA_OPTS:                  -Xms512m -Xmx1024m
+    ports:
+      - "8080:8080"
+    networks:
+      - moviemate-network
+
+  # ── Frontend (nginx + Vite build) ────────────────────────────
+  frontend:
+    build:
+      context: ./moviemate-frontend
+      dockerfile: Dockerfile
+      args:
+        # /api es relativo: el nginx del contenedor hace proxy al backend
+        VITE_API_BASE_URL:      /api
+        VITE_TMDB_IMAGE_BASE:   https://image.tmdb.org/t/p
+    container_name: moviemate-frontend
+    restart: unless-stopped
+    depends_on:
+      - backend
+    environment:
+      # nginx.conf.template usa esta variable para el proxy_pass
+      BACKEND_HOST: moviemate-backend
+    ports:
+      - "3000:80"
+    networks:
+      - moviemate-network
+
+networks:
+  moviemate-network:
+    driver: bridge
+
+volumes:
+  postgres_data:
+    driver: local
