@@ -250,16 +250,17 @@ class RatingServiceTest {
     void getRatingsByContent_shouldReturnAllRatingsForContentAndUser() {
         User user = buildUser(1L, "chris");
         Content content = buildContent();
-        
+
         Rating r1 = buildRating(10L, user, content, 4);
         Rating r2 = buildRating(11L, user, content, 5);
-        
+
         when(contentRepository.findById(100L)).thenReturn(Optional.of(content));
-        when(ratingRepository.findAllByUserAndContent(user, content))
-                .thenReturn(List.of(r1, r2));
-        
+        when(ratingRepository.findByContent(content)).thenReturn(List.of(r1, r2));
+        when(reviewLikeRepository.countByRating(any())).thenReturn(0);
+        when(reviewLikeRepository.existsByUserAndRating(any(), any())).thenReturn(false);
+
         List<RatingResponse> responses = ratingService.getRatingsByContent(user, 100L);
-        
+
         assertThat(responses).hasSize(2);
         assertThat(responses)
                 .extracting(RatingResponse::getId)
