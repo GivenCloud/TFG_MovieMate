@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { useSearchParams, useNavigate, Link } from 'react-router-dom'
+import { useSearchParams, Link } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import { useDebounce } from '@/hooks/useDebounce'
 import { usePopular, useSearch } from '@/hooks/useDiscover'

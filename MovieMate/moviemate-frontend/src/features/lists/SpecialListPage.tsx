@@ -7,7 +7,7 @@ import PosterCard from '../../components/shared/PosterdCard'
 import EmptyState from '../../components/shared/EmptyState'
 import AddContentToListDialog from './AddContentToListDialog'
 
-type SpecialListType = 'WATCHLIST' | 'FAVORITES'
+type SpecialListType = 'WATCHLIST' | 'FAVORITES' | 'WATCHED'
 
 const CONFIG: Record<SpecialListType, {
   icon: string
@@ -28,6 +28,13 @@ const CONFIG: Record<SpecialListType, {
     title: 'Favoritos',
     subtitle: 'Tu colección de favoritos de siempre',
     emptyTitle: 'Aún no tienes favoritos',
+    emptyDesc: 'Busca una película o serie y añádela con el botón "Añadir a lista".',
+  },
+  WATCHED: {
+    icon: '👁️',
+    title: 'Ya vistas',
+    subtitle: 'Todo lo que has visto',
+    emptyTitle: 'Aún no has marcado nada como visto',
     emptyDesc: 'Busca una película o serie y añádela con el botón "Añadir a lista".',
   },
 }

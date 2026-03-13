@@ -118,7 +118,6 @@ export default function HomePage() {
     staleTime: 1000 * 60 * 10,
   })
 
-  const isLoading = loadingTrending || loadingMovies || loadingTv
   const featured: ContentResponse | undefined = trending?.[0] ?? popularMovies?.[0]
   const trendingRest = (trending ?? []).slice(1).filter((item) => item.tmdbId && item.contentType)
   const popularMoviesFiltered = (popularMovies ?? []).filter((item) => item.tmdbId && item.contentType)

@@ -36,7 +36,7 @@ function ActivitySkeleton() {
 }
 
 // ── Item de actividad ────────────────────────────────────────
-function ActivityItem({ activity, index }: { activity: ActivityResponse; index: number }) {
+function ActivityItem({ activity }: { activity: ActivityResponse }) {
   const { user, type, createdAt, rating, list, targetUser, content } = activity
 
   const contentUrl = content

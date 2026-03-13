@@ -62,10 +62,10 @@ public class UserService {
     }
 
     public void changePassword(User user, String currentPassword, String newPassword) {
-        if (!passwordEncoder.matches(currentPassword, user.getPassword())) {
+        if (!passwordEncoder.matches(currentPassword, user.getPasswordHash())) {
             throw new IllegalArgumentException("La contraseña actual es incorrecta");
         }
-        user.setPassword(passwordEncoder.encode(newPassword));
+        user.setPasswordHash(passwordEncoder.encode(newPassword));
         userRepository.save(user);
     }
     

@@ -3,7 +3,6 @@ import { Link } from 'react-router-dom'
 import { useReviews, useToggleLike } from '@/hooks/useDetail'
 import { useComments, useCreateComment, useDeleteComment } from '@/hooks/useComments'
 import { useAuthStore } from '@/store/authStore'
-import { useMyProfile } from '@/hooks/useAuth'
 import { formatDate } from '@/lib/utils'
 import ReportDialog from '@/features/moderation/ReportDialog'
 import type { ContentResponse, RatingResponse } from '@/types'
@@ -163,7 +162,6 @@ function ReviewCard({
   onToggleComments: (id: number) => void
 }) {
   const { isAuthenticated, sessionUser } = useAuthStore()
-  const { data: me } = useMyProfile()
   const [reportOpen, setReportOpen] = useState(false)
   const isOwnReview = sessionUser?.username === review.user.username
 
