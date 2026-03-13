@@ -7,7 +7,6 @@ metadata:
     {{- include "moviemate.labels" . | nindent 4 }}
     {{- include "moviemate.postgres.selectorLabels" . | nindent 4 }}
 spec:
-  # ClusterIP: solo accesible desde dentro del cluster (correcto — no exponer la BD)
   type: ClusterIP
   selector:
     {{- include "moviemate.postgres.selectorLabels" . | nindent 4 }}

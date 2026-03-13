@@ -1,0 +1,26 @@
+Necesitas tener minikube, kubectl y helm instalados. Luego:
+
+  # 1. Arrancar minikube con el addon de ingress
+  minikube start
+  minikube addons enable ingress
+
+  # 2. Cambiar YOUR_GITHUB_USERNAME en values.yaml, o hacer --set
+  #    (de momento puedes usar las imágenes que construyas localmente)
+
+  # 3. Cargar imágenes locales en minikube (si no están en GHCR aún)
+  minikube image load moviemate-backend:latest
+  minikube image load moviemate-frontend:latest
+
+  # 4. Instalar el chart
+  helm install moviemate ./k8s/moviemate \
+    --namespace moviemate --create-namespace \
+    --set secrets.dbPassword=mipassword \
+    --set secrets.jwtSecret=mi-jwt-secret-de-32-chars!! \
+    --set secrets.tmdbApiKey=TU_API_KEY \
+    --set backend.image.repository=moviemate-backend \
+    --set frontend.image.repository=moviemate-frontend
+
+  # 5. Añadir al /etc/hosts (Linux/Mac)
+  echo "$(minikube ip)  moviemate.local" | sudo tee -a /etc/hosts
+
+  # 6. Abrir http://moviemate.local
