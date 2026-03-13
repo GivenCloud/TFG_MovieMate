@@ -52,6 +52,26 @@ export function useMyProfileLists(enabled: boolean) {
   })
 }
 
+export function useUserRatings(userId: number | undefined, enabled: boolean) {
+  return useQuery({
+    queryKey: queryKeys.users.ratingsByUser(userId!),
+    queryFn: () => usersApi.getRatingsByUserId(userId!).then((r) => r.data),
+    enabled: enabled && !!userId,
+    staleTime: 1000 * 60 * 2,
+    retry: (_count, error: any) => error?.response?.status !== 403,
+  })
+}
+
+export function useUserLists(userId: number | undefined, enabled: boolean) {
+  return useQuery({
+    queryKey: queryKeys.users.listsByUser(userId!),
+    queryFn: () => usersApi.getListsByUserId(userId!).then((r) => r.data),
+    enabled: enabled && !!userId,
+    staleTime: 1000 * 60 * 2,
+    retry: (_count, error: any) => error?.response?.status !== 403,
+  })
+}
+
 export function useUserFollowing(userId: number | undefined, enabled: boolean) {
   return useQuery({
     queryKey: queryKeys.users.following(userId!),

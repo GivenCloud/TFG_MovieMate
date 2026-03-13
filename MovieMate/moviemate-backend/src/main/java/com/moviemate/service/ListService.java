@@ -12,6 +12,7 @@ import com.moviemate.exception.DuplicateListNameException;
 import com.moviemate.entity.Content;
 import com.moviemate.repository.ListRepository;
 import com.moviemate.repository.ListContentRepository;
+import com.moviemate.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -25,6 +26,7 @@ public class ListService {
     private final ListRepository listRepository;
     private final ListContentRepository listContentRepository;
     private final ContentService contentService;
+    private final UserRepository userRepository;
     
     @Transactional
     public ListResponse createList(User user, ListRequest request) {
@@ -106,6 +108,17 @@ public class ListService {
         }
 
         return mapToListResponse(list);
+    }
+
+    @Transactional(readOnly = true)
+    public java.util.List<ListResponse> getListsByUserId(Long userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
+        return listRepository.findByUserWithContents(user)
+                .stream()
+                .filter(list -> list.getIsPublic())
+                .map(this::mapToListResponse)
+                .collect(Collectors.toList());
     }
 
     @Transactional(readOnly = true)

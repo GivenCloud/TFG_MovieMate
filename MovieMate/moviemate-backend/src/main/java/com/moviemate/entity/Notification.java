@@ -36,6 +36,10 @@ public class Notification {
     @Column(nullable = false)
     private boolean read = false;
 
+    // Texto libre para notificaciones del sistema (ej. CONTENT_REMOVED)
+    @Column(length = 500)
+    private String message;
+
     @CreationTimestamp
     private LocalDateTime createdAt;
 
@@ -43,6 +47,8 @@ public class Notification {
         FOLLOW_REQUEST,
         FOLLOW_REQUEST_ACCEPTED,
         FOLLOWER,
-        REVIEW_LIKE
+        REVIEW_LIKE,
+        COMMENT_ON_RATING,
+        CONTENT_REMOVED
     }
 }

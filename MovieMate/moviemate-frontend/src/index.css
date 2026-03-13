@@ -43,6 +43,23 @@
     @apply bg-background text-foreground;
   }
 
+  /* Ocultar botón nativo de revelar contraseña (Edge/IE/Chrome) */
+  input::-ms-reveal,
+  input::-ms-clear,
+  input[type="password"]::-ms-reveal,
+  input[type="password"]::-ms-clear {
+    display: none !important;
+    width: 0;
+    height: 0;
+  }
+  /* Edge Chromium: ícono de credenciales y autocompletado */
+  input::-webkit-credentials-auto-fill-button,
+  input::-webkit-strong-password-auto-fill-button {
+    display: none !important;
+    visibility: hidden;
+    pointer-events: none;
+  }
+
   /* Scrollbar personalizada */
   ::-webkit-scrollbar       { width: 5px; height: 5px; }
   ::-webkit-scrollbar-track { background: transparent; }

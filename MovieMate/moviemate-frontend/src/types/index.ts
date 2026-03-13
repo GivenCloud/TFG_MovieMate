@@ -56,6 +56,8 @@ export interface UserResponse {
   avatarUrl?: string
   bio?: string
   isPublic: boolean
+  role?: 'USER' | 'ADMIN'
+  banned?: boolean
   createdAt: string
 }
 
@@ -184,6 +186,8 @@ export type NotificationType =
   | 'FOLLOW_REQUEST_ACCEPTED'
   | 'FOLLOWER'
   | 'REVIEW_LIKE'
+  | 'COMMENT_ON_RATING'
+  | 'CONTENT_REMOVED'
 
 export interface NotificationDto {
   id: number
@@ -194,6 +198,7 @@ export interface NotificationDto {
   senderId: number
   senderUsername?: string
   senderAvatarUrl?: string
+  message?: string
 }
 
 // ─── Feed de actividad ─────────────────────────────────────────
@@ -213,6 +218,31 @@ export interface ActivityResponse {
   list?: ListResponse
   targetUser?: UserResponse
   content?: ContentResponse
+}
+
+// ─── Reportes ──────────────────────────────────────────────────
+export interface ReportResponse {
+  id: number
+  targetType: 'RATING' | 'COMMENT'
+  targetId: number
+  reason: 'SPAM' | 'INAPPROPRIATE' | 'SPOILER' | 'OTHER'
+  status: 'PENDING' | 'RESOLVED' | 'DISMISSED'
+  createdAt: string
+  reporter: UserResponse
+}
+
+// ─── Comentarios ───────────────────────────────────────────────
+export interface CommentResponse {
+  id: number
+  content: string
+  createdAt: string
+  updatedAt: string
+  author: UserResponse
+  ratingId: number
+}
+
+export interface CommentRequest {
+  content: string
 }
 
 // ─── Errores ───────────────────────────────────────────────────

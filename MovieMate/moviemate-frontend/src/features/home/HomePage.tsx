@@ -1,5 +1,6 @@
 import { useQuery } from '@tanstack/react-query'
 import { useNavigate } from 'react-router-dom'
+import { useRef, useState, useCallback } from 'react'
 import { tmdbApi } from '../../api/tmdb'
 import { queryKeys } from '../../lib/queryKeys'
 import { toSlug } from '../../lib/utils'
@@ -23,6 +24,71 @@ function HeroSkeleton() {
     <div className="space-y-3 animate-pulse">
       <div className="h-10 bg-bg-3 rounded w-3/4" />
       <div className="h-4 bg-bg-3 rounded w-1/2" />
+    </div>
+  )
+}
+
+function ContentCarousel({ items, loading }: { items: ContentResponse[]; loading: boolean }) {
+  const scrollRef = useRef<HTMLDivElement>(null)
+  const [canScrollLeft, setCanScrollLeft] = useState(false)
+  const [canScrollRight, setCanScrollRight] = useState(true)
+
+  const updateScrollState = useCallback(() => {
+    const el = scrollRef.current
+    if (!el) return
+    setCanScrollLeft(el.scrollLeft > 4)
+    setCanScrollRight(el.scrollLeft + el.clientWidth < el.scrollWidth - 4)
+  }, [])
+
+  const scroll = (dir: 'left' | 'right') => {
+    const el = scrollRef.current
+    if (!el) return
+    el.scrollBy({ left: dir === 'right' ? 320 : -320, behavior: 'smooth' })
+  }
+
+  return (
+    <div className="relative group/carousel">
+      {/* Flecha izquierda */}
+      <button
+        onClick={() => scroll('left')}
+        disabled={!canScrollLeft}
+        aria-label="Desplazar a la izquierda"
+        className="absolute left-0 top-1/2 -translate-y-1/2 z-10 w-9 h-9 flex items-center justify-center rounded-full bg-bg-0/90 border border-white/[0.1] text-white shadow-lg transition-all
+          disabled:opacity-25 disabled:cursor-not-allowed
+          enabled:hover:bg-bg-2 enabled:hover:border-white/20 enabled:hover:scale-105"
+      >
+        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+          <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
+        </svg>
+      </button>
+
+      {/* Carrusel */}
+      <div
+        ref={scrollRef}
+        onScroll={updateScrollState}
+        className="flex gap-3.5 overflow-x-auto scrollbar-none pb-1 px-10"
+      >
+        {loading
+          ? Array.from({ length: 7 }).map((_, i) => <PosterSkeleton key={i} />)
+          : items.map((item) => (
+              <PosterCard key={`${item.tmdbId}-${item.contentType}`} content={item} />
+            ))
+        }
+      </div>
+
+      {/* Flecha derecha */}
+      <button
+        onClick={() => scroll('right')}
+        disabled={!canScrollRight}
+        aria-label="Desplazar a la derecha"
+        className="absolute right-0 top-1/2 -translate-y-1/2 z-10 w-9 h-9 flex items-center justify-center rounded-full bg-bg-0/90 border border-white/[0.1] text-white shadow-lg transition-all
+          disabled:opacity-25 disabled:cursor-not-allowed
+          enabled:hover:bg-bg-2 enabled:hover:border-white/20 enabled:hover:scale-105"
+      >
+        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+          <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+        </svg>
+      </button>
     </div>
   )
 }
@@ -166,12 +232,7 @@ export default function HomePage() {
         <div className="flex items-baseline justify-between mb-4">
           <h2 className="font-display font-bold italic text-xl">Tendencias esta semana 🔥</h2>
         </div>
-        <div className="flex gap-3.5 overflow-x-auto scrollbar-none pb-1">
-          {loadingTrending
-            ? Array.from({ length: 7 }).map((_, i) => <PosterSkeleton key={i} />)
-            : trendingRest.map((item) => <PosterCard key={`${item.tmdbId}-${item.contentType}`} content={item} />)
-          }
-        </div>
+        <ContentCarousel items={trendingRest} loading={loadingTrending} />
       </section>
 
       {/* ── PELÍCULAS POPULARES ── */}
@@ -179,12 +240,7 @@ export default function HomePage() {
         <div className="flex items-baseline justify-between mb-4">
           <h2 className="font-display font-bold italic text-xl">Películas populares 🎬</h2>
         </div>
-        <div className="flex gap-3.5 overflow-x-auto scrollbar-none pb-1">
-          {loadingMovies
-            ? Array.from({ length: 7 }).map((_, i) => <PosterSkeleton key={i} />)
-            : popularMoviesFiltered.map((item) => <PosterCard key={`${item.tmdbId}-${item.contentType}`} content={item} />)
-          }
-        </div>
+        <ContentCarousel items={popularMoviesFiltered} loading={loadingMovies} />
       </section>
 
       {/* ── SERIES POPULARES ── */}
@@ -192,12 +248,7 @@ export default function HomePage() {
         <div className="flex items-baseline justify-between mb-4">
           <h2 className="font-display font-bold italic text-xl">Series populares 📺</h2>
         </div>
-        <div className="flex gap-3.5 overflow-x-auto scrollbar-none pb-1">
-          {loadingTv
-            ? Array.from({ length: 7 }).map((_, i) => <PosterSkeleton key={i} />)
-            : popularTvFiltered.map((item) => <PosterCard key={`${item.tmdbId}-${item.contentType}`} content={item} />)
-          }
-        </div>
+        <ContentCarousel items={popularTvFiltered} loading={loadingTv} />
       </section>
     </div>
   )

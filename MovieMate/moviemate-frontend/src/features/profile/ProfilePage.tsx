@@ -9,6 +9,8 @@ import {
   useUserStats,
   useMyProfileRatings,
   useMyProfileLists,
+  useUserRatings,
+  useUserLists,
   useUserFollowing,
   useUserFollowers,
   useFollowUser,
@@ -524,8 +526,12 @@ export default function ProfilePage() {
   const userId       = userQuery.data?.id
   const profileQuery = useUserProfile(userId)
   const statsQuery   = useUserStats(userId)
-  const ratingsQuery = useMyProfileRatings(isOwnProfile)
-  const listsQuery   = useMyProfileLists(isOwnProfile)
+  const myRatingsQuery    = useMyProfileRatings(isOwnProfile)
+  const myListsQuery      = useMyProfileLists(isOwnProfile)
+  const otherRatingsQuery = useUserRatings(userId, !isOwnProfile && !!userId)
+  const otherListsQuery   = useUserLists(userId, !isOwnProfile && !!userId)
+  const ratingsQuery = isOwnProfile ? myRatingsQuery : otherRatingsQuery
+  const listsQuery   = isOwnProfile ? myListsQuery   : otherListsQuery
   const followingQuery  = useUserFollowing(userId, activeTab === 'following' || followDialog === 'following')
   const followersQuery  = useUserFollowers(userId, followDialog === 'followers')
 
@@ -733,25 +739,25 @@ export default function ProfilePage() {
         {/* Valoraciones ──────────────────────────────────── */}
         {activeTab === 'ratings' && (
           <>
-            {isOwnProfile ? (
-              ratings.length > 0 ? (
-                <div className="flex flex-wrap gap-3">
-                  {ratings.map((r) => (
-                    <RatingPosterItem key={r.id} r={r} />
-                  ))}
-                </div>
-              ) : (
-                <EmptyState
-                  icon="⭐"
-                  title="Aún no has valorado nada"
-                  description="Busca películas o series y deja tu primera reseña."
-                />
-              )
+            {ratingsQuery.isLoading ? (
+              <div className="flex flex-wrap gap-3">
+                {[1,2,3,4,5,6].map(i => (
+                  <div key={i} className="w-36 h-52 rounded-xl bg-bg-2 animate-pulse" />
+                ))}
+              </div>
+            ) : ratings.length > 0 ? (
+              <div className="flex flex-wrap gap-3">
+                {ratings.map((r) =>
+                  isOwnProfile
+                    ? <RatingPosterItem key={r.id} r={r} />
+                    : <PosterCard key={r.id} content={r.content} userRating={r.rating} />
+                )}
+              </div>
             ) : (
               <EmptyState
-                icon="🔐"
-                title="Valoraciones privadas"
-                description="Solo el propio usuario puede ver su historial de valoraciones."
+                icon="⭐"
+                title={isOwnProfile ? 'Aún no has valorado nada' : 'Sin valoraciones todavía'}
+                description={isOwnProfile ? 'Busca películas o series y deja tu primera reseña.' : undefined}
               />
             )}
           </>
@@ -760,27 +766,25 @@ export default function ProfilePage() {
         {/* Listas ────────────────────────────────────────── */}
         {activeTab === 'lists' && (
           <>
-            {isOwnProfile ? (
-              lists.length > 0 ? (
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {lists.map((l) => (
-                    <Link key={l.id} to={`/lists/${l.id}`} state={{ list: l }} className="block">
-                      <ListCard list={l} />
-                    </Link>
-                  ))}
-                </div>
-              ) : (
-                <EmptyState
-                  icon="📋"
-                  title="Aún no tienes listas"
-                  description="Crea tu primera lista para organizar tu contenido favorito."
-                />
-              )
+            {listsQuery.isLoading ? (
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                {[1,2,3].map(i => (
+                  <div key={i} className="h-36 rounded-xl bg-bg-2 animate-pulse" />
+                ))}
+              </div>
+            ) : lists.length > 0 ? (
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                {lists.map((l) => (
+                  <Link key={l.id} to={`/lists/${l.id}`} state={{ list: l }} className="block">
+                    <ListCard list={l} />
+                  </Link>
+                ))}
+              </div>
             ) : (
               <EmptyState
-                icon="🔐"
-                title="Listas privadas"
-                description="Solo el propio usuario puede ver sus listas."
+                icon="📋"
+                title={isOwnProfile ? 'Aún no tienes listas' : 'Sin listas públicas todavía'}
+                description={isOwnProfile ? 'Crea tu primera lista para organizar tu contenido favorito.' : undefined}
               />
             )}
           </>

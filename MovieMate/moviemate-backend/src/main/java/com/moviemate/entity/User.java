@@ -32,6 +32,13 @@ public class User {
     @Column(nullable = false)
     private Boolean isPublic = true;
 
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, length = 20, columnDefinition = "VARCHAR(20) DEFAULT 'USER'")
+    private Role role = Role.USER;
+
+    @Column(nullable = false, columnDefinition = "BOOLEAN DEFAULT FALSE")
+    private Boolean banned = false;
+
     @CreationTimestamp
     private LocalDateTime createdAt;
 

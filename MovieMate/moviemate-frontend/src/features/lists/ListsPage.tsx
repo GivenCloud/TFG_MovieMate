@@ -25,7 +25,7 @@ const LIST_TYPE_CONFIG: Record<ListType, { icon: string; label: string }> = {
 type Filter = 'all' | 'public' | 'private' | 'movies' | 'series'
 
 // ── Tarjeta de lista ─────────────────────────────────────────
-function ListCard({ list }: { list: ListResponse }) {
+function ListCard({ list, showOwner = false }: { list: ListResponse; showOwner?: boolean }) {
   const previews = list.contents.slice(0, 4)
   const cfg = LIST_TYPE_CONFIG[list.listType]
 
@@ -72,6 +72,12 @@ function ListCard({ list }: { list: ListResponse }) {
             <>
               <span>·</span>
               <span className="text-accent/70">{cfg.label}</span>
+            </>
+          )}
+          {showOwner && list.user && (
+            <>
+              <span>·</span>
+              <span className="text-white/50">@{list.user.username}</span>
             </>
           )}
         </div>
@@ -435,6 +441,7 @@ export default function ListsPage() {
   const [tab, setTab] = useState<Tab>('mine')
   const [filter, setFilter] = useState<Filter>('all')
   const [createOpen, setCreateOpen] = useState(false)
+  const [exploreSearch, setExploreSearch] = useState('')
 
   const { data: myLists = [], isLoading: loadingMine } = useQuery({
     queryKey: queryKeys.users.lists(),
@@ -457,6 +464,14 @@ export default function ListsPage() {
     if (filter === 'series')  return l.contents.some((c) => c.contentType === 'TV')
     return true
   })
+
+  // Filtrado de listas públicas por búsqueda
+  const exploreFiltered = exploreSearch.trim()
+    ? publicLists.filter((l) =>
+        l.name.toLowerCase().includes(exploreSearch.toLowerCase()) ||
+        (l.user?.username ?? '').toLowerCase().includes(exploreSearch.toLowerCase())
+      )
+    : publicLists
 
   const FILTERS: { id: Filter; label: string }[] = [
     { id: 'all',     label: 'Todas' },
@@ -554,18 +569,43 @@ export default function ListsPage() {
           )}
         </div>
       ) : (
-        <div className="px-4 lg:px-6 py-6">
-          {publicLists.length === 0 ? (
+        <div className="px-4 lg:px-6 py-6 space-y-4">
+          {/* Buscador */}
+          <div className="relative">
+            <svg
+              className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted pointer-events-none"
+              fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}
+            >
+              <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-4.35-4.35m0 0A7 7 0 1010 17a7 7 0 006.65-4.35z" />
+            </svg>
+            <input
+              type="text"
+              value={exploreSearch}
+              onChange={(e) => setExploreSearch(e.target.value)}
+              placeholder="Buscar por nombre o usuario..."
+              className="w-full bg-bg-2 border border-white/[0.1] rounded-xl pl-9 pr-4 py-2.5 text-sm text-white placeholder:text-muted outline-none focus:border-accent/50 focus:ring-2 focus:ring-accent/10 transition-all"
+            />
+            {exploreSearch && (
+              <button
+                onClick={() => setExploreSearch('')}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-muted hover:text-white transition-colors"
+              >
+                ×
+              </button>
+            )}
+          </div>
+
+          {exploreFiltered.length === 0 ? (
             <EmptyState
               icon="🌐"
-              title="No hay listas públicas"
-              description="Aún no hay listas públicas de otros usuarios."
+              title={exploreSearch ? 'Sin resultados' : 'No hay listas públicas'}
+              description={exploreSearch ? `No se encontraron listas para "${exploreSearch}".` : 'Aún no hay listas públicas de otros usuarios.'}
             />
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-              {publicLists.map((list) => (
+              {exploreFiltered.map((list) => (
                 <Link key={list.id} to={`/lists/${list.id}`} state={{ list }} className="block">
-                  <ListCard list={list} />
+                  <ListCard list={list} showOwner />
                 </Link>
               ))}
             </div>

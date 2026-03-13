@@ -19,4 +19,7 @@ public class NotificationDto {
     private Long senderId;
     private String senderUsername;
     private String senderAvatarUrl;
+
+    // Texto libre para notificaciones del sistema
+    private String message;
 }

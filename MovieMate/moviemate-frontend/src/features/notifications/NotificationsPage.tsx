@@ -11,7 +11,7 @@ import type { NotificationDto, NotificationType } from '../../types'
 // ── Config por tipo de notificación ─────────────────────────
 const TYPE_CONFIG: Record<
   NotificationType,
-  { icon: string; bg: string; text: (username: string) => string }
+  { icon: string; bg: string; text: (username: string) => string; system?: boolean }
 > = {
   FOLLOWER: {
     icon: '👤',
@@ -32,6 +32,17 @@ const TYPE_CONFIG: Record<
     icon: '❤️',
     bg: 'rgba(248,113,113,0.15)',
     text: (u) => `@${u} ha dado me gusta a tu reseña.`,
+  },
+  COMMENT_ON_RATING: {
+    icon: '💬',
+    bg: 'rgba(96,165,250,0.15)',
+    text: (u) => `@${u} ha comentado tu reseña.`,
+  },
+  CONTENT_REMOVED: {
+    icon: '🚨',
+    bg: 'rgba(239,68,68,0.12)',
+    text: () => '',
+    system: true,
   },
 }
 
@@ -160,7 +171,7 @@ export default function NotificationsPage() {
           <button
             onClick={() => markAllRead.mutate()}
             disabled={markAllRead.isPending}
-            className="text-sm text-muted hover:text-white border border-white/[0.1] px-3 py-1.5 rounded-lg transition-colors disabled:opacity-50"
+            className="text-xs font-medium text-white/70 hover:text-white border border-white/[0.15] hover:border-white/30 px-3 py-1.5 rounded-lg transition-colors disabled:opacity-50"
           >
             {markAllRead.isPending ? '…' : 'Marcar todo como leído'}
           </button>
@@ -232,17 +243,28 @@ export default function NotificationsPage() {
 
                 {/* Cuerpo */}
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm text-white/85 leading-snug">
-                    <Link
-                      to={`/profile/${username}`}
-                      onClick={(e) => e.stopPropagation()}
-                      className="font-semibold hover:text-accent transition-colors"
-                    >
-                      @{username}
-                    </Link>{' '}
-                    {/* Elimina el "@username " que ya renderizamos como Link */}
-                    {cfg.text(username).slice(username.length + 2)}
-                  </p>
+                  <div className="flex items-start gap-2">
+                    <p className="text-sm text-white/85 leading-snug flex-1">
+                      {cfg.system ? (
+                        // Notificación de sistema (sin enlace a usuario)
+                        <span>{notif.message ?? cfg.text('')}</span>
+                      ) : (
+                        <>
+                          <Link
+                            to={`/profile/${username}`}
+                            onClick={(e) => e.stopPropagation()}
+                            className="font-semibold hover:text-accent transition-colors"
+                          >
+                            @{username}
+                          </Link>{' '}
+                          {cfg.text(username).slice(username.length + 2)}
+                        </>
+                      )}
+                    </p>
+                    {isUnread && (
+                      <div className="w-2 h-2 rounded-full bg-red-500 shrink-0 mt-1.5" />
+                    )}
+                  </div>
                   <p className="text-xs text-muted font-mono mt-1">{timeAgo(notif.createdAt)}</p>
                 </div>
 
@@ -290,11 +312,6 @@ export default function NotificationsPage() {
                     </span>
                   )}
                 </div>
-
-                {/* Punto de no leído */}
-                {isUnread && (
-                  <div className="w-2 h-2 rounded-full bg-red-500 shrink-0" />
-                )}
               </div>
             )
           })}

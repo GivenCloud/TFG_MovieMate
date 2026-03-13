@@ -19,4 +19,6 @@ public class RatingResponse {
     private LocalDateTime createdAt;
     private UserResponse user;
     private ContentResponse content;
+    private Integer likesCount;
+    private Boolean likedByCurrentUser;
 }

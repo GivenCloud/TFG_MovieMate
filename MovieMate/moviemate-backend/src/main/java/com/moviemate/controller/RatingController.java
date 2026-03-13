@@ -66,7 +66,7 @@ public class RatingController {
     public ResponseEntity<List<RatingResponse>> getRatingsByContent(
             @AuthenticationPrincipal CustomUserDetails userDetails,
             @PathVariable Long contentId) {
-        User user = userDetails.getUser();
+        User user = userDetails != null ? userDetails.getUser() : null;
         List<RatingResponse> response = ratingService.getRatingsByContent(user, contentId);
         return ResponseEntity.ok(response);
     }

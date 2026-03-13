@@ -9,6 +9,8 @@ import com.moviemate.entity.Rating;
 import com.moviemate.entity.User;
 import com.moviemate.repository.ContentRepository;
 import com.moviemate.repository.RatingRepository;
+import com.moviemate.repository.ReviewLikeRepository;
+import com.moviemate.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -23,13 +25,22 @@ public class RatingService {
     private final RatingRepository ratingRepository;
     private final ContentRepository contentRepository;
     private final ContentService contentService;
-    
-        public List<RatingResponse> getRatingsByContent(User user, Long contentId) {
+    private final UserRepository userRepository;
+    private final ReviewLikeRepository reviewLikeRepository;
+
+    public List<RatingResponse> getRatingsByContent(User currentUser, Long contentId) {
         Content content = contentRepository.findById(contentId)
                 .orElseThrow(() -> new RuntimeException("Contenido no encontrado"));
-        List<Rating> ratings = ratingRepository.findAllByUserAndContent(user, content);
-        return ratings.stream()
-                .map(this::mapToRatingResponse)
+        return ratingRepository.findByContent(content).stream()
+                .map(rating -> {
+                    RatingResponse dto = mapToRatingResponse(rating);
+                    int likes = reviewLikeRepository.countByRating(rating);
+                    dto.setLikesCount(likes);
+                    dto.setLikedByCurrentUser(
+                        currentUser != null && reviewLikeRepository.existsByUserAndRating(currentUser, rating)
+                    );
+                    return dto;
+                })
                 .collect(Collectors.toList());
     }
 
@@ -70,6 +81,26 @@ public class RatingService {
 
         updateContentStatistics(content);
     }
+
+    public RatingResponse getRatingById(Long ratingId) {
+        Rating rating = ratingRepository.findById(ratingId)
+                .orElseThrow(() -> new RuntimeException("Valoración no encontrada"));
+        return mapToRatingResponse(rating);
+    }
+
+    public User getRatingAuthor(Long ratingId) {
+        return ratingRepository.findById(ratingId)
+                .orElseThrow(() -> new RuntimeException("Valoración no encontrada"))
+                .getUser();
+    }
+
+    public void adminDeleteRating(Long ratingId) {
+        Rating rating = ratingRepository.findById(ratingId)
+                .orElseThrow(() -> new RuntimeException("Valoración no encontrada"));
+        Content content = rating.getContent();
+        ratingRepository.delete(rating);
+        updateContentStatistics(content);
+    }
     
     private void updateContentStatistics(Content content) {
         Integer voteCount = ratingRepository.countRatingsByContent(content.getId());
@@ -79,6 +110,13 @@ public class RatingService {
         content.setAppVoteCount(voteCount != null ? voteCount : 0);
 
         contentRepository.save(content);
+    }
+
+    @Transactional
+    public List<RatingResponse> getUserRatingsByUserId(Long userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
+        return getUserRatings(user);
     }
 
     @Transactional

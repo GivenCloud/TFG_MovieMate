@@ -6,16 +6,15 @@ import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 
 import com.moviemate.dto.NotificationDto;
+import com.moviemate.entity.Comment;
+import com.moviemate.entity.ContentReport;
 import com.moviemate.entity.FollowRequest;
 import com.moviemate.entity.Follower;
 import com.moviemate.entity.Notification;
 import com.moviemate.entity.Notification.NotificationType;
 import com.moviemate.entity.ReviewLike;
 import com.moviemate.entity.User;
-import com.moviemate.repository.FollowRequestRepository;
-import com.moviemate.repository.FollowerRepository;
 import com.moviemate.repository.NotificationRepository;
-import com.moviemate.repository.ReviewLikeRepository;
 
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -25,9 +24,6 @@ import lombok.RequiredArgsConstructor;
 public class NotificationService {
 
     private final NotificationRepository notificationRepository;
-    private final FollowRequestRepository followRequestRepository;
-    private final FollowerRepository followerRepository;
-    private final ReviewLikeRepository reviewLikeRepository;
     private final SimpMessagingTemplate messagingTemplate;
 
     @Transactional
@@ -181,6 +177,57 @@ public class NotificationService {
     }
 
     @Transactional
+    public void notifyContentRemoved(User receiver, ContentReport report) {
+        String targetLabel = report.getTargetType() == ContentReport.TargetType.RATING
+                ? "valoración" : "comentario";
+        String reasonLabel = switch (report.getReason()) {
+            case SPAM         -> "spam";
+            case INAPPROPRIATE -> "contenido inapropiado";
+            case SPOILER      -> "spoiler sin marcar";
+            case OTHER        -> "incumplimiento de las normas";
+        };
+
+        Notification notification = new Notification();
+        notification.setUser(receiver);
+        notification.setSender(null);
+        notification.setType(NotificationType.CONTENT_REMOVED);
+        notification.setReferenceId(report.getId());
+        notification.setMessage(
+            "Tu " + targetLabel + " ha sido eliminado/a por un administrador. Motivo: " + reasonLabel + "."
+        );
+
+        notificationRepository.save(notification);
+
+        NotificationDto dto = toDto(notification);
+        messagingTemplate.convertAndSendToUser(
+            receiver.getUsername(),
+            "/queue/notifications",
+            dto
+        );
+    }
+
+    @Transactional
+    public void notifyComment(User receiver, Comment comment) {
+        User sender = comment.getAuthor();
+
+        Notification notification = new Notification();
+        notification.setUser(receiver);
+        notification.setSender(sender);
+        notification.setType(NotificationType.COMMENT_ON_RATING);
+        notification.setReferenceId(comment.getId());
+
+        notificationRepository.save(notification);
+
+        NotificationDto dto = toDto(notification);
+
+        messagingTemplate.convertAndSendToUser(
+            receiver.getUsername(),
+            "/queue/notifications",
+            dto
+        );
+    }
+
+    @Transactional
     public List<NotificationDto> getNotifications(User user) {
 
         return notificationRepository.findByUserOrderByCreatedAtDesc(user)
@@ -217,24 +264,13 @@ public class NotificationService {
         dto.setReferenceId(notification.getReferenceId());
         dto.setRead(notification.isRead());
         dto.setCreatedAt(notification.getCreatedAt());
+        dto.setMessage(notification.getMessage());
 
-        switch (notification.getType()) {
-            case FOLLOW_REQUEST:
-                followRequestRepository.findById(notification.getReferenceId())
-                    .ifPresent(req -> populateUserInfo(dto, req.getSender()));
-                break;
-            case FOLLOW_REQUEST_ACCEPTED:
-                 followerRepository.findById(notification.getReferenceId())
-                    .ifPresent(f -> populateUserInfo(dto, f.getFollower()));
-            case FOLLOWER:
-                followerRepository.findById(notification.getReferenceId())
-                    .ifPresent(f -> populateUserInfo(dto, f.getFollower()));
-                break;
-            case REVIEW_LIKE:
-                reviewLikeRepository.findById(notification.getReferenceId())
-                    .ifPresent(rl -> populateUserInfo(dto, rl.getUser()));
-                break;
+        // El sender se guarda directamente en la notificación al crearla
+        if (notification.getSender() != null) {
+            populateUserInfo(dto, notification.getSender());
         }
+
         return dto;
     }
 

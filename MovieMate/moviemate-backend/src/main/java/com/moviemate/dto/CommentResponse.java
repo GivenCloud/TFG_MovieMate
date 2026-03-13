@@ -1,0 +1,18 @@
+package com.moviemate.dto;
+
+import lombok.Builder;
+import lombok.Data;
+
+import java.time.LocalDateTime;
+
+@Data
+@Builder
+public class CommentResponse {
+
+    private Long id;
+    private String content;
+    private LocalDateTime createdAt;
+    private LocalDateTime updatedAt;
+    private UserResponse author;
+    private Long ratingId;
+}

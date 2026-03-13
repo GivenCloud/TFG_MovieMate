@@ -78,7 +78,7 @@ export default function Sidebar() {
   return (
     <aside className="w-56 shrink-0 bg-bg-1 border-r border-white/[0.06] hidden lg:flex flex-col h-full">
       {/* Brand */}
-      <Link to="/" className="flex items-center gap-2.5 px-4 py-5 border-b border-white/[0.06] hover:bg-bg-2 transition-colors">
+      <Link to="/" className="h-13 shrink-0 flex items-center gap-2.5 px-4 border-b border-white/[0.06] hover:bg-bg-2 transition-colors">
         <div className="w-8 h-8 bg-accent rounded-lg flex items-center justify-center text-bg-0 font-bold text-sm shrink-0">
           🎬
         </div>
@@ -112,6 +112,24 @@ export default function Sidebar() {
           </NavLink>
         </div>
       </nav>
+
+      {/* Link admin — solo visible si el usuario es ADMIN */}
+      {me?.role === 'ADMIN' && (
+        <div className="px-3 pb-2">
+          <NavLink
+            to="/admin"
+            className={({ isActive }) => cn(
+              'flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm transition-all border-l-2',
+              isActive
+                ? 'text-accent bg-accent/[0.06] border-accent font-medium'
+                : 'text-muted hover:text-white hover:bg-bg-2 border-transparent'
+            )}
+          >
+            <span className="w-5 text-center text-[0.9rem]">🛡️</span>
+            <span className="flex-1">Administración</span>
+          </NavLink>
+        </div>
+      )}
 
       {/* Usuario en el pie — sessionUser se guarda al hacer login */}
       {sessionUser && (

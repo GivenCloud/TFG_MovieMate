@@ -14,6 +14,8 @@ import SettingsPage from './features/settings/SettingsPage'
 import ActivityPage from './features/activity/ActivityPage'
 import LoginPage from './features/auth/LoginPage'
 import RegisterPage from './features/auth/RegisterPage'
+import AdminPage from './features/admin/AdminPage'
+import AdminRoute from './components/AdminRoute'
 
 // Protege rutas que requieren autenticación.
 // Muestra un spinner mientras Zustand se inicializa desde localStorage
@@ -88,6 +90,10 @@ export default function App() {
         <Route
           path="/settings"
           element={<PrivateRoute><SettingsPage /></PrivateRoute>}
+        />
+        <Route
+          path="/admin"
+          element={<AdminRoute><AdminPage /></AdminRoute>}
         />
       </Route>
 

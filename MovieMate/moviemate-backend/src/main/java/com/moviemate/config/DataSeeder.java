@@ -7,6 +7,7 @@ import com.moviemate.entity.Content;
 import com.moviemate.entity.Follower;
 import com.moviemate.entity.List.ListType;
 import com.moviemate.entity.Rating;
+import com.moviemate.entity.Role;
 import com.moviemate.entity.User;
 import com.moviemate.repository.FollowerRepository;
 import com.moviemate.repository.UserRepository;
@@ -50,7 +51,20 @@ public class DataSeeder implements ApplicationRunner {
 
     @Override
     public void run(ApplicationArguments args) {
-        if (userRepository.count() > 0) {
+        // Crear usuario admin si no existe (se ejecuta siempre)
+        if (userRepository.findByUsername("admin").isEmpty()) {
+            User admin = new User();
+            admin.setUsername("admin");
+            admin.setEmail("admin@moviemate.com");
+            admin.setPasswordHash(passwordEncoder.encode("Admin1234!"));
+            admin.setBio("Administrador de MovieMate.");
+            admin.setIsPublic(true);
+            admin.setRole(Role.ADMIN);
+            userRepository.save(admin);
+            log.info("DataSeeder: usuario admin creado (admin@moviemate.com / Admin1234!)");
+        }
+
+        if (userRepository.count() > 1) {
             log.info("DataSeeder: la BD ya contiene datos, omitiendo seed.");
             return;
         }

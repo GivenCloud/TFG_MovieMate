@@ -67,6 +67,8 @@ public class UserService {
             .avatarUrl(user.getAvatarUrl())
             .bio(user.getBio())
             .isPublic(user.getIsPublic())
+            .role(user.getRole())
+            .banned(user.getBanned())
             .createdAt(user.getCreatedAt())
             .build();
     }

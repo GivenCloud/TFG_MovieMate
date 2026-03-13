@@ -32,14 +32,15 @@ export default function DetailPage() {
   const parsedTmdbId = Number(tmdbId)
   const parsedType = (contentType?.toUpperCase() ?? 'MOVIE') as ContentType
 
-  // Solo fetchamos si no tenemos el contenido en state
+  // Siempre fetchamos para tener stats actualizadas (appRating, appVoteCount)
+  // stateContent se usa como fallback mientras carga para evitar el esqueleto
   const { data: syncedContent, isLoading } = useSyncContent(
     parsedTmdbId,
     parsedType,
-    !stateContent
+    true
   )
 
-  const content = stateContent ?? syncedContent
+  const content = syncedContent ?? stateContent
 
   if (isLoading && !content) return <DetailSkeleton />
 

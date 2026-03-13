@@ -66,6 +66,7 @@ public class SecurityConfig {
         http
             .csrf(csrf -> csrf.disable())
             .authorizeHttpRequests(auth -> auth
+                .requestMatchers("/api/admin/**").hasRole("ADMIN")
                 .requestMatchers("/swagger-ui.html",
                                  "/swagger-ui/**",
                                  "/v3/api-docs",
@@ -80,8 +81,12 @@ public class SecurityConfig {
                                  "/api/users",
                                  "/api/users/{userId:[0-9]+}",
                                  "/api/users/{userId:[0-9]+}/profile",
+                                 "/api/users/{userId:[0-9]+}/ratings",
+                                 "/api/users/{userId:[0-9]+}/lists",
                                  "/api/users/username/**",
+                                 "/api/ratings/{contentId:[0-9]+}",
                                  "/api/ratings/{ratingId:[0-9]+}/likes",
+                                 "/api/ratings/{ratingId:[0-9]+}/comments",
                                  "/api/tmdb/tv/**",
                                  "/api/tmdb/movies/**",
                                  "/api/tmdb/trending",

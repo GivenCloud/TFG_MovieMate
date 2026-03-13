@@ -1,9 +1,11 @@
+import { useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
 import { listsApi } from '../../api/lists'
 import { queryKeys } from '../../lib/queryKeys'
 import PosterCard from '../../components/shared/PosterdCard'
 import EmptyState from '../../components/shared/EmptyState'
+import AddContentToListDialog from './AddContentToListDialog'
 
 type SpecialListType = 'WATCHLIST' | 'FAVORITES'
 
@@ -49,6 +51,7 @@ function SpecialListSkeleton() {
 export default function SpecialListPage({ listType }: { listType: SpecialListType }) {
   const queryClient = useQueryClient()
   const cfg = CONFIG[listType]
+  const [addDialogOpen, setAddDialogOpen] = useState(false)
 
   const { data: lists = [], isLoading } = useQuery({
     queryKey: queryKeys.users.lists(),
@@ -78,9 +81,17 @@ export default function SpecialListPage({ listType }: { listType: SpecialListTyp
     <div className="pb-12">
       {/* Cabecera */}
       <div className="px-4 lg:px-6 py-5 border-b border-white/[0.06]">
-        <div className="flex items-center gap-2 mb-1">
+        <div className="flex items-center gap-3 mb-1">
           <span className="text-xl">{cfg.icon}</span>
           <h1 className="font-display font-bold italic text-2xl">{cfg.title}</h1>
+          {list && (
+            <button
+              onClick={() => setAddDialogOpen(true)}
+              className="ml-auto shrink-0 flex items-center gap-1.5 px-3.5 py-2 text-sm font-semibold bg-accent hover:bg-accent-light text-bg-0 rounded-xl transition-colors"
+            >
+              + Añadir
+            </button>
+          )}
         </div>
         <p className="text-sm text-muted mt-0.5">{cfg.subtitle}</p>
         <div className="flex items-center gap-3 mt-2 text-xs text-muted font-mono">
@@ -120,6 +131,16 @@ export default function SpecialListPage({ listType }: { listType: SpecialListTyp
           </div>
         )}
       </div>
+
+      {list && (
+        <AddContentToListDialog
+          open={addDialogOpen}
+          onClose={() => setAddDialogOpen(false)}
+          listId={list.id}
+          listName={list.name}
+          existingTmdbIds={new Set(list.contents.map((c) => c.tmdbId))}
+        />
+      )}
     </div>
   )
 }

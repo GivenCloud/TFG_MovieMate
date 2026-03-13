@@ -82,6 +82,13 @@ export const usersApi = {
   getMyRatings: () =>
     apiClient.get<RatingResponse[]>('/users/me/ratings'),
 
+  // Ratings y listas de otro usuario (público o seguido)
+  getRatingsByUserId: (userId: number) =>
+    apiClient.get<RatingResponse[]>(`/users/${userId}/ratings`),
+
+  getListsByUserId: (userId: number) =>
+    apiClient.get<ListResponse[]>(`/users/${userId}/lists`),
+
   // Notificaciones — GET /api/users/me/notifications
   getNotifications: () =>
     apiClient.get<NotificationDto[]>('/users/me/notifications'),

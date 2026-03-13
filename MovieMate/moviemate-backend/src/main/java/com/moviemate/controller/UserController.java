@@ -194,4 +194,20 @@ public class UserController {
         UserStatsResponse stats = userStatsService.getOrCreateAndUpdateStats(userId);
         return ResponseEntity.ok(stats);
     }
+
+    @Operation(summary = "Obtener valoraciones públicas de un usuario")
+    @GetMapping("/{userId}/ratings")
+    @RequirePublicProfile(userId = "#userId")
+    public ResponseEntity<List<RatingResponse>> getUserRatingsById(
+            @Parameter(description = "ID del usuario") @PathVariable Long userId) {
+        return ResponseEntity.ok(ratingService.getUserRatingsByUserId(userId));
+    }
+
+    @Operation(summary = "Obtener listas públicas de un usuario")
+    @GetMapping("/{userId}/lists")
+    @RequirePublicProfile(userId = "#userId")
+    public ResponseEntity<List<ListResponse>> getUserListsById(
+            @Parameter(description = "ID del usuario") @PathVariable Long userId) {
+        return ResponseEntity.ok(listService.getListsByUserId(userId));
+    }
 }

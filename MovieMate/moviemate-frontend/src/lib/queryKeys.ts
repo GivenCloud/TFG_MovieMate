@@ -22,8 +22,10 @@ export const queryKeys = {
     byUsername:  (username: string) => ['users', 'username', username] as const,
     profileById: (id: number) => ['users', id] as const,
     stats:       (id: number) => ['users', id, 'stats'] as const,
-    ratings:     () => ['users', 'me', 'ratings'] as const,
-    lists:       () => ['users', 'me', 'lists'] as const,
+    ratings:        () => ['users', 'me', 'ratings'] as const,
+    lists:          () => ['users', 'me', 'lists'] as const,
+    ratingsByUser:  (id: number) => ['users', id, 'ratings'] as const,
+    listsByUser:    (id: number) => ['users', id, 'lists'] as const,
     notifications: () => ['users', 'me', 'notifications'] as const,
     followRequests: () => ['users', 'me', 'follow-requests'] as const,
     suggestions:  () => ['users', 'suggestions'] as const,
@@ -47,6 +49,10 @@ export const queryKeys = {
   // Notificaciones
   notifications: {
     unreadCount: () => ['notifications', 'unread-count'] as const,
+  },
+  // Comentarios
+  comments: {
+    byRating: (ratingId: number) => ['comments', ratingId] as const,
   },
   // Feed de actividad
   feed: {

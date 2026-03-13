@@ -13,6 +13,10 @@ Stack: Spring Boot 3.3.4 + PostgreSQL 16 (backend) / React 19 + TypeScript + Tan
 Rama activa: `feat/frontend-pages`
 
 **HECHO en las últimas sesiones (resumen):**
+- M10: Logo MovieMate en Sidebar al mismo alto que la Topbar (h-13)
+- #11: Perfil público — tabs Valoraciones y Listas muestran datos reales de perfiles ajenos (nuevos endpoints GET /api/users/{userId}/ratings y /lists)
+- #1: Comentarios planos en valoraciones — Comment entity/service/controller, CommentSection en ReviewList (toggle expandir, form inline, delete propio)
+- #2: Rol Admin + panel moderación — Role enum en User, CustomUserDetails con authorities, DataSeeder crea usuario admin (admin/Admin1234!), ContentReport entity, AdminController (/api/admin/**), ReportController (/api/reports), AdminPage (/admin), AdminRoute, ReportDialog, botón 🚩 en ReviewCard, link Administración en Sidebar (solo admin)
 - Todas las páginas implementadas (HomePage, DiscoverPage, DetailPage, ProfilePage, ListsPage, ListDetailPage, SpecialListPage, NotificationsPage, SettingsPage, ActivityPage)
 - WebSocket STOMP: `useWebSocket` en Layout.tsx, notificaciones en tiempo real
 - Paginación cliente en ReviewList (5 en 5)
@@ -27,8 +31,9 @@ Rama activa: `feat/frontend-pages`
 - M18: ListDetailPage — botón "+ Añadir" inline junto al título (no justify-between)
 - M19: Sidebar "Mis listas" → "Listas"
 
-**PENDIENTE (ver `PENDIENTE_UI.md` para detalle completo):**
-- M10: Logo MovieMate en Sidebar al mismo alto que la Topbar (h-13 = 52px) — decidir si ampliar sidebar brand o reducir icono
+**PENDIENTE (ver `PENDIENTE.md` para detalle completo):**
+- Prioridades MEDIAS: Perfiles actor/director (#3), Stats avanzadas (#4), Filtros Discover (#5), ¿Dónde ver? (#6), Temporadas/episodios (#8), Búsqueda usuarios UI (#10), Cambio contraseña (#13)
+- PENDIENTE_UI.md: todo completado (M1-M19, M10)
 
 **Ficheros clave:**
 - `TFG_MovieMate/PENDIENTE_UI.md` — lista de bugs y mejoras con estado actual

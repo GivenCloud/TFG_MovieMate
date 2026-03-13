@@ -7,6 +7,7 @@ import com.moviemate.entity.List;
 import com.moviemate.repository.FollowerRepository;
 import com.moviemate.repository.RatingRepository;
 import com.moviemate.repository.ListRepository;
+import com.moviemate.dto.ContentResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
@@ -29,6 +30,7 @@ public class ActivityService {
     private final RatingService ratingService;
     private final ListService listService;
     private final UserService userService;
+    private final ContentService contentService;
 
     @Transactional(readOnly = true)
     public Page<ActivityResponse> getUserFeed(User user, Pageable pageable) {
@@ -59,6 +61,7 @@ public class ActivityService {
                         .type(ActivityType.RATING_CREATED)
                         .user(userService.mapToUserResponse(rating.getUser()))
                         .rating(ratingService.mapToRatingResponse(rating))
+                        .content(contentService.mapToContentResponse(rating.getContent()))
                         .createdAt(rating.getCreatedAt())
                         .build())
                 .collect(Collectors.toList()));
@@ -124,6 +127,7 @@ public class ActivityService {
                         .type(ActivityType.RATING_CREATED)
                         .user(userService.mapToUserResponse(rating.getUser()))
                         .rating(ratingService.mapToRatingResponse(rating))
+                        .content(contentService.mapToContentResponse(rating.getContent()))
                         .createdAt(rating.getCreatedAt())
                         .build())
                 .collect(Collectors.toList()));
