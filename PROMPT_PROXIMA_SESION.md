@@ -13,32 +13,47 @@ Stack: Spring Boot 3.3.4 + PostgreSQL 16 (backend) / React 19 + TypeScript + Tan
 Rama activa: `feat/frontend-pages`
 
 **HECHO en las últimas sesiones (resumen):**
-- M10: Logo MovieMate en Sidebar al mismo alto que la Topbar (h-13)
-- #11: Perfil público — tabs Valoraciones y Listas muestran datos reales de perfiles ajenos (nuevos endpoints GET /api/users/{userId}/ratings y /lists)
-- #1: Comentarios planos en valoraciones — Comment entity/service/controller, CommentSection en ReviewList (toggle expandir, form inline, delete propio)
-- #2: Rol Admin + panel moderación — Role enum en User, CustomUserDetails con authorities, DataSeeder crea usuario admin (admin/Admin1234!), ContentReport entity, AdminController (/api/admin/**), ReportController (/api/reports), AdminPage (/admin), AdminRoute, ReportDialog, botón 🚩 en ReviewCard, link Administración en Sidebar (solo admin)
-- Todas las páginas implementadas (HomePage, DiscoverPage, DetailPage, ProfilePage, ListsPage, ListDetailPage, SpecialListPage, NotificationsPage, SettingsPage, ActivityPage)
-- WebSocket STOMP: `useWebSocket` en Layout.tsx, notificaciones en tiempo real
-- Paginación cliente en ReviewList (5 en 5)
-- Bugs B1-B5 y mejoras M1-M9 completados (ver PENDIENTE_UI.md)
-- M11: Borrar/editar valoraciones propias en ProfilePage (QuickEditRatingDialog, botones ✏ × en hover)
-- M12: Borrar/editar listas en ListsPage (✏ en todas, × solo CUSTOM, EditListDialog) + backend DELETE/PUT /api/lists/{id}
-- M13: Responsive completo — Sidebar oculto en móvil, BottomNavBar fija (Inicio/Descubrir/Actividad/Listas/Notif.), paddings adaptativos px-4 lg:px-6 en todas las páginas, hero del home adaptable
-- M14: Grids de posters → flex flex-wrap gap-3 (ContentGrid, SpecialListPage, ProfilePage, ListDetailPage) — elimina celdas vacías enormes
-- M15: Centrado de SettingsPage (max-w-2xl mx-auto), DiscoverPage (max-w-6xl mx-auto), ActivityPage (max-w-2xl mx-auto en feed)
-- M16: Auth pages — placeholders más grises, panel izquierdo centrado, contraste mejorado
-- M17: ProfilePage — hover effect en contadores seguidores/siguiendo (group/group-hover)
-- M18: ListDetailPage — botón "+ Añadir" inline junto al título (no justify-between)
-- M19: Sidebar "Mis listas" → "Listas"
+- Todas las páginas implementadas y responsive (HomePage, DiscoverPage, DetailPage, ProfilePage, ListsPage, ListDetailPage, SpecialListPage, NotificationsPage, SettingsPage, ActivityPage)
+- #11: Perfil público — tabs Valoraciones y Listas muestran datos reales de perfiles ajenos
+- #1: Comentarios planos en valoraciones — CommentSection en ReviewList con toggle, form inline, delete propio
+- #2: Rol Admin + panel de moderación — AdminPage, AdminRoute, ReportDialog, botón 🚩, link Administración en Sidebar
+- #10: Búsqueda de usuarios en DiscoverPage — modo Contenido / Usuarios con UserCard y sugerencias
+- #12: Lista "Ya vistas" (WATCHED) — SpecialListPage, ruta /watched, Sidebar
+- #13: Cambio de contraseña — SettingsPage con sección Seguridad, endpoint PUT /api/users/me/password
+- WebSocket STOMP, paginación ReviewList, mejoras responsive M1-M19
 
-**PENDIENTE (ver `PENDIENTE.md` para detalle completo):**
-- Prioridades MEDIAS: Perfiles actor/director (#3), Stats avanzadas (#4), Filtros Discover (#5), ¿Dónde ver? (#6), Temporadas/episodios (#8), Búsqueda usuarios UI (#10), Cambio contraseña (#13)
-- PENDIENTE_UI.md: todo completado (M1-M19, M10)
+**DevOps — estado actual (ver `DEVOPS.md` para documentación completa):**
+- ✅ Paso 1: Dockerfile frontend multi-stage (node:22-alpine → nginx:1.27-alpine)
+- ✅ Paso 2: nginx.conf.template con envsubst para BACKEND_HOST en runtime
+- ✅ Paso 3: docker-compose.yml completo (postgres + backend + frontend)
+- ✅ Paso 4: GitHub Actions — ci.yml (tests en feat/*) + cd.yml (build+push GHCR en main)
+- ✅ Paso 4b: Helm chart completo en k8s/moviemate/ con subdirectorios backend/frontend/postgres
+- ✅ Paso 5: Minikube — desplegado y verificado en local con namespace moviemate
+  - Ingress-nginx habilitado, imágenes construidas localmente con pullPolicy:Never
+  - CORS configurable via env var CORS_ALLOWED_ORIGINS (antes estaba hardcodeado en SecurityConfig.java)
+  - Acceso desde WSL2+Windows via port-forward al localhost:8080
+- ⬜ Paso 6: Oracle Cloud — crear cuenta y provisionar instancia ARM A1 (Always Free)
+- ⬜ Paso 7: k3s en Oracle Cloud — instalar, kubeconfig, abrir puertos 80/443
+- ⬜ Paso 8: Activar job deploy en cd.yml y añadir secret KUBECONFIG en GitHub
+- ⬜ Paso 9: cert-manager + Let's Encrypt TLS
+- ⬜ Paso 10: Verificación final (WebSocket, persistencia, pipeline automático)
+
+**Bugs/fixes aplicados en esta sesión que están en el código:**
+- `SecurityConfig.java`: CORS lee de env var `CORS_ALLOWED_ORIGINS` con `@Value`, soporta múltiples orígenes separados por coma
+- `k8s/moviemate/templates/postgres/postgres-statefulset.yaml`: probe pg_isready con args separados (no sh -c)
+- `k8s/moviemate/templates/ingress.yaml`: certManagerIssuer como campo limpio (antes usaba sintaxis inválida con '-')
+- 5 tests de servicios corregidos (constructores desincronizados): UserServiceTest, ActivityServiceTest, ListServiceTest, NotificationServiceTest, RatingServiceTest
 
 **Ficheros clave:**
-- `TFG_MovieMate/PENDIENTE_UI.md` — lista de bugs y mejoras con estado actual
-- `TFG_MovieMate/PROGRESO_FRONTEND.md` — progreso detallado de todo lo implementado
+- `TFG_MovieMate/DEVOPS.md` — documentación completa del despliegue
+- `TFG_MovieMate/PENDIENTE.md` — funcionalidades pendientes con estado
+- `TFG_MovieMate/k8s/moviemate/` — Helm chart completo
+- `.github/workflows/ci.yml` y `cd.yml` — pipelines CI/CD
 - Backend: `MovieMate/moviemate-backend/src/main/java/com/moviemate/`
 - Frontend: `MovieMate/moviemate-frontend/src/`
 
-Empieza leyendo `PENDIENTE_UI.md` para ver el único punto pendiente (M10) y pregunta al usuario qué quiere hacer a continuación.
+**Próximo paso recomendado:**
+Paso 6 del DevOps — crear cuenta en Oracle Cloud y provisionar la instancia ARM A1.
+O continuar con features pendientes de PENDIENTE.md (prioridades MEDIAS: #3 perfiles actor/director, #4 stats avanzadas, #5 filtros Discover, etc.)
+
+Pregunta al usuario qué quiere hacer a continuación.
