@@ -4,6 +4,7 @@ import com.moviemate.dto.UserResponse;
 import com.moviemate.entity.User;
 import com.moviemate.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -12,8 +13,9 @@ import java.util.stream.Collectors;
 @Service
 @RequiredArgsConstructor
 public class UserService {
-    
+
     private final UserRepository userRepository;
+    private final PasswordEncoder passwordEncoder;
     
     public User findUserById(Long userId) {
         return userRepository.findById(userId)
@@ -57,6 +59,14 @@ public class UserService {
         user.setIsPublic(isPublic);
         User updatedUser = userRepository.save(user);
         return mapToUserResponse(updatedUser);
+    }
+
+    public void changePassword(User user, String currentPassword, String newPassword) {
+        if (!passwordEncoder.matches(currentPassword, user.getPassword())) {
+            throw new IllegalArgumentException("La contraseña actual es incorrecta");
+        }
+        user.setPassword(passwordEncoder.encode(newPassword));
+        userRepository.save(user);
     }
     
     public UserResponse mapToUserResponse(User user) {

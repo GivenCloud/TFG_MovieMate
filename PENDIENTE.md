@@ -260,14 +260,14 @@ TMDB tiene el endpoint `/movie/:id/watch/providers` que devuelve proveedores por
 
 ---
 
-## 10. Búsqueda de usuarios
+## 10. Búsqueda de usuarios ✅
 
 **Prioridad: MEDIA** | El backend y la API ya existen, solo falta UI
 
 ### Frontend
-- [ ] Pestaña "Usuarios" en `DiscoverPage` (junto a Todo / Películas / Series)
-- [ ] `UserSearchResult` — card con avatar, username, stats resumidas, botón seguir/dejar de seguir
-- [ ] Mostrar usuarios sugeridos en `DiscoverPage` cuando no hay búsqueda activa
+- [x] Modo "Usuarios" en `DiscoverPage` — selector 🎬 Contenido / 👥 Usuarios
+- [x] `UserCard` — card con avatar, username, bio, enlace al perfil
+- [x] Mostrar usuarios sugeridos cuando no hay búsqueda activa
 
 ---
 
@@ -285,25 +285,28 @@ TMDB tiene el endpoint `/movie/:id/watch/providers` que devuelve proveedores por
 
 ---
 
-## 12. Lista "Vistos" (WATCHED)
+## 12. Lista "Vistos" (WATCHED) ✅
 
 **Prioridad: BAJA** | El enum `LIST_TYPE_CONFIG.WATCHED` ya existe en frontend
 
-- [ ] Ruta `/watched` análoga a `/watchlist` y `/favorites`
-- [ ] Link en `Sidebar` y `BottomNavBar`
-- [ ] `SpecialListPage` ya soporta el tipo, solo falta la ruta y el enlace
+- [x] Ruta `/watched` en `App.tsx`
+- [x] Link "👁️ Ya vistas" en `Sidebar`
 
 ---
 
-## 13. Cambio de contraseña
+## 13. Cambio de contraseña ✅
 
 **Prioridad: MEDIA** | Funcionalidad básica de cualquier plataforma
 
 ### Backend
-- [ ] Endpoint `PUT /api/users/me/password` — recibe `{ currentPassword, newPassword }`, valida BCrypt, re-hashea
+- [x] Endpoint `PUT /api/users/me/password` — valida BCrypt, re-hashea y guarda
+- [x] DTO `ChangePasswordRequest` (currentPassword, newPassword con @Size min=8)
+- [x] `UserService.changePassword()` — lanza `IllegalArgumentException` si la contraseña actual no coincide (capturada por GlobalExceptionHandler → 400)
 
 ### Frontend
-- [ ] Sección "Seguridad" en `SettingsPage` con formulario de cambio de contraseña
+- [x] Sección "Seguridad" en `SettingsPage` con formulario de cambio (contraseña actual, nueva, confirmar)
+- [x] Validación en cliente: coincidencia y longitud mínima antes de llamar al backend
+- [x] `usersApi.changePassword()` en `api/users.ts`
 
 ---
 

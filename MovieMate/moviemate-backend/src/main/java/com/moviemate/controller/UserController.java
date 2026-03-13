@@ -1,6 +1,7 @@
 package com.moviemate.controller;
 
 import com.moviemate.annotation.RequirePublicProfile;
+import com.moviemate.dto.ChangePasswordRequest;
 import com.moviemate.dto.FollowRequestDto;
 import com.moviemate.dto.ListResponse;
 import com.moviemate.dto.NotificationDto;
@@ -128,6 +129,16 @@ public class UserController {
         User user = userDetails.getUser();
         UserResponse updatedUser = userService.updateUserPublicStatus(user, request.getIsPublic());
         return ResponseEntity.ok(updatedUser);
+    }
+
+    @Operation(summary = "Cambiar contraseña del usuario actual")
+    @PutMapping("/me/password")
+    public ResponseEntity<Void> changePassword(
+            @AuthenticationPrincipal CustomUserDetails userDetails,
+            @org.springframework.web.bind.annotation.RequestBody @jakarta.validation.Valid ChangePasswordRequest request) {
+        User user = userDetails.getUser();
+        userService.changePassword(user, request.getCurrentPassword(), request.getNewPassword());
+        return ResponseEntity.noContent().build();
     }
 
     @Operation(summary = "Buscar usuarios por query")

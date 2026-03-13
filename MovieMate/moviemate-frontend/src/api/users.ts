@@ -75,6 +75,10 @@ export const usersApi = {
   rejectFollowRequest: (requestId: number) =>
     apiClient.delete<FollowRequestActionResponse>(`/users/follow-requests/${requestId}`),
 
+  // Cambiar contraseña — PUT /api/users/me/password
+  changePassword: (data: { currentPassword: string; newPassword: string }) =>
+    apiClient.put<void>('/users/me/password', data),
+
   // Mis listas y ratings
   getMyLists: () =>
     apiClient.get<ListResponse[]>('/users/me/lists'),

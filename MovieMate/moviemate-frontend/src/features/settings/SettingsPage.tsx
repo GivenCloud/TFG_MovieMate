@@ -56,6 +56,35 @@ export default function SettingsPage() {
   const [avatarError, setAvatarError] = useState(false)
   const [confirmLogout, setConfirmLogout] = useState(false)
 
+  // Cambio de contraseña
+  const [currentPwd, setCurrentPwd] = useState('')
+  const [newPwd, setNewPwd] = useState('')
+  const [confirmPwd, setConfirmPwd] = useState('')
+
+  const { mutate: changePassword, isPending: isChangingPwd } = useMutation({
+    mutationFn: () => usersApi.changePassword({ currentPassword: currentPwd, newPassword: newPwd }),
+    onSuccess: () => {
+      setCurrentPwd('')
+      setNewPwd('')
+      setConfirmPwd('')
+      toast.success('Contraseña actualizada')
+    },
+    onError: (err: any) =>
+      toast.error(err?.response?.data?.message ?? 'Error al cambiar la contraseña'),
+  })
+
+  const handleChangePassword = () => {
+    if (newPwd !== confirmPwd) {
+      toast.error('Las contraseñas nuevas no coinciden')
+      return
+    }
+    if (newPwd.length < 8) {
+      toast.error('La nueva contraseña debe tener al menos 8 caracteres')
+      return
+    }
+    changePassword()
+  }
+
   // Inicializa el formulario cuando carga el perfil
   useEffect(() => {
     if (me) {
@@ -201,6 +230,45 @@ export default function SettingsPage() {
                   className={`absolute top-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform
                     ${me?.isPublic ? 'translate-x-5' : 'translate-x-0.5'}`}
                 />
+              </button>
+            </div>
+          </div>
+        </section>
+
+        {/* ── Seguridad ──────────────────────────────────── */}
+        <section className="bg-bg-1 border border-white/[0.06] rounded-2xl overflow-hidden">
+          <div className="px-6 py-4 border-b border-white/[0.06]">
+            <h2 className="text-sm font-semibold text-white/90">Seguridad</h2>
+            <p className="text-xs text-muted mt-0.5">Cambia tu contraseña de acceso</p>
+          </div>
+
+          <div className="px-6 py-5 space-y-4">
+            {[
+              { label: 'Contraseña actual', value: currentPwd, onChange: setCurrentPwd, placeholder: '••••••••' },
+              { label: 'Nueva contraseña', value: newPwd, onChange: setNewPwd, placeholder: 'Mínimo 8 caracteres' },
+              { label: 'Confirmar nueva contraseña', value: confirmPwd, onChange: setConfirmPwd, placeholder: '••••••••' },
+            ].map(({ label, value, onChange, placeholder }) => (
+              <div key={label}>
+                <label className="block text-xs font-mono text-muted uppercase tracking-wider mb-1.5">
+                  {label}
+                </label>
+                <input
+                  type="password"
+                  value={value}
+                  onChange={(e) => onChange(e.target.value)}
+                  placeholder={placeholder}
+                  className="w-full bg-bg-2 border border-white/[0.1] rounded-xl px-3.5 py-2.5 text-sm text-white placeholder:text-muted outline-none focus:border-accent/50 focus:ring-2 focus:ring-accent/10 transition-all"
+                />
+              </div>
+            ))}
+
+            <div className="flex justify-end pt-1">
+              <button
+                onClick={handleChangePassword}
+                disabled={isChangingPwd || !currentPwd || !newPwd || !confirmPwd}
+                className="px-5 py-2 text-sm font-semibold bg-accent hover:bg-accent-light text-bg-0 rounded-xl disabled:opacity-60 transition-colors"
+              >
+                {isChangingPwd ? 'Guardando…' : 'Cambiar contraseña'}
               </button>
             </div>
           </div>

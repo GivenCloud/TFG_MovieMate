@@ -18,6 +18,7 @@ function getNavPersonal(username?: string) {
     { to: '/lists',     icon: '📋', label: 'Listas' },
     { to: '/watchlist', icon: '🕐', label: 'Por ver' },
     { to: '/favorites', icon: '❤️',  label: 'Favoritos' },
+    { to: '/watched',   icon: '👁️',  label: 'Ya vistas' },
   ]
 }
 

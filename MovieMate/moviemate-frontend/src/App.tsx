@@ -84,6 +84,10 @@ export default function App() {
           element={<PrivateRoute><SpecialListPage listType="FAVORITES" /></PrivateRoute>}
         />
         <Route
+          path="/watched"
+          element={<PrivateRoute><SpecialListPage listType="WATCHED" /></PrivateRoute>}
+        />
+        <Route
           path="/notifications"
           element={<PrivateRoute><NotificationsPage /></PrivateRoute>}
         />
