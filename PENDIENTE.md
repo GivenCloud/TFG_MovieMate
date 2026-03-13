@@ -33,6 +33,7 @@ Registrado 2026-03-13. Estado: ⬜ pendiente | 🔄 en progreso | ✅ hecho
 25. [Explorar listas: propietario y buscador](#25-explorar-listas-propietario-y-buscador)
 26. [Carruseles en HomePage con flechas de navegación](#26-carruseles-en-homepage-con-flechas-de-navegación)
 27. [DetailPage: estadísticas de MovieMate siempre actualizadas](#27-detailpage-estadísticas-de-moviemate-siempre-actualizadas)
+28. [DevOps — Contenerización, CI/CD y despliegue en Kubernetes](#28-devops--contenerización-cicd-completo-y-despliegue-en-kubernetes)
 
 ---
 
@@ -479,3 +480,162 @@ Igual que comentarios en valoraciones pero para listas. Usar la misma entidad `C
 | **MEDIA** | 3 (Actores/directores), 4 (Stats avanzadas), 5 (Filtros Discover), 6 (¿Dónde ver?), 8 (Temporadas/episodios), 10 (Búsqueda usuarios), 13 (Cambio contraseña), 25 (Explorar listas), 26 (Carruseles flechas) |
 | **BAJA** | 7 (Insignias), 9 (Recomendaciones), 12 (Lista Vistos), 14 (Avatar upload), 15 (Import/export), 16 (Favoritas en perfil), 17 (Activity updates), 18 (Votar reseñas), 19 (Spoilers), 20 (Comentarios listas), 21 (Usuarios sugeridos) |
 | **MUY BAJA** | 22 (Menciones), 23 (Push PWA), 24 (Tema claro) |
+
+---
+
+## 28. DevOps — Contenerización, CI/CD completo y despliegue en Kubernetes
+
+**Prioridad: ALTA (para prácticas DevOps)** | Recomendación: hacer AHORA, antes de seguir con features
+
+Las features pendientes no añaden nuevos servicios de infraestructura (no hay Redis, Kafka, etc.). La arquitectura está estabilizada: **backend Spring Boot + frontend React/Vite + PostgreSQL**. Configurar el despliegue ahora permite que cada feature futura pase por el pipeline automáticamente.
+
+---
+
+### Decisión: ¿Minikube o nube gratuita?
+
+**Enfoque híbrido recomendado:**
+- **Minikube** → desarrollo local y pruebas de manifiestos
+- **Oracle Cloud Free Tier + k3s** → "producción" pública y gratuita de forma permanente
+
+Oracle Cloud Free Tier ofrece **4 OCPUs ARM (Ampere A1) + 24 GB RAM gratis para siempre**, suficiente para backend (JVM ~512MB) + frontend (nginx ~50MB) + PostgreSQL (~256MB) con margen. Es la única opción verdaderamente gratuita, persistente y públicamente accesible para este stack.
+
+Otras opciones descartadas: Render/Railway duermen; GKE/EKS/AKS tienen coste en nodos; Fly.io tiene límite de 3GB RAM ajustado para Java.
+
+---
+
+### Herramienta de manifiestos: Helm (sobre Kustomize)
+
+| | Kustomize | **Helm** |
+|---|---|---|
+| Uso en empresas | ~30% | ~70% |
+| Templating | No (overlays) | Sí (Go templates) |
+| Dev vs prod | Overlay files | `values.yaml` + `values-prod.yaml` |
+| Relevancia en prácticas DevOps | Buena | **Mejor** |
+
+Se elige **Helm** porque es el estándar de facto en la industria y el más relevante para prácticas de DevOps.
+
+---
+
+### Stack de herramientas
+
+| Herramienta | Propósito | Coste |
+|---|---|---|
+| **GitHub Actions** | CI/CD pipeline | Gratis (2000 min/mes en public repo) |
+| **GHCR** (GitHub Container Registry) | Registro de imágenes Docker | Gratis (repos públicos) |
+| **Helm** | Manifiestos Kubernetes | Gratis |
+| **minikube** | K8s local para desarrollo | Gratis |
+| **Oracle Cloud Free Tier** | VM ARM 4 OCPU / 24GB RAM | Gratis permanente |
+| **k3s** | K8s ligero en Oracle Cloud | Gratis |
+| **ingress-nginx** | Ingress controller | Gratis |
+| **cert-manager + Let's Encrypt** | TLS automático | Gratis |
+
+---
+
+### Estado actual de contenerización
+
+- [x] `Dockerfile` del backend (multi-stage Maven → eclipse-temurin JRE)
+- [x] `docker-compose.yml` (backend + postgres, para desarrollo local)
+- [x] GitHub Actions CI parcial (tests + build + build imagen local sin push)
+- [ ] `Dockerfile` del frontend (nginx sirviendo el build de Vite)
+- [ ] Imágenes publicadas en GHCR
+- [ ] Helm chart con todos los manifiestos
+- [ ] Deploy automatizado en el pipeline
+
+---
+
+### Estructura objetivo del repositorio
+
+```
+TFG_MovieMate/
+├── .github/
+│   └── workflows/
+│       ├── ci.yml          ← tests + build en PRs y feat/*
+│       └── cd.yml          ← build images + push + helm deploy en main
+├── MovieMate/
+│   ├── moviemate-backend/
+│   │   ├── Dockerfile      ✅ ya existe
+│   │   └── docker-compose.yml  ✅ ya existe (dev local)
+│   └── moviemate-frontend/
+│       └── Dockerfile      ← NUEVO (nginx + vite build)
+└── k8s/
+    └── moviemate/          ← Helm chart
+        ├── Chart.yaml
+        ├── values.yaml              ← defaults (minikube/dev)
+        ├── values-prod.yaml         ← overrides Oracle Cloud
+        └── templates/
+            ├── backend-deployment.yaml
+            ├── backend-service.yaml
+            ├── backend-configmap.yaml
+            ├── frontend-deployment.yaml
+            ├── frontend-service.yaml
+            ├── postgres-statefulset.yaml
+            ├── postgres-service.yaml
+            ├── postgres-pvc.yaml
+            ├── ingress.yaml         ← con headers WebSocket upgrade (STOMP)
+            └── _helpers.tpl
+```
+
+---
+
+### Pipeline CI/CD objetivo
+
+**`ci.yml`** (push a feat/* o PR a main):
+```yaml
+jobs:
+  test-backend:  mvn test
+  build-frontend: npm run build  # verifica que compila
+```
+
+**`cd.yml`** (push a main):
+```yaml
+jobs:
+  build-and-push:
+    - docker build backend → ghcr.io/user/moviemate-backend:{git-sha}
+    - docker build frontend → ghcr.io/user/moviemate-frontend:{git-sha}
+    - docker push ambas imágenes
+
+  deploy:
+    needs: build-and-push
+    - helm upgrade --install moviemate ./k8s/moviemate \
+        --set backend.image.tag={git-sha} \
+        --set frontend.image.tag={git-sha} \
+        -f k8s/moviemate/values-prod.yaml
+    (vía kubectl con KUBECONFIG almacenado en GitHub Secrets)
+```
+
+---
+
+### Secrets necesarios en GitHub
+
+```
+GHCR_TOKEN           ← Personal Access Token con write:packages
+DB_POSTGRE_PASSWORD  ← contraseña de PostgreSQL
+JWT_SECRET           ← clave JWT
+TMDB_API_KEY         ← API key de TMDB
+KUBECONFIG           ← kubeconfig del cluster k3s (Oracle Cloud)
+```
+
+---
+
+### Consideraciones especiales del stack
+
+- **WebSocket (STOMP)**: el `Ingress` necesita las anotaciones `nginx.ingress.kubernetes.io/proxy-read-timeout`, `proxy-send-timeout` y `configuration-snippet` para el header `Upgrade`.
+- **PostgreSQL**: usar `StatefulSet` con `PersistentVolumeClaim` para persistencia de datos. En Oracle Cloud, el StorageClass por defecto de k3s (`local-path`) es suficiente para un nodo.
+- **Frontend SPA**: el nginx del frontend debe tener `try_files $uri /index.html` para que el router de React funcione en URLs directas.
+- **CORS**: la variable `CORS_ALLOWED_ORIGINS` del backend debe apuntar al dominio público (o IP) del frontend.
+- **Recursos**: limitar el backend a `requests: 512m CPU, 512Mi RAM` y `limits: 1000m, 1024Mi`. El frontend (nginx) puede funcionar con `64Mi`.
+
+---
+
+### Orden de implementación
+
+1. **Dockerfile frontend** — nginx multi-stage: `node:22-alpine` para `vite build`, `nginx:alpine` para servir
+2. **Probar `docker-compose` completo** — añadir el frontend al `docker-compose.yml` existente
+3. **Actualizar pipeline**: separar CI (tests) de CD (deploy), añadir push a GHCR
+4. **Helm chart** — empezar con `helm create moviemate`, adaptar templates
+5. **Probar en minikube** — `minikube start`, `helm install`, verificar todos los pods
+6. **Oracle Cloud** — crear cuenta gratuita, provisionar instancia ARM (Always Free)
+7. **k3s en Oracle** — instalar k3s, configurar kubeconfig, abrir puertos 80/443 en el firewall
+8. **Deploy en producción** — `helm install` manual primero, luego automatizar vía `cd.yml`
+9. **TLS** — instalar cert-manager, `ClusterIssuer` Let's Encrypt, anotación en Ingress
+10. **Verificar** — STOMP WebSocket funciona, PostgreSQL persiste datos, imágenes se actualizan en cada push a main
