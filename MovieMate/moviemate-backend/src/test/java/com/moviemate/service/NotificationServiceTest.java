@@ -42,9 +42,6 @@ class NotificationServiceTest {
         
         notificationService = new NotificationService(
             notificationRepository,
-            followRequestRepository,
-            followerRepository,
-            reviewLikeRepository,
             messagingTemplate
         );
     }

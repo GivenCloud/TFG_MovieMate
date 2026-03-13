@@ -28,6 +28,7 @@ class ActivityServiceTest {
     private RatingService ratingService;
     private ListService listService;
     private UserService userService;
+    private ContentService contentService;
     private ActivityService activityService;
 
     @BeforeEach
@@ -38,14 +39,16 @@ class ActivityServiceTest {
         ratingService = mock(RatingService.class);
         listService = mock(ListService.class);
         userService = mock(UserService.class);
-        
+        contentService = mock(ContentService.class);
+
         activityService = new ActivityService(
             followerRepository,
             ratingRepository,
             listRepository,
             ratingService,
             listService,
-            userService
+            userService,
+            contentService
         );
     }
 

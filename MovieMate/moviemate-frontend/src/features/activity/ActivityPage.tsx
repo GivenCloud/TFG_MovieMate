@@ -296,7 +296,6 @@ export default function ActivityPage() {
               <ActivityItem
                 key={`${activity.user.id}-${activity.type}-${activity.createdAt}-${i}`}
                 activity={activity}
-                index={i}
               />
             ))}
           </div>

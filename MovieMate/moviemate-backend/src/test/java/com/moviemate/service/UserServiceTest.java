@@ -5,6 +5,7 @@ import com.moviemate.entity.User;
 import com.moviemate.repository.UserRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -16,12 +17,14 @@ import static org.mockito.Mockito.*;
 class UserServiceTest {
 
     private UserRepository userRepository;
+    private PasswordEncoder passwordEncoder;
     private UserService userService;
 
     @BeforeEach
     void setUp() {
         userRepository = mock(UserRepository.class);
-        userService = new UserService(userRepository);
+        passwordEncoder = mock(PasswordEncoder.class);
+        userService = new UserService(userRepository, passwordEncoder);
     }
 
     // ---------- findUserById ----------

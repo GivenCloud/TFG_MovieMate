@@ -10,6 +10,7 @@ import com.moviemate.exception.DuplicateListNameException;
 import com.moviemate.repository.ContentRepository;
 import com.moviemate.repository.ListContentRepository;
 import com.moviemate.repository.ListRepository;
+import com.moviemate.repository.UserRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
@@ -29,6 +30,7 @@ class ListServiceTest {
     private ListRepository listRepository;
     private ListContentRepository listContentRepository;
     private ContentRepository contentRepository;
+    private UserRepository userRepository;
     private ListService listService;
     private ContentService contentService;
 
@@ -38,8 +40,9 @@ class ListServiceTest {
         listContentRepository = mock(ListContentRepository.class);
         contentService = mock(ContentService.class);
         contentRepository = mock(ContentRepository.class);
+        userRepository = mock(UserRepository.class);
 
-        listService = new ListService(listRepository, listContentRepository, contentService);
+        listService = new ListService(listRepository, listContentRepository, contentService, userRepository);
     }
 
     // ---------- createList ----------
