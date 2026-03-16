@@ -412,32 +412,43 @@ kubectl delete pod moviemate-postgres-0 -n moviemate
 
 ---
 
-## 7. Producción — Oracle Cloud + k3s
+## 7. Producción — Decisión final
 
-> Pasos pendientes de implementar.
+### Decisión: despliegue local con Minikube es suficiente para el TFG
 
-### Por qué Oracle Cloud
+Se evaluaron varias opciones de cloud gratuito para el despliegue en producción:
 
-Oracle Cloud Free Tier ofrece instancias **Ampere A1** (ARM) permanentemente gratuitas:
-- 4 OCPUs ARM
-- 24 GB RAM
-- Suficiente para backend (~512 MB JVM) + frontend (~50 MB nginx) + PostgreSQL (~256 MB)
-
-Otras opciones descartadas: Render/Railway duermen las apps gratuitas, GKE/EKS/AKS cobran por los nodos worker.
-
-### Pasos pendientes
-
-| Paso | Descripción |
+| Opción | Motivo de descarte |
 |---|---|
-| **6** | Crear cuenta en Oracle Cloud, provisionar instancia ARM A1 (Always Free) |
-| **7** | Instalar k3s en la VM, configurar kubeconfig, abrir puertos 80/443 en el firewall de OCI |
-| **8** | `helm install` manual primero, luego descomentar el job `deploy` en `cd.yml` y añadir el secret `KUBECONFIG` en GitHub |
-| **9** | Instalar cert-manager, crear `ClusterIssuer` Let's Encrypt, añadir anotación en ingress.yaml |
-| **10** | Verificar WebSocket, persistencia de PostgreSQL y pipeline automático |
+| **Oracle Cloud Free Tier** (A1 ARM) | Requiere tarjeta de crédito para verificación de identidad |
+| **DigitalOcean** (GitHub Student Pack, $200) | Requiere método de pago aunque los créditos cubran el coste |
+| **Azure for Students** ($100, sin tarjeta) | Requiere email universitario activo con convenio Microsoft |
 
-### Comando de deploy en producción
+**Conclusión**: dado que el objetivo del TFG es demostrar una infraestructura de despliegue bien diseñada y funcional, el entorno local con Minikube cubre completamente ese objetivo. No es necesario un servidor público.
+
+### Qué demuestra el estado actual
+
+| Componente | Estado | Evidencia |
+|---|---|---|
+| Contenerización | ✅ Completo | Dockerfiles multi-stage (backend + frontend) |
+| Orquestación local | ✅ Completo | Minikube + Helm chart funcionando |
+| CI — Integración continua | ✅ Completo | `ci.yml` ejecuta tests en cada push a `feat/*` |
+| CD — Entrega continua | ✅ Completo | `cd.yml` construye y publica imágenes en GHCR al hacer merge a `main` |
+| Deploy automático | ⬜ Preparado | Job `deploy` en `cd.yml` comentado; se activa apuntando `KUBECONFIG` a cualquier cluster |
+| TLS / HTTPS | ⬜ Preparado | `ingress.yaml` soporta cert-manager con `ingress.tls.enabled=true` |
+
+### Cómo desplegar en producción si se dispone de un servidor
+
+Si en el futuro se quiere desplegar en un VPS o cloud real, los pasos son:
 
 ```bash
+# 1. Instalar k3s en la VM (Ubuntu 22.04)
+curl -sfL https://get.k3s.io | sh -
+
+# 2. Obtener el kubeconfig
+cat /etc/rancher/k3s/k3s.yaml
+
+# 3. Desplegar con Helm
 helm upgrade --install moviemate ./k8s/moviemate \
   -f k8s/moviemate/values-prod.yaml \
   --set backend.image.tag=${GIT_SHA} \
@@ -446,7 +457,17 @@ helm upgrade --install moviemate ./k8s/moviemate \
   --set secrets.jwtSecret=${JWT_SECRET} \
   --set secrets.dbPassword=${DB_PASSWORD} \
   -n moviemate
+
+# 4. Activar el deploy automático en cd.yml:
+#    - Descomentar el job "deploy"
+#    - Añadir el secret KUBECONFIG en GitHub → Settings → Secrets → Actions
 ```
+
+Proveedores compatibles con la infraestructura actual (Helm + k3s):
+- Oracle Cloud Free Tier (A1 ARM, Always Free)
+- DigitalOcean Droplet (GitHub Student Pack)
+- Azure for Students (email universitario)
+- Cualquier VPS con Ubuntu 22.04
 
 ---
 

@@ -29,14 +29,10 @@ Rama activa: `feat/frontend-pages`
 - ✅ Paso 4: GitHub Actions — ci.yml (tests en feat/*) + cd.yml (build+push GHCR en main)
 - ✅ Paso 4b: Helm chart completo en k8s/moviemate/ con subdirectorios backend/frontend/postgres
 - ✅ Paso 5: Minikube — desplegado y verificado en local con namespace moviemate
-  - Ingress-nginx habilitado, imágenes construidas localmente con pullPolicy:Never
-  - CORS configurable via env var CORS_ALLOWED_ORIGINS (antes estaba hardcodeado en SecurityConfig.java)
-  - Acceso desde WSL2+Windows via port-forward al localhost:8080
-- ⬜ Paso 6: Oracle Cloud — crear cuenta y provisionar instancia ARM A1 (Always Free)
-- ⬜ Paso 7: k3s en Oracle Cloud — instalar, kubeconfig, abrir puertos 80/443
-- ⬜ Paso 8: Activar job deploy en cd.yml y añadir secret KUBECONFIG en GitHub
-- ⬜ Paso 9: cert-manager + Let's Encrypt TLS
-- ⬜ Paso 10: Verificación final (WebSocket, persistencia, pipeline automático)
+- ✅ Decisión final: NO se despliega en cloud real — todos los proveedores gratuitos requieren método de pago
+  - El despliegue en Minikube es suficiente para demostrar la infraestructura en el TFG
+  - DEVOPS.md documenta cómo desplegar en producción si se dispone de un servidor
+  - El job `deploy` en cd.yml está preparado y comentado para activarse cuando haya cluster real
 
 **Bugs/fixes aplicados en esta sesión que están en el código:**
 - `SecurityConfig.java`: CORS lee de env var `CORS_ALLOWED_ORIGINS` con `@Value`, soporta múltiples orígenes separados por coma
@@ -53,7 +49,6 @@ Rama activa: `feat/frontend-pages`
 - Frontend: `MovieMate/moviemate-frontend/src/`
 
 **Próximo paso recomendado:**
-Paso 6 del DevOps — crear cuenta en Oracle Cloud y provisionar la instancia ARM A1.
-O continuar con features pendientes de PENDIENTE.md (prioridades MEDIAS: #3 perfiles actor/director, #4 stats avanzadas, #5 filtros Discover, etc.)
+DevOps completado para el TFG. Continuar con features pendientes de PENDIENTE.md (prioridades MEDIAS: #3 perfiles actor/director, #4 stats avanzadas, #5 filtros Discover, etc.)
 
 Pregunta al usuario qué quiere hacer a continuación.

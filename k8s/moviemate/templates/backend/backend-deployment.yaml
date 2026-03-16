@@ -23,6 +23,10 @@ spec:
         {{- include "moviemate.labels" . | nindent 8 }}
         {{- include "moviemate.backend.selectorLabels" . | nindent 8 }}
     spec:
+      {{- if .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml .Values.imagePullSecrets | nindent 8 }}
+      {{- end }}
       # Esperar al pod de postgres antes de arrancar
       initContainers:
         - name: wait-for-postgres

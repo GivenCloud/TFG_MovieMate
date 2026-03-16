@@ -9,6 +9,12 @@
 nameOverride: ""
 fullnameOverride: ""
 
+# Secrets para descargar imágenes de un registry privado (ej. GHCR)
+# Crear el secret manualmente: kubectl create secret docker-registry ghcr-secret \
+#   --docker-server=ghcr.io --docker-username=<user> --docker-password=<PAT> -n moviemate
+# Luego activar aquí: [{name: ghcr-secret}]
+imagePullSecrets: []
+
 # ── Backend (Spring Boot) ──────────────────────────────────────────────────────
 backend:
   image:
