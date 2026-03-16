@@ -8,9 +8,9 @@ on:
 
 env:
   REGISTRY:       ghcr.io
-  # github.repository = "username/repo-name"
-  BACKEND_IMAGE:  ghcr.io/${{ github.repository_owner }}/moviemate-backend
-  FRONTEND_IMAGE: ghcr.io/${{ github.repository_owner }}/moviemate-frontend
+  # Nombre en minúsculas obligatorio para Docker image tags
+  BACKEND_IMAGE:  ghcr.io/givencloud/moviemate-backend
+  FRONTEND_IMAGE: ghcr.io/givencloud/moviemate-frontend
 
 jobs:
 
