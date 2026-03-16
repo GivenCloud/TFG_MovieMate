@@ -30,9 +30,12 @@ Rama activa: `feat/frontend-pages`
 - ✅ Paso 4b: Helm chart completo en k8s/moviemate/ con subdirectorios backend/frontend/postgres
 - ✅ Paso 5: Minikube — desplegado y verificado en local con namespace moviemate
 - ✅ Decisión final: NO se despliega en cloud real — todos los proveedores gratuitos requieren método de pago
-  - El despliegue en Minikube es suficiente para demostrar la infraestructura en el TFG
-  - DEVOPS.md documenta cómo desplegar en producción si se dispone de un servidor
-  - El job `deploy` en cd.yml está preparado y comentado para activarse cuando haya cluster real
+- ✅ Pipeline CD completo con self-hosted runner:
+  - Self-hosted runner registrado en WSL2 (`~/actions-runner-moviemate/`)
+  - imagePullSecrets en Helm chart para GHCR privado (`ghcr-secret` en namespace moviemate)
+  - Job `deploy` en cd.yml activo: push a main → tests → build+push GHCR → helm upgrade Minikube automático
+  - Fix aplicado: imagen tag lowercase (`givencloud`) en cd.yml
+  - CORS configurado para `http://moviemate.local:8080`
 
 **Bugs/fixes aplicados en esta sesión que están en el código:**
 - `SecurityConfig.java`: CORS lee de env var `CORS_ALLOWED_ORIGINS` con `@Value`, soporta múltiples orígenes separados por coma

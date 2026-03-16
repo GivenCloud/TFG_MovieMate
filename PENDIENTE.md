@@ -499,9 +499,13 @@ Igual que comentarios en valoraciones pero para listas. Usar la misma entidad `C
 - [x] Despliegue verificado en Minikube con namespace `moviemate`
 - [x] Acceso desde WSL2+Windows via port-forward
 - [x] CORS configurable via env var `CORS_ALLOWED_ORIGINS`
+- [x] Self-hosted runner registrado en WSL2 — job `deploy` en `cd.yml` activo
+- [x] imagePullSecrets en Helm chart para autenticación con GHCR privado
+- [x] Pipeline completo verificado: push a `main` → tests → build+push GHCR → deploy Minikube automático
+- [x] Fix: imagen tag lowercase (`givencloud` en lugar de `GivenCloud`) en `cd.yml`
 
 ### Decisión: sin despliegue en cloud real
 
-Todos los proveedores gratuitos evaluados (Oracle Cloud, DigitalOcean vía GitHub Student Pack, Azure for Students) requieren tarjeta de crédito o email universitario activo. Se decide que el despliegue en Minikube es suficiente para el TFG.
+Todos los proveedores gratuitos evaluados (Oracle Cloud, DigitalOcean vía GitHub Student Pack, Azure for Students) requieren tarjeta de crédito o email universitario activo. Se decide que el despliegue en Minikube con pipeline automático es suficiente para el TFG.
 
-El job `deploy` en `cd.yml` está preparado y comentado — se activa apuntando `KUBECONFIG` a cualquier cluster real. Ver `DEVOPS.md` para instrucciones completas.
+Ver `DEVOPS.md` sección 6.5 para la documentación completa del self-hosted runner.

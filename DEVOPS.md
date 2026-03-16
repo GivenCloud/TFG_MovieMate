@@ -410,6 +410,93 @@ cert-manager.io/cluster-issuer: {{ .Values.ingress.certManagerIssuer | quote }}
 kubectl delete pod moviemate-postgres-0 -n moviemate
 ```
 
+#### GHCR rechazaba las imágenes con "repository name must be lowercase"
+
+**Causa**: la variable `github.repository_owner` devuelve el nombre tal como está registrado en GitHub (`GivenCloud`, con mayúscula). Docker exige que los nombres de imagen sean todo minúsculas.
+
+**Solución**: hardcodear el owner en minúsculas directamente en el `env` del workflow:
+```yaml
+env:
+  BACKEND_IMAGE:  ghcr.io/givencloud/moviemate-backend
+  FRONTEND_IMAGE: ghcr.io/givencloud/moviemate-frontend
+```
+
+#### JWT inválido bloqueaba incluso endpoints públicos con 403
+
+**Causa**: al redesplegar con un nuevo pod de backend, el token JWT almacenado en el navegador del usuario quedaba inválido. Spring Security rechazaba todas las peticiones (incluidas las públicas como `/api/tmdb/trending`) porque el filtro JWT se ejecuta antes de la verificación de permisos y lanza el error antes de comprobar si la ruta requiere auth.
+
+**Solución**: cerrar sesión en el navegador para limpiar el token de `localStorage` y volver a iniciar sesión para obtener uno nuevo válido. Es comportamiento esperado tras un redespliegue.
+
+---
+
+### 6.5 Pipeline automático con self-hosted runner
+
+Para que el job `deploy` del `cd.yml` pueda acceder a Minikube (que corre en la máquina local), se usa un **GitHub Actions self-hosted runner** — un proceso ligero que corre en WSL2 y ejecuta los jobs enviados por GitHub.
+
+#### Flujo completo
+
+```
+Push a main
+    │
+    ├─► test           (ubuntu-latest, GitHub cloud)  — mvn test
+    ├─► build-and-push (ubuntu-latest, GitHub cloud)  — build + push GHCR con tag SHA
+    └─► deploy         (self-hosted, WSL2 local)      — helm upgrade Minikube
+```
+
+#### Requisitos previos (configuración única)
+
+**1. Crear PAT de GitHub con `read:packages`**
+
+GitHub → Settings → Developer settings → Personal access tokens → Tokens (classic) → New token → scope: `read:packages`
+
+**2. Crear imagePullSecret en Minikube**
+
+Necesario para que Kubernetes pueda descargar imágenes del GHCR privado:
+```bash
+kubectl create secret docker-registry ghcr-secret \
+  --docker-server=ghcr.io \
+  --docker-username=<github-username> \
+  --docker-password=<PAT> \
+  --namespace moviemate
+```
+
+**3. Registrar el self-hosted runner**
+
+GitHub repo → Settings → Actions → Runners → New self-hosted runner → Linux x64 → seguir instrucciones.
+
+Instalar como servicio para que corra en segundo plano:
+```bash
+sudo ./svc.sh install
+sudo ./svc.sh start
+```
+
+#### Qué hace el job `deploy`
+
+```bash
+helm upgrade moviemate ./k8s/moviemate \
+  --namespace moviemate \
+  --reuse-values \                          # mantiene secrets existentes
+  --set backend.image.tag=<sha-commit> \    # imagen exacta que se acaba de construir
+  --set backend.image.pullPolicy=Always \   # fuerza descarga desde GHCR
+  --set "imagePullSecrets[0].name=ghcr-secret" \  # auth con GHCR privado
+  --wait --timeout 5m                       # espera a que los pods estén Ready
+```
+
+#### imagePullSecrets en el Helm chart
+
+Se añadió soporte en `values.yaml`:
+```yaml
+imagePullSecrets: []   # activar con [{name: ghcr-secret}] si se usa GHCR privado
+```
+
+Y en `backend-deployment.yaml` y `frontend-deployment.yaml`:
+```yaml
+{{- if .Values.imagePullSecrets }}
+imagePullSecrets:
+  {{- toYaml .Values.imagePullSecrets | nindent 8 }}
+{{- end }}
+```
+
 ---
 
 ## 7. Producción — Decisión final
@@ -434,7 +521,7 @@ Se evaluaron varias opciones de cloud gratuito para el despliegue en producción
 | Orquestación local | ✅ Completo | Minikube + Helm chart funcionando |
 | CI — Integración continua | ✅ Completo | `ci.yml` ejecuta tests en cada push a `feat/*` |
 | CD — Entrega continua | ✅ Completo | `cd.yml` construye y publica imágenes en GHCR al hacer merge a `main` |
-| Deploy automático | ⬜ Preparado | Job `deploy` en `cd.yml` comentado; se activa apuntando `KUBECONFIG` a cualquier cluster |
+| Deploy automático | ✅ Completo | Job `deploy` en `cd.yml` con self-hosted runner; actualiza Minikube automáticamente en cada merge a `main` |
 | TLS / HTTPS | ⬜ Preparado | `ingress.yaml` soporta cert-manager con `ingress.tls.enabled=true` |
 
 ### Cómo desplegar en producción si se dispone de un servidor
