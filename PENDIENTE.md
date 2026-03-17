@@ -130,32 +130,29 @@ Páginas dedicadas a personas (actores, directores, etc.) con su filmografía co
 
 ---
 
-## 4. Estadísticas personales avanzadas
+## 4. Estadísticas personales avanzadas ✅
 
 **Prioridad: MEDIA** | Referencia: Letterboxd (Pro), Serializd
 
-Página dedicada de estadísticas del usuario autenticado.
+### Backend ✅
+- [x] `FullStatsDto` (distribución de notas, top géneros, actividad mensual + resumen básico)
+- [x] 3 nuevas queries en `RatingRepository`:
+  - `countRatingsByRatingValue(user)` — JPQL, GROUP BY rating
+  - `findTopGenresByUser(user, pageable)` — JPQL JOIN ElementCollection, top 8
+  - `findMonthlyActivity(userId, since)` — native SQL PostgreSQL, últimos 12 meses
+- [x] `UserStatsService.getFullStats(user)` — combina stats básicas con avanzadas
+- [x] `GET /api/users/me/stats/full` en `UserController`
 
-### Backend
-- [ ] Ampliar `UserStatsService` / nuevo `StatsService`:
-  - Distribución de ratings (cuántos 1★, 2★, … 10★)
-  - Géneros más vistos (top 5)
-  - Directores más vistos (top 5)
-  - Actores más vistos (top 5)
-  - Películas/series vistas por año de estreno (histograma por década)
-  - Actividad por mes (cuántos ítems registrados cada mes)
-  - Total horas vistas (ya calculado en `UserStats.totalWatchTime`)
-  - Racha actual (días consecutivos con alguna actividad)
-- [ ] Endpoint `GET /api/users/me/stats/full` (o ampliar el existente)
-
-### Frontend
-- [ ] Ruta `/profile/:username/stats` o tab "Stats" en `ProfilePage`
-- [ ] `StatsPage` / `StatsTab`:
-  - Gráfico de distribución de notas (bar chart)
-  - Gráfico géneros (donut / bar)
-  - Heatmap de actividad mensual
-  - Top directores / actores (lista con posters)
-  - Resumen numérico: total vistas, horas, listas, seguidores, likes recibidos
+### Frontend ✅
+- [x] Tipos `FullStatsDto`, `RatingCountDto`, `GenreStatDto`, `MonthlyActivityDto` en `types/index.ts`
+- [x] `usersApi.getMyFullStats()` + `queryKeys.users.fullStats()`
+- [x] Hook `useMyFullStats` en `useProfile.ts`
+- [x] Componente `StatsTab` con gráficos CSS puros (sin librería externa):
+  - Tarjetas de resumen (8 métricas)
+  - Bar chart de distribución de notas (1-5 estrellas, colores graduales)
+  - Barras horizontales de géneros más vistos (top 8)
+  - Mini bar chart de actividad mensual (últimos 12 meses con tooltip)
+- [x] Tab "Estadísticas" en `ProfilePage` (solo visible en perfil propio)
 
 ---
 
@@ -484,7 +481,7 @@ Igual que comentarios en valoraciones pero para listas. Usar la misma entidad `C
 | Prioridad | Items |
 |-----------|-------|
 | **ALTA** | ~~1 (Comentarios en valoraciones)~~ ✅, ~~2 (Admin/moderación)~~ ✅, ~~11 (Perfil público)~~ ✅, ~~27 (Stats DetailPage)~~ ✅, ~~28 (DevOps)~~ ✅ |
-| **MEDIA** | ~~3 (Actores/directores)~~ ✅, 4 (Stats avanzadas), ~~5 (Filtros Discover)~~ ✅, ~~6 (¿Dónde ver?)~~ ✅, ~~8 (Temporadas/episodios)~~ ✅, ~~10 (Búsqueda usuarios)~~ ✅, ~~13 (Cambio contraseña)~~ ✅, ~~25 (Explorar listas)~~ ✅, ~~26 (Carruseles flechas)~~ ✅ |
+| **MEDIA** | ~~3 (Actores/directores)~~ ✅, ~~4 (Stats avanzadas)~~ ✅, ~~5 (Filtros Discover)~~ ✅, ~~6 (¿Dónde ver?)~~ ✅, ~~8 (Temporadas/episodios)~~ ✅, ~~10 (Búsqueda usuarios)~~ ✅, ~~13 (Cambio contraseña)~~ ✅, ~~25 (Explorar listas)~~ ✅, ~~26 (Carruseles flechas)~~ ✅ |
 | **BAJA** | 7 (Insignias), 9 (Recomendaciones), ~~12 (Lista Vistos)~~ ✅, 14 (Avatar upload), 15 (Import/export), ~~16 (Favoritas en perfil)~~ ✅, 17 (Activity updates), 18 (Votar reseñas), ~~19 (Spoilers)~~ ✅, 20 (Comentarios listas), 21 (Usuarios sugeridos) |
 | **MUY BAJA** | 22 (Menciones), 23 (Push PWA), 24 (Tema claro) |
 

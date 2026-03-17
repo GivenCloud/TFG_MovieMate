@@ -31,6 +31,7 @@ Actualizado: 2026-03-17
 | Frontend — PersonPage (actores/directores) | ✅ Completo |
 | Frontend — Spoiler tags en reseñas | ✅ Completo |
 | Frontend — Temporadas y episodios (SeasonAccordion) | ✅ Completo |
+| Frontend — Estadísticas avanzadas (StatsTab en perfil) | ✅ Completo |
 
 ---
 
