@@ -28,4 +28,6 @@ public class RatingRequest {
 
     @PastOrPresent(message = "La fecha de visualización no puede ser en el futuro")
     private LocalDate watchedDate;
+
+    private boolean containsSpoiler = false;
 }

@@ -37,6 +37,7 @@ export default function RatingWidget({ content }: Props) {
   const [watchedDate, setWatchedDate] = useState(
     new Date().toISOString().split('T')[0]
   )
+  const [containsSpoiler, setContainsSpoiler] = useState(false)
   const [open, setOpen] = useState(false)
 
   const { data: existingRating } = useMyRatingForContent(content.id, isAuthenticated)
@@ -51,13 +52,14 @@ export default function RatingWidget({ content }: Props) {
       setStatus(existingRating.status)
       setReview(existingRating.reviewText ?? '')
       setWatchedDate(existingRating.watchedDate)
+      setContainsSpoiler(existingRating.containsSpoiler ?? false)
     }
   }, [existingRating])
 
   const handleSubmit = () => {
     if (!rating || !tag) return
     saveRating(
-      { rating, emotionalTag: tag, status, reviewText: review || undefined, watchedDate },
+      { rating, emotionalTag: tag, status, reviewText: review || undefined, watchedDate, containsSpoiler },
       { onSuccess: () => setOpen(false) }
     )
   }
@@ -72,6 +74,7 @@ export default function RatingWidget({ content }: Props) {
         setStatus('VISTA')
         setReview('')
         setWatchedDate(new Date().toISOString().split('T')[0])
+        setContainsSpoiler(false)
       },
     })
   }
@@ -200,6 +203,19 @@ export default function RatingWidget({ content }: Props) {
           className="w-full bg-bg-3 border border-white/[0.08] rounded-lg px-3 py-2 text-sm text-white placeholder:text-muted outline-none focus:border-accent/50 transition-colors resize-none"
         />
       </div>
+
+      {/* Spoiler */}
+      <label className="flex items-center gap-2.5 cursor-pointer mb-5 group">
+        <input
+          type="checkbox"
+          checked={containsSpoiler}
+          onChange={(e) => setContainsSpoiler(e.target.checked)}
+          className="w-4 h-4 rounded accent-accent"
+        />
+        <span className="text-xs text-muted group-hover:text-white/70 transition-colors">
+          ⚠️ Esta reseña contiene spoilers
+        </span>
+      </label>
 
       <div className="flex gap-2">
         {existingRating && (

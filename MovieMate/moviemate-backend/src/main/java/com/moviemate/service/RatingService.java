@@ -58,6 +58,7 @@ public class RatingService {
         rating.setEmotionalTag(request.getEmotionalTag());
         rating.setStatus(request.getStatus());
         rating.setWatchedDate(request.getWatchedDate());
+        rating.setContainsSpoiler(request.isContainsSpoiler());
         
         Rating savedRating = ratingRepository.save(rating);
         
@@ -134,6 +135,7 @@ public class RatingService {
             .emotionalTag(rating.getEmotionalTag())
             .status(rating.getStatus())
             .watchedDate(rating.getWatchedDate())
+            .containsSpoiler(rating.isContainsSpoiler())
             .createdAt(rating.getCreatedAt())
             .user(UserResponse.builder()
                 .id(rating.getUser().getId())

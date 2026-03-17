@@ -118,13 +118,14 @@ function QuickEditRatingDialog({ r, onClose }: { r: RatingResponse; onClose: () 
   const [emotionalTag, setEmotionalTag] = useState<EmotionalTag>(r.emotionalTag)
   const [status, setStatus] = useState<Status>(r.status)
   const [watchedDate, setWatchedDate] = useState(r.watchedDate ? r.watchedDate.split('T')[0] : '')
+  const [containsSpoiler, setContainsSpoiler] = useState(r.containsSpoiler ?? false)
 
   const save = useCreateRating(r.content)
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
     save.mutate(
-      { rating, reviewText: reviewText.trim() || undefined, emotionalTag, status, watchedDate },
+      { rating, reviewText: reviewText.trim() || undefined, emotionalTag, status, watchedDate, containsSpoiler },
       { onSuccess: onClose }
     )
   }
@@ -235,6 +236,19 @@ function QuickEditRatingDialog({ r, onClose }: { r: RatingResponse; onClose: () 
               className="w-full bg-bg-2 border border-white/[0.1] rounded-xl px-3.5 py-2.5 text-sm text-white placeholder:text-muted outline-none focus:border-accent/50 focus:ring-2 focus:ring-accent/10 transition-all resize-none"
             />
           </div>
+
+          {/* Spoiler */}
+          <label className="flex items-center gap-2.5 cursor-pointer group">
+            <input
+              type="checkbox"
+              checked={containsSpoiler}
+              onChange={(e) => setContainsSpoiler(e.target.checked)}
+              className="w-4 h-4 rounded accent-accent"
+            />
+            <span className="text-xs text-muted group-hover:text-white/70 transition-colors">
+              ⚠️ Esta reseña contiene spoilers
+            </span>
+          </label>
 
           <DialogFooter>
             <button
@@ -652,6 +666,36 @@ export default function ProfilePage() {
           ))}
         </div>
       )}
+
+      {/* ── Películas favoritas fijadas ─────────────────────── */}
+      {(() => {
+        const favoritesList = lists.find((l) => l.listType === 'FAVORITES')
+        const favItems = favoritesList?.contents?.slice(0, 4) ?? []
+        if (favItems.length === 0) return null
+        return (
+          <div className="px-4 lg:px-6 py-5 border-b border-white/[0.06]">
+            <p className="text-xs text-muted font-mono uppercase tracking-wider mb-3">
+              ❤️ Películas favoritas
+            </p>
+            <div className="flex gap-3">
+              {favItems.map((c) => (
+                <div key={c.id} className="flex-1 max-w-[120px]">
+                  <PosterCard content={c} />
+                </div>
+              ))}
+              {/* Rellena hasta 4 slots vacíos */}
+              {Array.from({ length: Math.max(0, 4 - favItems.length) }).map((_, i) => (
+                <div
+                  key={`empty-${i}`}
+                  className="flex-1 max-w-[120px] aspect-[2/3] rounded-xl bg-bg-2 border border-dashed border-white/[0.08] flex items-center justify-center text-white/15 text-2xl"
+                >
+                  +
+                </div>
+              ))}
+            </div>
+          </div>
+        )
+      })()}
 
       {/* ── Tabs ───────────────────────────────────────────── */}
       <div className="flex gap-1 border-b border-white/[0.06] px-6">

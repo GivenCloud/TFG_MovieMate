@@ -45,6 +45,9 @@ public class Rating {
 
     private LocalDate watchedDate;
 
+    @Column(nullable = false)
+    private boolean containsSpoiler = false;
+
     @CreationTimestamp
     private LocalDateTime createdAt;
 

@@ -21,4 +21,5 @@ public class RatingResponse {
     private ContentResponse content;
     private Integer likesCount;
     private Boolean likedByCurrentUser;
+    private Boolean containsSpoiler;
 }

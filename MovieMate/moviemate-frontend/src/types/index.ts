@@ -118,7 +118,8 @@ export interface RatingRequest {
   reviewText?: string
   emotionalTag: EmotionalTag
   status: Status
-  watchedDate: string     
+  watchedDate: string
+  containsSpoiler?: boolean
 }
 
 export interface RatingResponse {
@@ -133,6 +134,7 @@ export interface RatingResponse {
   content: ContentResponse
   likesCount?: number
   likedByCurrentUser?: boolean
+  containsSpoiler?: boolean
 }
 
 // ─── Listas ────────────────────────────────────────────────────
