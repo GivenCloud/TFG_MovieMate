@@ -10,6 +10,7 @@ import type {
   NotificationDto,
   RatingResponse,
   ListResponse,
+  BadgeDto,
 } from '../types'
 
 export const usersApi = {
@@ -40,6 +41,10 @@ export const usersApi = {
   // Stats completas (solo propio) — GET /api/users/me/stats/full
   getMyFullStats: () =>
     apiClient.get<FullStatsDto>('/users/me/stats/full'),
+
+  // Recomendaciones personalizadas — GET /api/users/me/recommendations
+  getMyRecommendations: () =>
+    apiClient.get<ContentResponse[]>('/users/me/recommendations'),
 
   // Actualizar perfil — PUT /api/users/me/profile
   updateProfile: (data: UpdateProfileRequest) =>
@@ -80,6 +85,15 @@ export const usersApi = {
   rejectFollowRequest: (requestId: number) =>
     apiClient.delete<FollowRequestActionResponse>(`/users/follow-requests/${requestId}`),
 
+  // Subir avatar — POST /api/users/me/avatar (multipart)
+  uploadAvatar: (file: File) => {
+    const form = new FormData()
+    form.append('file', file)
+    return apiClient.post<UserResponse>('/users/me/avatar', form, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    })
+  },
+
   // Cambiar contraseña — PUT /api/users/me/password
   changePassword: (data: { currentPassword: string; newPassword: string }) =>
     apiClient.put<void>('/users/me/password', data),
@@ -101,4 +115,12 @@ export const usersApi = {
   // Notificaciones — GET /api/users/me/notifications
   getNotifications: () =>
     apiClient.get<NotificationDto[]>('/users/me/notifications'),
+
+  // Insignias — GET /api/users/me/badges
+  getMyBadges: () =>
+    apiClient.get<BadgeDto[]>('/users/me/badges'),
+
+  // Insignias de otro usuario — GET /api/users/{id}/badges
+  getBadgesByUserId: (userId: number) =>
+    apiClient.get<BadgeDto[]>(`/users/${userId}/badges`),
 }

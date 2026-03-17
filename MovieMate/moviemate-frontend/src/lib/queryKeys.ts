@@ -36,7 +36,8 @@ export const queryKeys = {
     byUsername:  (username: string) => ['users', 'username', username] as const,
     profileById: (id: number) => ['users', id] as const,
     stats:       (id: number) => ['users', id, 'stats'] as const,
-    fullStats:   () => ['users', 'me', 'stats', 'full'] as const,
+    fullStats:       () => ['users', 'me', 'stats', 'full'] as const,
+    recommendations: () => ['users', 'me', 'recommendations'] as const,
     ratings:        () => ['users', 'me', 'ratings'] as const,
     lists:          () => ['users', 'me', 'lists'] as const,
     ratingsByUser:  (id: number) => ['users', id, 'ratings'] as const,
@@ -48,6 +49,8 @@ export const queryKeys = {
     following:   (id: number) => ['users', id, 'following'] as const,
     followStatus: (id: number) => ['users', id, 'follow-status'] as const,
     search:      (q: string) => ['users', 'search', q] as const,
+    badges:      () => ['users', 'me', 'badges'] as const,
+    badgesByUser: (id: number) => ['users', id, 'badges'] as const,
   },
   // Ratings de un contenido concreto (por contentId de BD)
   ratings: {
@@ -68,6 +71,7 @@ export const queryKeys = {
   // Comentarios
   comments: {
     byRating: (ratingId: number) => ['comments', ratingId] as const,
+    byList:   (listId: number)   => ['comments', 'list', listId] as const,
   },
   // Feed de actividad
   feed: {

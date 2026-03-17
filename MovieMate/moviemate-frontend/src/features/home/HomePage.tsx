@@ -1,13 +1,14 @@
 import { useQuery } from '@tanstack/react-query'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, Link } from 'react-router-dom'
 import { useRef, useState, useCallback } from 'react'
 import { tmdbApi } from '../../api/tmdb'
+import { usersApi } from '../../api/users'
 import { queryKeys } from '../../lib/queryKeys'
 import { toSlug } from '../../lib/utils'
 import { useAuthStore } from '../../store/authStore'
 import PosterCard from '@/components/shared/PosterdCard'
 import AddToListButton from '@/components/Detail/AddToListButton'
-import type { ContentResponse } from '../../types'
+import type { ContentResponse, UserResponse } from '../../types'
 
 function PosterSkeleton() {
   return (
@@ -93,6 +94,33 @@ function ContentCarousel({ items, loading }: { items: ContentResponse[]; loading
   )
 }
 
+function SuggestedUserCard({ user }: { user: UserResponse }) {
+  return (
+    <Link
+      to={`/profile/${user.username}`}
+      className="flex items-center gap-3 px-4 py-2.5 hover:bg-white/[0.04] rounded-xl transition-colors group"
+    >
+      <div className="w-9 h-9 rounded-full shrink-0 overflow-hidden border border-white/[0.08]">
+        {user.avatarUrl ? (
+          <img src={user.avatarUrl} alt={user.username} className="w-full h-full object-cover" />
+        ) : (
+          <div className="w-full h-full bg-gradient-to-br from-accent/70 to-purple-500/70 flex items-center justify-center text-xs font-bold text-bg-0">
+            {user.username[0].toUpperCase()}
+          </div>
+        )}
+      </div>
+      <div className="flex-1 min-w-0">
+        <p className="text-sm font-medium text-white/85 truncate group-hover:text-accent transition-colors">
+          @{user.username}
+        </p>
+        {user.bio && (
+          <p className="text-[0.65rem] text-muted truncate">{user.bio}</p>
+        )}
+      </div>
+    </Link>
+  )
+}
+
 export default function HomePage() {
   const navigate = useNavigate()
   const { isAuthenticated } = useAuthStore()
@@ -116,6 +144,20 @@ export default function HomePage() {
     queryFn: () => tmdbApi.getPopularTvShows(),
     select: (res) => res.data,
     staleTime: 1000 * 60 * 10,
+  })
+
+  const { data: suggestions = [] } = useQuery({
+    queryKey: queryKeys.users.suggestions(),
+    queryFn: () => usersApi.getSuggestions().then((r) => r.data),
+    enabled: isAuthenticated,
+    staleTime: 1000 * 60 * 10,
+  })
+
+  const { data: recommendations = [], isLoading: loadingRecs } = useQuery({
+    queryKey: queryKeys.users.recommendations(),
+    queryFn: () => usersApi.getMyRecommendations().then((r) => r.data),
+    enabled: isAuthenticated,
+    staleTime: 1000 * 60 * 30,
   })
 
   const featured: ContentResponse | undefined = trending?.[0] ?? popularMovies?.[0]
@@ -249,6 +291,33 @@ export default function HomePage() {
         </div>
         <ContentCarousel items={popularTvFiltered} loading={loadingTv} />
       </section>
+
+      {/* ── PARA TI ── */}
+      {isAuthenticated && (recommendations.length > 0 || loadingRecs) && (
+        <section className="px-4 lg:px-6 pt-8">
+          <div className="flex items-baseline justify-between mb-4">
+            <h2 className="font-display font-bold italic text-xl">Para ti ✨</h2>
+          </div>
+          <ContentCarousel items={recommendations} loading={loadingRecs} />
+        </section>
+      )}
+
+      {/* ── USUARIOS SUGERIDOS ── */}
+      {isAuthenticated && suggestions.length > 0 && (
+        <section className="px-4 lg:px-6 pt-8">
+          <div className="flex items-baseline justify-between mb-3">
+            <h2 className="font-display font-bold italic text-xl">Cinéfilos que quizás conozcas 👥</h2>
+            <Link to="/discover?mode=users" className="text-sm text-accent hover:text-accent-light transition-colors">
+              Ver más →
+            </Link>
+          </div>
+          <div className="bg-bg-1 border border-white/[0.06] rounded-2xl overflow-hidden divide-y divide-white/[0.04]">
+            {suggestions.slice(0, 5).map((u) => (
+              <SuggestedUserCard key={u.id} user={u} />
+            ))}
+          </div>
+        </section>
+      )}
     </div>
   )
 }

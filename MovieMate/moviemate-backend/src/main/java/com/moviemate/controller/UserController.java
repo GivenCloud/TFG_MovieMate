@@ -1,6 +1,7 @@
 package com.moviemate.controller;
 
 import com.moviemate.annotation.RequirePublicProfile;
+import com.moviemate.dto.BadgeDto;
 import com.moviemate.dto.ChangePasswordRequest;
 import com.moviemate.dto.FullStatsDto;
 import com.moviemate.dto.FollowRequestDto;
@@ -14,11 +15,14 @@ import com.moviemate.dto.UserResponse;
 import com.moviemate.dto.UserStatsResponse;
 import com.moviemate.entity.User;
 import com.moviemate.security.CustomUserDetails;
+import com.moviemate.service.BadgeService;
+import com.moviemate.service.ContentService;
 import com.moviemate.service.FollowRequestService;
 import com.moviemate.service.FollowerService;
 import com.moviemate.service.ListService;
 import com.moviemate.service.NotificationService;
 import com.moviemate.service.RatingService;
+import com.moviemate.service.TmdbService;
 import com.moviemate.service.UserService;
 import com.moviemate.service.UserStatsService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -29,6 +33,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
+
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
@@ -44,6 +50,9 @@ public class UserController {
     private final RatingService ratingService;
     private final FollowRequestService followRequestService;
     private final NotificationService notificationService;
+    private final TmdbService tmdbService;
+    private final ContentService contentService;
+    private final BadgeService badgeService;
 
     @Operation(summary = "Obtener el usuario actual")
     @GetMapping("/me")
@@ -132,6 +141,21 @@ public class UserController {
         return ResponseEntity.ok(updatedUser);
     }
 
+    @Operation(summary = "Subir avatar del usuario actual (multipart)")
+    @PostMapping(value = "/me/avatar", consumes = "multipart/form-data")
+    public ResponseEntity<UserResponse> uploadAvatar(
+            @AuthenticationPrincipal CustomUserDetails userDetails,
+            @RequestParam("file") MultipartFile file) {
+        try {
+            User user = userDetails.getUser();
+            return ResponseEntity.ok(userService.uploadAvatar(user, file));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().build();
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().build();
+        }
+    }
+
     @Operation(summary = "Cambiar contraseña del usuario actual")
     @PutMapping("/me/password")
     public ResponseEntity<Void> changePassword(
@@ -198,6 +222,44 @@ public class UserController {
         return ResponseEntity.ok(suggestedUsers);
     }
 
+    @Operation(summary = "Obtener recomendaciones personalizadas basadas en géneros favoritos")
+    @GetMapping("/me/recommendations")
+    public ResponseEntity<java.util.List<com.moviemate.dto.ContentResponse>> getMyRecommendations(
+            @AuthenticationPrincipal CustomUserDetails userDetails) {
+        User user = userDetails.getUser();
+        // Obtener top géneros del usuario
+        com.moviemate.dto.FullStatsDto stats = userStatsService.getFullStats(user);
+        java.util.List<com.moviemate.dto.ContentResponse> recommendations = new java.util.ArrayList<>();
+
+        if (!stats.getTopGenres().isEmpty()) {
+            // Buscar géneros en TMDB para películas
+            java.util.List<com.moviemate.dto.GenreDto> movieGenres = tmdbService.getMovieGenres();
+            java.util.List<com.moviemate.dto.GenreDto> tvGenres    = tmdbService.getTvGenres();
+
+            // Tomar el top-1 género como filtro de discover
+            String topGenreName = stats.getTopGenres().get(0).getGenre();
+
+            java.util.Optional<com.moviemate.dto.GenreDto> movieGenre = movieGenres.stream()
+                    .filter(g -> g.getName().equalsIgnoreCase(topGenreName)).findFirst();
+            java.util.Optional<com.moviemate.dto.GenreDto> tvGenre = tvGenres.stream()
+                    .filter(g -> g.getName().equalsIgnoreCase(topGenreName)).findFirst();
+
+            if (movieGenre.isPresent()) {
+                tmdbService.discoverMovies(movieGenre.get().getId(), null, 7.0, "vote_average.desc", 1)
+                        .stream().limit(6)
+                        .map(contentService::mapToContentResponse)
+                        .forEach(recommendations::add);
+            }
+            if (tvGenre.isPresent()) {
+                tmdbService.discoverTvShows(tvGenre.get().getId(), null, 7.0, "vote_average.desc", 1)
+                        .stream().limit(6)
+                        .map(contentService::mapToContentResponse)
+                        .forEach(recommendations::add);
+            }
+        }
+        return ResponseEntity.ok(recommendations);
+    }
+
     @Operation(summary = "Obtener estadísticas completas del usuario autenticado")
     @GetMapping("/me/stats/full")
     public ResponseEntity<FullStatsDto> getMyFullStats(
@@ -229,5 +291,21 @@ public class UserController {
     public ResponseEntity<List<ListResponse>> getUserListsById(
             @Parameter(description = "ID del usuario") @PathVariable Long userId) {
         return ResponseEntity.ok(listService.getListsByUserId(userId));
+    }
+
+    @Operation(summary = "Obtener insignias del usuario autenticado")
+    @GetMapping("/me/badges")
+    public ResponseEntity<List<BadgeDto>> getMyBadges(
+            @AuthenticationPrincipal CustomUserDetails userDetails) {
+        User user = userDetails.getUser();
+        return ResponseEntity.ok(badgeService.getUserBadges(user));
+    }
+
+    @Operation(summary = "Obtener insignias de un usuario por ID")
+    @GetMapping("/{userId}/badges")
+    public ResponseEntity<List<BadgeDto>> getUserBadges(
+            @PathVariable Long userId) {
+        User user = userService.findUserById(userId);
+        return ResponseEntity.ok(badgeService.getUserBadges(user));
     }
 }

@@ -27,6 +27,7 @@ public class UserStatsService {
     private final ListRepository listRepository;
     private final FollowerRepository followerRepository;
     private final ReviewLikeRepository reviewLikeRepository;
+    private final BadgeService badgeService;
 
     @Transactional
     public UserStatsResponse getOrCreateAndUpdateStats(Long userId) {
@@ -84,7 +85,9 @@ public class UserStatsService {
         int totalWatchTime = (int) ((moviesWatched * 120) + (seriesWatched * 45));
         stats.setTotalWatchTime(totalWatchTime);
 
-        return mapToUserStatsResponse(userStatsRepository.save(stats));
+        UserStats saved = userStatsRepository.save(stats);
+        badgeService.checkAndAward(user, saved);
+        return mapToUserStatsResponse(saved);
     }
 
     private double calculateAverageRating(List<Rating> ratings) {

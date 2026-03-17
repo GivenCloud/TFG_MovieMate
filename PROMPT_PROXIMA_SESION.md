@@ -12,37 +12,50 @@ PROYECTO: Plataforma social de cine/series (IMDB + Letterboxd + Serializd).
 Stack: Spring Boot 3.3.4 + PostgreSQL 16 (backend) / React 19 + TypeScript + TanStack Query 5 + Tailwind CSS 4 (frontend).
 Rama activa: `feat/frontend-pages`
 
-**TODAS las tareas MEDIA completadas. Solo quedan BAJA/MUY BAJA.**
+**EL PROYECTO ESTÁ FUNCIONALMENTE COMPLETO.**
+Todas las prioridades ALTA, MEDIA y BAJA están implementadas (M1–M31, B1–B12).
 
-**HECHO en las últimas sesiones:**
-- #3: PersonPage + cast en DetailPage
-- #4: Estadísticas avanzadas (StatsTab en ProfilePage — distribución notas, géneros, actividad mensual)
-- #5: Filtros avanzados en DiscoverPage
-- #6: "¿Dónde ver?" en DetailPage
-- #8: Seguimiento por temporada y episodio (SeasonAccordion)
-- #16: Películas favoritas fijadas en perfil
-- #19: Etiquetas de spoiler
+---
 
-**Últimos commits (rama feat/frontend-pages):**
-1. `@feat: estadísticas personales avanzadas (#4)` ← ÚLTIMO
-2. `@fix: corregir import apiClient y tipos en api/episodes.ts`
-3. `@feat: seguimiento por temporada y episodio (#8)`
-4. `@feat: favoritas en perfil y etiquetas de spoiler en reseñas`
-5. `@feat: filtros avanzados en DiscoverPage (#5)`
+**HECHO en las últimas sesiones (BAJA):**
+- #17: RATING_UPDATED / LIST_UPDATED en ActivityService (detecta edición por `updatedAt > createdAt + 1min`)
+- #21: Usuarios sugeridos en HomePage ("Cinéfilos que quizás conozcas")
+- #14: Subida real de avatar (multipart → filesystem → servido como estático)
+- #9: Recomendaciones personalizadas ("Para ti ✨" en HomePage, top género → TMDB discover)
+- #7: Insignias/gamificación (10 badges, BadgeService, UserBadge entity, chips en ProfilePage)
+- #20: Comentarios en listas (ListComment entity, ListCommentController, sección en ListDetailPage)
 
-**Nuevos ficheros clave (#4):**
-- `moviemate-backend/.../dto/FullStatsDto.java`
-- `moviemate-frontend/src/components/profile/StatsTab.tsx`
+**Último commit:**
+`@feat: subida de avatar, recomendaciones, insignias y comentarios en listas`
 
-**Pendiente BAJA (solo si hay tiempo):**
-- #7: Insignias/gamificación
-- #9: Recomendaciones personalizadas
-- #14: Subida real de avatar (multipart)
-- #17: Activity RATING_UPDATED / LIST_UPDATED
-- #20: Comentarios en listas
-- #21: Usuarios sugeridos en HomePage
+---
 
-**Estado del proyecto:**
-Toda la funcionalidad ALTA y MEDIA está implementada. El TFG está prácticamente completo funcionalmente. El siguiente paso natural sería documentación de la memoria o pulir detalles de UX.
+**Archivos nuevos en última sesión:**
+
+Backend:
+- `entity/UserBadge.java` — tabla user_badges
+- `entity/ListComment.java` — tabla list_comments
+- `dto/BadgeDto.java`, `dto/ListCommentResponse.java`
+- `repository/UserBadgeRepository.java`, `repository/ListCommentRepository.java`
+- `service/BadgeService.java` — 10 insignias con evaluación idempotente
+- `service/ListCommentService.java`
+- `controller/ListCommentController.java` — GET/POST/DELETE /api/lists/{id}/comments
+- `config/WebMvcConfig.java` — sirve /uploads/** desde filesystem
+
+Frontend:
+- `types/index.ts` — añadidos `BadgeDto` y `ListCommentResponse`
+- `api/users.ts` — `getMyBadges()`, `getBadgesByUserId()`, `getMyRecommendations()`, `uploadAvatar()`
+- `api/comments.ts` — `getByList()`, `createForList()`, `deleteFromList()`
+- `lib/queryKeys.ts` — `users.badges`, `users.badgesByUser`, `comments.byList`
+
+---
+
+**Posibles tareas para esta sesión:**
+
+1. **Preparar la memoria del TFG** — documentar arquitectura, decisiones técnicas, capturas de pantalla
+2. **Pulir detalles de UX** — revisar el diseño de alguna página concreta, ajustar colores/espaciados
+3. **Tests** — añadir tests de integración en el backend o tests de componentes en el frontend
+4. **Hacer el commit y push** del último batch si aún no se ha hecho
+5. **Preparar la demo** — revisar el DataSeeder, asegurarse de que docker-compose up levanta todo correctamente
 
 Pregunta al usuario qué quiere hacer a continuación.

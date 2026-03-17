@@ -1,7 +1,7 @@
 # MovieMate — Progreso del Frontend
 
 Resumen de todo lo implementado en el frontend durante el desarrollo del TFG.
-Actualizado: 2026-03-17
+Actualizado: 2026-03-17 (sesión final BAJA)
 
 ---
 
@@ -23,7 +23,7 @@ Actualizado: 2026-03-17
 | Frontend — SettingsPage | ✅ Completo |
 | Frontend — ActivityPage/Feed | ✅ Completo |
 | Frontend — Sidebar links + avatar en layout | ✅ Completo |
-| Frontend — ListDetailPage | ✅ Completo |
+| Frontend — ListDetailPage + comentarios | ✅ Completo |
 | Frontend — WatchlistPage / FavoritesPage | ✅ Completo |
 | Frontend — ProfilePage deep-link por tab | ✅ Completo |
 | Frontend — WebSocket tiempo real | ✅ Completo |
@@ -32,6 +32,11 @@ Actualizado: 2026-03-17
 | Frontend — Spoiler tags en reseñas | ✅ Completo |
 | Frontend — Temporadas y episodios (SeasonAccordion) | ✅ Completo |
 | Frontend — Estadísticas avanzadas (StatsTab en perfil) | ✅ Completo |
+| Frontend — Subida de avatar (multipart) | ✅ Completo |
+| Frontend — Recomendaciones personalizadas | ✅ Completo |
+| Frontend — Insignias/gamificación | ✅ Completo |
+| Backend — RATING_UPDATED / LIST_UPDATED en ActivityService | ✅ Completo |
+| Backend — Usuarios sugeridos en HomePage | ✅ Completo |
 
 ---
 
@@ -271,38 +276,72 @@ queryClient.invalidateQueries({ queryKey: queryKeys.users.lists() })
   - Dos tabs: "Para ti" (feed personal, lazy) y "Global"; "Para ti" solo visible si autenticado
   - Paginación "Ver más": re-fetcha con `size` creciente (0..20..40...) sin infinite scroll
   - `ActivityItem`: renderizado diferente por tipo vía switch
-  - `RATING_*`: card con poster mini, estrellas, tag emocional, extracto de reseña, enlaza a DetailPage
-  - `LIST_*`: texto con nombre de lista
+  - `RATING_CREATED` / `RATING_UPDATED`: card con poster mini, estrellas, tag emocional, extracto de reseña
+  - `LIST_CREATED` / `LIST_UPDATED`: texto con nombre de lista
   - `FOLLOW`: enlaza al perfil del targetUser
   - Avatar con link al perfil; `key` compuesto (ActivityResponse no tiene id)
+- Backend `ActivityService.java` detecta edición comparando `updatedAt > createdAt + 1min` — no requiere entidad separada
+
+### SettingsPage — Subida de avatar ⭐ NUEVO
+- `src/features/settings/SettingsPage.tsx`
+  - Botón de subir archivo + input file hidden (trigger con `useRef`)
+  - Preview instantáneo con `URL.createObjectURL(file)` antes de que complete el upload
+  - Mutation `uploadAvatar`: POST multipart a `/api/users/me/avatar`; en success actualiza cache y limpia preview
+  - Mantiene opción de pegar URL manualmente como fallback
+- Backend `service/UserService.java` — `uploadAvatar(User, MultipartFile)`:
+  - Valida `contentType.startsWith("image/")` y tamaño ≤5MB
+  - Guarda en `uploads/avatars/{userId}_{8charUUID}{ext}`
+  - Actualiza `user.avatarUrl` a `/uploads/avatars/{filename}`
+- Backend `config/WebMvcConfig.java` — sirve `/uploads/**` desde el sistema de ficheros
+- Backend `config/SecurityConfig.java` — `/uploads/**` en `permitAll()` (imágenes públicas sin auth)
+
+### HomePage — Recomendaciones + Usuarios sugeridos ⭐ NUEVO
+- `src/features/home/HomePage.tsx`
+  - Sección **"Para ti ✨"** (solo autenticados): carrusel con `recommendations` — top género del usuario → discover TMDB rating ≥7 → 6 películas + 6 series
+  - Sección **"Cinéfilos que quizás conozcas 👥"** (solo autenticados): hasta 5 `SuggestedUserCard` con avatar, @username y bio
+  - `queryKeys.users.recommendations()` / `queryKeys.users.suggestions()` con staleTime 30/10 min
+- Backend `GET /api/users/me/recommendations`: extrae top-1 género de `FullStatsDto`, mapea nombre a ID TMDB, llama `discoverMovies` + `discoverTvShows`
+
+### ProfilePage — Insignias ⭐ NUEVO
+- `src/features/profile/ProfilePage.tsx`
+  - Componente `BadgesSection`: chips `emoji + nombre` con tooltip de descripción, visibles en todos los perfiles (propio y ajeno), entre stats y películas favoritas
+  - Query `badgesQuery`: usa `getMyBadges()` si es perfil propio, `getBadgesByUserId(id)` si es ajeno
+- Backend `entity/UserBadge.java` — tabla `user_badges` con constraint unique (user_id, badge_type)
+- Backend `service/BadgeService.java` — 10 insignias (enum `BadgeType`), evaluación idempotente en `checkAndAward(user, stats)`:
+  - FIRST_REVIEW (≥1 rating) · CRITIC (≥10) · CINEPHILE (≥50) · FILM_BUFF (≥100)
+  - MOVIE_MARATHON (≥10 películas) · SERIES_BINGE (≥10 series)
+  - SOCIAL (≥1 seguidor) · POPULAR (≥10 seguidores)
+  - LISTER (≥1 lista) · LIKED (≥1 like recibido)
+- Integrado en `UserStatsService.updateUserStats()` → se evalúa en cada recalculación de stats
+- `GET /api/users/me/badges` y `GET /api/users/{id}/badges`
+
+### ListDetailPage — Comentarios ⭐ NUEVO
+- `src/features/lists/ListDetailPage.tsx`
+  - Sección de comentarios al final: textarea + botón Publicar (disabled si vacío o enviando)
+  - Lista de comentarios: avatar (imagen o inicial), @username con link al perfil, `timeAgo`, texto del comentario
+  - Botón `×` para eliminar propio (solo visible en hover del autor)
+  - Skeleton de carga (2 filas animadas)
+  - Estado vacío: "Sin comentarios todavía. ¡Sé el primero!"
+  - `queryKeys.comments.byList(listId)` con staleTime 2 min
+- Backend `entity/ListComment.java` — tabla `list_comments`, FK a `User` + `List`, soft delete (`deleted = false`)
+- Backend `service/ListCommentService.java` — `getByList`, `create`, `delete` (verifica autoría)
+- Backend `controller/ListCommentController.java` — `GET/POST /api/lists/{id}/comments`, `DELETE .../comments/{cid}`
 
 ---
 
-## Pendiente para próximas sesiones
+## Estado del proyecto — COMPLETO
 
-### Bugs / mejoras identificadas
+**Toda la funcionalidad está implementada (prioridades ALTA, MEDIA y BAJA).**
 
-1. ~~**Sidebar links rotos**~~ ✅ — rutas dedicadas para cada sección: `?tab=ratings`, `/watchlist`, `/favorites`
+### Bugs resueltos (todos)
+- B1–B12: todos ✅
 
-2. ~~**Avatar en Topbar y Sidebar no se actualiza**~~ ✅ — `Topbar` y `Sidebar` usan `useMyProfile().avatarUrl`; se actualiza automáticamente al guardar en Settings
+### Funcionalidades completadas (todas)
+- M1–M31: todas ✅
 
-3. **Tabs "Valoraciones" y "Listas" vacías en perfiles ajenos** — limitación de backend (`GET /users/:id/ratings` no existe). Baja prioridad para el TFG.
-
-4. ~~**ListCard no navega**~~ ✅ — `ListDetailPage` creada en `/lists/:listId`; ListCard envuelta con Link en ListsPage y ProfilePage
-
-### Bugs corregidos (revisión de código)
-
-- ~~`toSlug(undefined)` crash en HomePage~~ ✅ — `utils.ts` acepta ahora `string | null | undefined`
-- ~~`activeTab` no se actualizaba al navegar al mismo perfil con distinto `?tab=`~~ ✅ — `useEffect` sincroniza searchParams → estado
-- ~~`list!.id` non-null assertion inseguro en `SpecialListPage`~~ ✅ — guard explícito con `Promise.reject`
-
-### Pendiente mayor
-
-1. ~~**WebSocket tiempo real**~~ ✅ — `@stomp/stompjs` + `sockjs-client` integrados. `useWebSocket` en `Layout.tsx` conecta al broker, suscribe a `/user/queue/notifications`, prepende la notificación al cache y refresca el badge automáticamente. Backend: `WebSocketAuthInterceptor` valida el JWT del frame CONNECT, `/ws/**` en permitAll.
-
-2. ~~**Paginación en ReviewList**~~ ✅ — Paginación cliente de 5 en 5 con botón "Ver más" que muestra los restantes. El backend devuelve lista plana; no requiere cambios de API.
-
-3. **Tabs "Valoraciones" y "Listas" en perfiles ajenos** — limitación de backend (`GET /users/:id/ratings` no existe). Baja prioridad para el TFG.
+### Pendiente operacional
+- **Avatar en producción/Docker**: los archivos se guardan en `uploads/` en el filesystem local. En un entorno productivo habría que montar un volumen Docker o migrar a un object storage (S3, Cloudflare R2). No afecta a la funcionalidad del TFG.
+- **Memoria de la TFG**: la documentación escrita (memoria académica) es el siguiente paso natural.
 
 ---
 
@@ -322,3 +361,4 @@ feat/frontend-pages
 | `@feat: arreglar sidebar links y avatar, añadir paginas de lista` | Sidebar/Topbar avatar reactivo, ListDetailPage, SpecialListPage watchlist/favorites, ProfilePage tab deep-link |
 | `@fix: corregir toSlug con titulo undefined, tab deep-link en ProfilePage y mutacion segura en SpecialListPage` | 3 bugs corregidos tras revisión de código |
 | `@feat: integrar WebSocket STOMP para notificaciones en tiempo real y paginacion en ReviewList` | useWebSocket hook, Layout integración, backend WebSocketAuthInterceptor, ReviewList "Ver más" |
+| `@feat: subida de avatar, recomendaciones, insignias y comentarios en listas` | UserService.uploadAvatar, WebMvcConfig static, BadgeService+UserBadge, ListCommentService+entity, ProfilePage badges, ListDetailPage comments, HomePage Para Ti |

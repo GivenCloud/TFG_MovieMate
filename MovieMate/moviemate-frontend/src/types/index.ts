@@ -332,3 +332,22 @@ export interface ErrorResponse {
   timestamp: string
   details: { [key: string]: string }
 }
+
+// ─── Insignias ────────────────────────────────────────────────
+export interface BadgeDto {
+  type: string
+  name: string
+  description: string
+  icon: string
+  awardedAt: string
+}
+
+// ─── Comentarios de listas ────────────────────────────────────
+export interface ListCommentResponse {
+  id: number
+  content: string
+  createdAt: string
+  updatedAt: string
+  author: UserResponse
+  listId: number
+}

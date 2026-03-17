@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
 import { useMyProfile, useLogout } from '../../hooks/useAuth'
@@ -54,6 +54,8 @@ export default function SettingsPage() {
   const [bio, setBio] = useState('')
   const [avatarUrl, setAvatarUrl] = useState('')
   const [avatarError, setAvatarError] = useState(false)
+  const [avatarPreview, setAvatarPreview] = useState<string | null>(null)
+  const fileInputRef = useRef<HTMLInputElement>(null)
   const [confirmLogout, setConfirmLogout] = useState(false)
 
   // Cambio de contraseña
@@ -93,6 +95,25 @@ export default function SettingsPage() {
       setAvatarError(false)
     }
   }, [me])
+
+  const { mutate: uploadAvatar, isPending: isUploading } = useMutation({
+    mutationFn: (file: File) => usersApi.uploadAvatar(file),
+    onSuccess: ({ data }) => {
+      queryClient.setQueryData(queryKeys.users.me(), data)
+      setAvatarUrl(data.avatarUrl ?? '')
+      setAvatarPreview(null)
+      toast.success('Avatar actualizado')
+    },
+    onError: () => toast.error('Error al subir el avatar'),
+  })
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+    const preview = URL.createObjectURL(file)
+    setAvatarPreview(preview)
+    uploadAvatar(file)
+  }
 
   const { mutate: saveProfile, isPending: isSaving } = useUpdateProfile(
     sessionUser?.username ?? ''
@@ -143,32 +164,67 @@ export default function SettingsPage() {
           <div className="px-6 py-5 space-y-5">
             {/* Avatar */}
             <div className="flex items-start gap-4">
-              <div className="w-16 h-16 rounded-full bg-gradient-to-br from-accent to-pink-500 flex items-center justify-center text-2xl font-bold text-bg-0 shrink-0 overflow-hidden border-2 border-white/10">
-                {avatarUrl && !avatarError ? (
-                  <img
-                    src={avatarUrl}
-                    alt="Avatar"
-                    className="w-full h-full object-cover"
-                    onError={() => setAvatarError(true)}
-                  />
-                ) : (
-                  <span>{sessionUser?.username.charAt(0).toUpperCase()}</span>
-                )}
-              </div>
-              <div className="flex-1">
-                <label className="block text-xs font-mono text-muted uppercase tracking-wider mb-1.5">
-                  URL del avatar
-                </label>
+              {/* Preview */}
+              <div className="relative group shrink-0">
+                <div className="w-16 h-16 rounded-full bg-gradient-to-br from-accent to-pink-500 flex items-center justify-center text-2xl font-bold text-bg-0 overflow-hidden border-2 border-white/10">
+                  {(avatarPreview || (avatarUrl && !avatarError)) ? (
+                    <img
+                      src={avatarPreview ?? avatarUrl}
+                      alt="Avatar"
+                      className="w-full h-full object-cover"
+                      onError={() => { setAvatarError(true); setAvatarPreview(null) }}
+                    />
+                  ) : (
+                    <span>{sessionUser?.username.charAt(0).toUpperCase()}</span>
+                  )}
+                </div>
+                {/* Botón overlay para subir archivo */}
+                <button
+                  type="button"
+                  onClick={() => fileInputRef.current?.click()}
+                  disabled={isUploading}
+                  className="absolute inset-0 rounded-full bg-black/50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity text-white text-xs font-medium"
+                >
+                  {isUploading ? '...' : '📷'}
+                </button>
                 <input
-                  type="url"
-                  value={avatarUrl}
-                  onChange={(e) => { setAvatarUrl(e.target.value); setAvatarError(false) }}
-                  placeholder="https://ejemplo.com/mi-foto.jpg"
-                  className="w-full bg-bg-2 border border-white/[0.1] rounded-xl px-3.5 py-2.5 text-sm text-white placeholder:text-muted outline-none focus:border-accent/50 focus:ring-2 focus:ring-accent/10 transition-all"
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/*"
+                  onChange={handleFileChange}
+                  className="hidden"
                 />
-                <p className="text-[0.65rem] text-muted mt-1">
-                  Enlace directo a una imagen (JPG, PNG, WebP)
-                </p>
+              </div>
+
+              <div className="flex-1 space-y-2">
+                {/* Subir archivo */}
+                <div>
+                  <label className="block text-xs font-mono text-muted uppercase tracking-wider mb-1.5">
+                    Subir imagen
+                  </label>
+                  <button
+                    type="button"
+                    onClick={() => fileInputRef.current?.click()}
+                    disabled={isUploading}
+                    className="flex items-center gap-2 bg-bg-2 border border-white/[0.1] hover:border-accent/40 text-white/70 hover:text-white text-sm px-3.5 py-2 rounded-xl transition-colors disabled:opacity-50"
+                  >
+                    {isUploading ? '⏳ Subiendo…' : '📎 Elegir archivo'}
+                  </button>
+                  <p className="text-[0.65rem] text-muted mt-1">JPG, PNG o WebP · máx. 5 MB</p>
+                </div>
+                {/* URL manual */}
+                <div>
+                  <label className="block text-xs font-mono text-muted uppercase tracking-wider mb-1.5">
+                    O pegar URL
+                  </label>
+                  <input
+                    type="url"
+                    value={avatarUrl}
+                    onChange={(e) => { setAvatarUrl(e.target.value); setAvatarError(false) }}
+                    placeholder="https://ejemplo.com/mi-foto.jpg"
+                    className="w-full bg-bg-2 border border-white/[0.1] rounded-xl px-3.5 py-2.5 text-sm text-white placeholder:text-muted outline-none focus:border-accent/50 focus:ring-2 focus:ring-accent/10 transition-all"
+                  />
+                </div>
               </div>
             </div>
 

@@ -1,6 +1,6 @@
 # MovieMate — Mejoras y bugs pendientes de UI/UX
 
-Registradas el 2026-03-12. Marcar con ✅ conforme se vayan completando.
+Registradas el 2026-03-12. Última actualización: 2026-03-17. Marcar con ✅ conforme se vayan completando.
 
 ---
 
@@ -52,19 +52,21 @@ Registradas el 2026-03-12. Marcar con ✅ conforme se vayan completando.
 | M23 | ✅ | **Admin: resolver reporte no borraba el contenido ni notificaba** — "Resolver" solo cambiaba el estado. Ahora obtiene el autor del contenido antes de borrarlo, lo elimina, y envía notificación `CONTENT_REMOVED` con el motivo en español. | `service/ContentReportService.java`, `service/NotificationService.java` |
 | M24 | ✅ | **Admin: no se podía ver el contenido de un reporte** — el panel solo mostraba el ID del objeto denunciado. Ahora cada fila de reporte tiene un botón ▼ que despliega la valoración (estrellas, texto, título del contenido) o el comentario (autor, texto). Carga lazy al expandir. | `features/admin/AdminPage.tsx`, `controller/AdminController.java` |
 | M25 | ✅ | **Botón de mostrar/ocultar contraseña mostraba emoji** — se usaba 👁️/🙈. Reemplazado por iconos SVG estilo Heroicons (ojo y ojo tachado) con `text-white/60 hover:text-white`. | `LoginPage.tsx`, `RegisterPage.tsx` |
+| M26 | ✅ | **ActivityPage sin tipos RATING_UPDATED / LIST_UPDATED** — ActivityService no distinguía entre nueva valoración y edición. Ahora detecta `updatedAt > createdAt + 1min` y emite el tipo correspondiente con `updatedAt` como timestamp. | `service/ActivityService.java` |
+| M27 | ✅ | **Usuarios sugeridos en HomePage** — sección "Cinéfilos que quizás conozcas" al final del home (solo autenticados). Muestra hasta 5 sugerencias con avatar, username y bio. | `features/home/HomePage.tsx` |
+| M28 | ✅ | **Subida real de avatar (multipart)** — en Settings, el avatar ya no requiere pegar una URL: hay un botón de subir archivo que acepta JPG/PNG/WebP (≤5MB), muestra preview inmediato con `URL.createObjectURL` y sube al backend. Backend sirve los archivos desde `/uploads/avatars/**`. | `features/settings/SettingsPage.tsx`, `service/UserService.java`, `config/WebMvcConfig.java`, `config/SecurityConfig.java` |
+| M29 | ✅ | **Recomendaciones personalizadas en HomePage** — carrusel "Para ti ✨" (solo autenticados). El backend toma el top género del usuario y lanza un discover TMDB filtrando por ese género con nota mínima 7.0, devolviendo hasta 6 películas + 6 series. | `features/home/HomePage.tsx`, `controller/UserController.java` |
+| M30 | ✅ | **Insignias/gamificación** — sistema de 10 insignias: FIRST_REVIEW, CRITIC, CINEPHILE, FILM_BUFF, MOVIE_MARATHON, SERIES_BINGE, SOCIAL, POPULAR, LISTER, LIKED. Se otorgan automáticamente al actualizar stats. Se muestran como chips en el perfil (entre stats y películas favoritas). | `entity/UserBadge.java`, `service/BadgeService.java`, `features/profile/ProfilePage.tsx` |
+| M31 | ✅ | **Comentarios en listas** — sección de comentarios en ListDetailPage: textarea para publicar, lista con avatar + timeAgo + botón eliminar propio. Backend: nueva entidad `ListComment`, servicio y controller en `/api/lists/{id}/comments`. | `entity/ListComment.java`, `service/ListCommentService.java`, `features/lists/ListDetailPage.tsx` |
 
 ---
 
-## Orden de prioridad sugerido
+## Estado final
 
-1. B1, B2, B3 — bugs visuales rápidos
-2. M7 — logo clicable (trivial)
-3. M3, M5, M6 — polish visual
-4. B4, B5 — DetailPage cleanup
-5. M1 — separar listas propias de exploración
-6. M2 — añadir contenido desde dentro de la lista
-7. M4 — seguidores/siguiendo clicables
-8. M8, M9 — más contenido en home y búsqueda mixta
+**Todos los bugs (B1–B12) resueltos. Todas las mejoras (M1–M31) implementadas.**
+
+El único punto pendiente menor es:
+- **Tabs "Valoraciones" y "Listas" en perfiles ajenos** — el backend SÍ tiene `GET /users/{id}/ratings` y `GET /users/{id}/lists`. Las tabs ya funcionan para perfiles públicos o seguidos. Para perfiles privados no seguidos devuelve 403 (comportamiento correcto). ✅ Resuelto por diseño.
 
 ---
 
@@ -74,3 +76,5 @@ Registradas el 2026-03-12. Marcar con ✅ conforme se vayan completando.
 - Para M9 (mezcla), el endpoint de TMDB `/trending/all/week` ya devuelve mix de movies y tv — se puede usar para M8 también.
 - Para M2, el `ListController` ya tiene `POST /api/lists/{listId}/content` — solo falta la UI de búsqueda.
 - Para M3, el diseño de referencia está en `ActivityPage.tsx` (sección `ActivityItem`).
+- Avatares subidos: se guardan en `uploads/avatars/` en el directorio de trabajo del backend. En Docker esto es efímero; para producción habría que montar un volumen o migrar a S3.
+- Insignias: se evalúan en `UserStatsService.updateUserStats()` — se otorgan de forma idempotente (no se duplican).

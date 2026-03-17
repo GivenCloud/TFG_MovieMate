@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useParams, Link, useSearchParams } from 'react-router-dom'
-import { useMutation, useQueryClient } from '@tanstack/react-query'
+import { useMutation, useQueryClient, useQuery } from '@tanstack/react-query'
 import { toast } from 'sonner'
 import { useAuthStore } from '../../store/authStore'
 import {
@@ -19,6 +19,7 @@ import {
 } from '../../hooks/useProfile'
 import { useCreateRating } from '../../hooks/useDetail'
 import { ratingsApi } from '../../api/ratings'
+import { usersApi } from '../../api/users'
 import StatsTab from '../../components/profile/StatsTab'
 import { queryKeys } from '../../lib/queryKeys'
 import PosterCard from '../../components/shared/PosterdCard'
@@ -30,7 +31,7 @@ import {
   DialogTitle,
   DialogFooter,
 } from '../../components/ui/dialog'
-import type { ContentResponse, ListResponse, UserResponse, RatingResponse, EmotionalTag, Status } from '../../types'
+import type { ContentResponse, ListResponse, UserResponse, RatingResponse, EmotionalTag, Status, BadgeDto } from '../../types'
 import { timeAgo } from '../../lib/utils'
 
 // ── Skeleton ────────────────────────────────────────────────
@@ -508,6 +509,28 @@ function FollowListDialog({
   )
 }
 
+// ── Insignias ────────────────────────────────────────────────
+function BadgesSection({ badges }: { badges: BadgeDto[] }) {
+  if (badges.length === 0) return null
+  return (
+    <div className="px-6 py-4 border-b border-white/[0.06]">
+      <h3 className="text-xs font-mono text-muted uppercase tracking-wider mb-3">Insignias</h3>
+      <div className="flex flex-wrap gap-2">
+        {badges.map((badge) => (
+          <div
+            key={badge.type}
+            title={badge.description}
+            className="flex items-center gap-1.5 bg-bg-2 border border-white/[0.08] rounded-full px-3 py-1 text-xs text-white/75 hover:border-accent/40 hover:text-accent transition-colors cursor-default"
+          >
+            <span>{badge.icon}</span>
+            <span className="font-medium">{badge.name}</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  )
+}
+
 // ── Página principal ─────────────────────────────────────────
 const ALL_TABS = [
   { id: 'activity',   label: 'Actividad',    ownerOnly: false },
@@ -553,6 +576,15 @@ export default function ProfilePage() {
 
   const followMutation   = useFollowUser(userId ?? 0)
   const unfollowMutation = useUnfollowUser(userId ?? 0)
+
+  const badgesQuery = useQuery({
+    queryKey: isOwnProfile ? queryKeys.users.badges() : queryKeys.users.badgesByUser(userId ?? 0),
+    queryFn: isOwnProfile
+      ? () => usersApi.getMyBadges().then((r) => r.data)
+      : () => usersApi.getBadgesByUserId(userId!).then((r) => r.data),
+    enabled: !!userId,
+    staleTime: 1000 * 60 * 5,
+  })
 
   // ── Estados de carga / error ─────────────────────────────
   const isLoading  = userQuery.isLoading || (!!userId && profileQuery.isLoading)
@@ -667,6 +699,11 @@ export default function ProfilePage() {
             </div>
           ))}
         </div>
+      )}
+
+      {/* ── Insignias ──────────────────────────────────────── */}
+      {(badgesQuery.data?.length ?? 0) > 0 && (
+        <BadgesSection badges={badgesQuery.data!} />
       )}
 
       {/* ── Películas favoritas fijadas ─────────────────────── */}

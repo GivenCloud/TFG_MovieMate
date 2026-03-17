@@ -57,28 +57,36 @@ public class ActivityService {
         );
         
         allActivities.addAll(recentRatings.stream()
-                .map(rating -> ActivityResponse.builder()
-                        .type(ActivityType.RATING_CREATED)
-                        .user(userService.mapToUserResponse(rating.getUser()))
-                        .rating(ratingService.mapToRatingResponse(rating))
-                        .content(contentService.mapToContentResponse(rating.getContent()))
-                        .createdAt(rating.getCreatedAt())
-                        .build())
+                .map(rating -> {
+                    boolean updated = rating.getUpdatedAt() != null &&
+                            rating.getUpdatedAt().isAfter(rating.getCreatedAt().plusMinutes(1));
+                    return ActivityResponse.builder()
+                            .type(updated ? ActivityType.RATING_UPDATED : ActivityType.RATING_CREATED)
+                            .user(userService.mapToUserResponse(rating.getUser()))
+                            .rating(ratingService.mapToRatingResponse(rating))
+                            .content(contentService.mapToContentResponse(rating.getContent()))
+                            .createdAt(updated ? rating.getUpdatedAt() : rating.getCreatedAt())
+                            .build();
+                })
                 .collect(Collectors.toList()));
 
-        // Actividades de listas creadas
+        // Actividades de listas creadas/actualizadas
         Page<List> recentLists = listRepository.findByUserInAndIsPublicTrueOrderByCreatedAtDesc(
                 followedUsers,
                 PageRequest.of(0, 30)
         );
-        
+
         allActivities.addAll(recentLists.stream()
-                .map(list -> ActivityResponse.builder()
-                        .type(ActivityType.LIST_CREATED)
-                        .user(userService.mapToUserResponse(list.getUser()))
-                        .list(listService.mapToListResponse(list))
-                        .createdAt(list.getCreatedAt())
-                        .build())
+                .map(list -> {
+                    boolean updated = list.getUpdatedAt() != null &&
+                            list.getUpdatedAt().isAfter(list.getCreatedAt().plusMinutes(1));
+                    return ActivityResponse.builder()
+                            .type(updated ? ActivityType.LIST_UPDATED : ActivityType.LIST_CREATED)
+                            .user(userService.mapToUserResponse(list.getUser()))
+                            .list(listService.mapToListResponse(list))
+                            .createdAt(updated ? list.getUpdatedAt() : list.getCreatedAt())
+                            .build();
+                })
                 .collect(Collectors.toList()));
 
         // Actividades de seguimientos (solo seguimientos recientes)
@@ -123,24 +131,32 @@ public class ActivityService {
         // Valoraciones recientes
         Page<Rating> recentRatings = ratingRepository.findAllByOrderByCreatedAtDesc(pageable);
         allActivities.addAll(recentRatings.stream()
-                .map(rating -> ActivityResponse.builder()
-                        .type(ActivityType.RATING_CREATED)
-                        .user(userService.mapToUserResponse(rating.getUser()))
-                        .rating(ratingService.mapToRatingResponse(rating))
-                        .content(contentService.mapToContentResponse(rating.getContent()))
-                        .createdAt(rating.getCreatedAt())
-                        .build())
+                .map(rating -> {
+                    boolean updated = rating.getUpdatedAt() != null &&
+                            rating.getUpdatedAt().isAfter(rating.getCreatedAt().plusMinutes(1));
+                    return ActivityResponse.builder()
+                            .type(updated ? ActivityType.RATING_UPDATED : ActivityType.RATING_CREATED)
+                            .user(userService.mapToUserResponse(rating.getUser()))
+                            .rating(ratingService.mapToRatingResponse(rating))
+                            .content(contentService.mapToContentResponse(rating.getContent()))
+                            .createdAt(updated ? rating.getUpdatedAt() : rating.getCreatedAt())
+                            .build();
+                })
                 .collect(Collectors.toList()));
 
         // Listas públicas recientes
         Page<List> recentLists = listRepository.findByIsPublicTrueOrderByCreatedAtDesc(pageable);
         allActivities.addAll(recentLists.stream()
-                .map(list -> ActivityResponse.builder()
-                        .type(ActivityType.LIST_CREATED)
-                        .user(userService.mapToUserResponse(list.getUser()))
-                        .list(listService.mapToListResponse(list))
-                        .createdAt(list.getCreatedAt())
-                        .build())
+                .map(list -> {
+                    boolean updated = list.getUpdatedAt() != null &&
+                            list.getUpdatedAt().isAfter(list.getCreatedAt().plusMinutes(1));
+                    return ActivityResponse.builder()
+                            .type(updated ? ActivityType.LIST_UPDATED : ActivityType.LIST_CREATED)
+                            .user(userService.mapToUserResponse(list.getUser()))
+                            .list(listService.mapToListResponse(list))
+                            .createdAt(updated ? list.getUpdatedAt() : list.getCreatedAt())
+                            .build();
+                })
                 .collect(Collectors.toList()));
 
         // Ordenar por fecha descendente

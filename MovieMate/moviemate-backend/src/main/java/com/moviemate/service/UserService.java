@@ -4,10 +4,18 @@ import com.moviemate.dto.UserResponse;
 import com.moviemate.entity.User;
 import com.moviemate.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 import java.util.List;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Service
@@ -16,6 +24,9 @@ public class UserService {
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
+
+    @Value("${app.upload.dir:uploads}")
+    private String uploadDir;
     
     public User findUserById(Long userId) {
         return userRepository.findById(userId)
@@ -59,6 +70,30 @@ public class UserService {
         user.setIsPublic(isPublic);
         User updatedUser = userRepository.save(user);
         return mapToUserResponse(updatedUser);
+    }
+
+    public UserResponse uploadAvatar(User user, MultipartFile file) throws IOException {
+        String contentType = file.getContentType();
+        if (contentType == null || !contentType.startsWith("image/")) {
+            throw new IllegalArgumentException("Solo se permiten imágenes (JPG, PNG, WebP)");
+        }
+        if (file.getSize() > 5 * 1024 * 1024) {
+            throw new IllegalArgumentException("El archivo no puede superar los 5 MB");
+        }
+
+        String originalName = file.getOriginalFilename() != null ? file.getOriginalFilename() : "avatar";
+        String ext = originalName.contains(".")
+                ? originalName.substring(originalName.lastIndexOf('.'))
+                : ".jpg";
+
+        Path avatarDir = Paths.get(uploadDir, "avatars");
+        Files.createDirectories(avatarDir);
+
+        String filename = user.getId() + "_" + UUID.randomUUID().toString().replace("-", "").substring(0, 8) + ext;
+        Files.copy(file.getInputStream(), avatarDir.resolve(filename), StandardCopyOption.REPLACE_EXISTING);
+
+        user.setAvatarUrl("/uploads/avatars/" + filename);
+        return mapToUserResponse(userRepository.save(user));
     }
 
     public void changePassword(User user, String currentPassword, String newPassword) {
