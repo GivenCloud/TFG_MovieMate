@@ -2,8 +2,11 @@ package com.moviemate.controller;
 
 import com.moviemate.dto.CastMemberDto;
 import com.moviemate.dto.ContentResponse;
+import com.moviemate.dto.EpisodeDto;
 import com.moviemate.dto.GenreDto;
 import com.moviemate.dto.PersonDto;
+import com.moviemate.dto.SeasonDto;
+import com.moviemate.dto.SeasonSummaryDto;
 import com.moviemate.dto.WatchProvidersDto;
 import com.moviemate.entity.Content;
 import com.moviemate.service.ContentService;
@@ -197,6 +200,22 @@ public class TmdbController {
     ) {
         Content content = tmdbService.syncMovieFromTmdb(tmdbId);
         return ResponseEntity.ok(contentService.mapToContentResponse(content));
+    }
+
+    @Operation(summary = "Obtener resumen de temporadas de una serie")
+    @GetMapping("/tv/{tmdbId}/seasons")
+    public ResponseEntity<List<SeasonSummaryDto>> getTvSeasonsSummary(@PathVariable Integer tmdbId) {
+        return ResponseEntity.ok(tmdbService.getTvSeasonsSummary(tmdbId));
+    }
+
+    @Operation(summary = "Obtener episodios de una temporada")
+    @GetMapping("/tv/{tmdbId}/seasons/{seasonNumber}")
+    public ResponseEntity<SeasonDto> getSeasonDetails(
+            @PathVariable Integer tmdbId,
+            @PathVariable Integer seasonNumber) {
+        SeasonDto season = tmdbService.getSeasonDetails(tmdbId, seasonNumber);
+        if (season == null) return ResponseEntity.notFound().build();
+        return ResponseEntity.ok(season);
     }
 
     @Operation(

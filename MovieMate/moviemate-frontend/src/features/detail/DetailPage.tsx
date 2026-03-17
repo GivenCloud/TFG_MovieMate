@@ -5,6 +5,7 @@ import DetailHero from '@/components/Detail/DetailHero'
 import RatingWidget from '@/components/Detail/RatingWidget'
 import AddToListButton from '@/components/Detail/AddToListButton'
 import ReviewList from '@/components/Detail/ReviewList'
+import SeasonAccordion from '@/components/Detail/SeasonAccordion'
 import { toSlug } from '@/lib/utils'
 import type { ContentResponse, ContentType } from '../../types'
 
@@ -90,12 +91,24 @@ export default function DetailPage() {
 
         {/* Layout de dos columnas en desktop */}
         <div className="grid grid-cols-1 lg:grid-cols-[1fr_340px] gap-8">
-          {/* Reseñas */}
-          <div>
-            <h2 className="font-display font-bold italic text-xl mb-5">
-              Reseñas de la comunidad
-            </h2>
-            <ReviewList content={content} />
+          {/* Temporadas y episodios (solo series) */}
+          <div className="space-y-8">
+            {parsedType === 'TV' && (
+              <div>
+                <h2 className="font-display font-bold italic text-xl mb-5">
+                  Temporadas y episodios
+                </h2>
+                <SeasonAccordion tmdbId={parsedTmdbId} />
+              </div>
+            )}
+
+            {/* Reseñas */}
+            <div>
+              <h2 className="font-display font-bold italic text-xl mb-5">
+                Reseñas de la comunidad
+              </h2>
+              <ReviewList content={content} />
+            </div>
           </div>
 
           {/* Info adicional */}

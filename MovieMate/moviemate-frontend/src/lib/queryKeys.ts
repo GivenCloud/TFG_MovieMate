@@ -17,6 +17,12 @@ export const queryKeys = {
     person:           (id: number) => ['tmdb', 'person', id] as const,
     personCredits:    (id: number) => ['tmdb', 'person', id, 'credits'] as const,
     contentCredits:   (tmdbId: number, type: string) => ['tmdb', type, tmdbId, 'credits'] as const,
+    tvSeasons:        (tmdbId: number) => ['tmdb', 'tv', tmdbId, 'seasons'] as const,
+    seasonDetail:     (tmdbId: number, season: number) => ['tmdb', 'tv', tmdbId, 'seasons', season] as const,
+  },
+  // Episodios vistos (por usuario autenticado)
+  episodes: {
+    watched: (tmdbSeriesId: number) => ['episodes', 'watched', tmdbSeriesId] as const,
   },
   // Contenido en BD (caché local — ficha de detalle)
   content: {

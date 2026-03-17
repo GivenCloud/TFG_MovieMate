@@ -268,6 +268,30 @@ export interface CastMemberDto {
   department?: string
 }
 
+// ─── Temporadas y episodios ─────────────────────────────────────
+export interface SeasonSummary {
+  seasonNumber: number
+  name: string
+  overview: string
+  episodeCount: number
+  posterUrl?: string
+  airDate?: string
+}
+
+export interface EpisodeDto {
+  episodeNumber: number
+  name: string
+  overview: string
+  airDate?: string
+  runtime?: number
+  stillUrl?: string
+  voteAverage?: number
+}
+
+export interface SeasonDto extends SeasonSummary {
+  episodes: EpisodeDto[]
+}
+
 // ─── Errores ───────────────────────────────────────────────────
 export interface ErrorResponse {
   error: string

@@ -1,8 +1,11 @@
 package com.moviemate.service;
 
 import com.moviemate.dto.CastMemberDto;
+import com.moviemate.dto.EpisodeDto;
 import com.moviemate.dto.GenreDto;
 import com.moviemate.dto.PersonDto;
+import com.moviemate.dto.SeasonDto;
+import com.moviemate.dto.SeasonSummaryDto;
 import com.moviemate.dto.WatchProvidersDto;
 import com.moviemate.dto.tmdb.MultiSearchResult;
 import com.moviemate.dto.tmdb.TmdbMovieDetails;
@@ -538,6 +541,106 @@ public class TmdbService {
             log.error("Error fetching credits for content {}: {}", tmdbId, e.getMessage());
         }
         return Collections.emptyList();
+    }
+
+    // ── Temporadas y episodios ──────────────────────────────────────
+
+    public List<SeasonSummaryDto> getTvSeasonsSummary(Integer tmdbId) {
+        String url = buildTmdbUrl("/tv/" + tmdbId).build().toUriString();
+        try {
+            TmdbTvSeriesDetails details = restTemplate.getForObject(url, TmdbTvSeriesDetails.class);
+            if (details == null || details.getSeasons() == null) return Collections.emptyList();
+            return details.getSeasons().stream()
+                    .filter(s -> s.getSeasonNumber() != null && s.getSeasonNumber() > 0)
+                    .map(s -> {
+                        SeasonSummaryDto dto = new SeasonSummaryDto();
+                        dto.setSeasonNumber(s.getSeasonNumber());
+                        dto.setName(s.getName());
+                        dto.setOverview(s.getOverview());
+                        dto.setEpisodeCount(s.getEpisodeCount());
+                        dto.setAirDate(s.getAirDate());
+                        if (s.getPosterPath() != null) {
+                            dto.setPosterUrl(imageBaseUrl + "/w185" + s.getPosterPath());
+                        }
+                        return dto;
+                    })
+                    .collect(Collectors.toList());
+        } catch (Exception e) {
+            log.error("Error fetching seasons for tv {}: {}", tmdbId, e.getMessage());
+        }
+        return Collections.emptyList();
+    }
+
+    public SeasonDto getSeasonDetails(Integer tmdbId, Integer seasonNumber) {
+        String url = buildTmdbUrl("/tv/" + tmdbId + "/season/" + seasonNumber).build().toUriString();
+        try {
+            TmdbSeasonDetails tmdb = restTemplate.getForObject(url, TmdbSeasonDetails.class);
+            if (tmdb == null) return null;
+            SeasonDto dto = new SeasonDto();
+            dto.setSeasonNumber(tmdb.getSeasonNumber());
+            dto.setName(tmdb.getName());
+            dto.setOverview(tmdb.getOverview());
+            if (tmdb.getPosterPath() != null) {
+                dto.setPosterUrl(imageBaseUrl + "/w185" + tmdb.getPosterPath());
+            }
+            if (tmdb.getEpisodes() != null) {
+                dto.setEpisodeCount(tmdb.getEpisodes().size());
+                dto.setEpisodes(tmdb.getEpisodes().stream().map(ep -> {
+                    EpisodeDto epDto = new EpisodeDto();
+                    epDto.setEpisodeNumber(ep.getEpisodeNumber());
+                    epDto.setName(ep.getName());
+                    epDto.setOverview(ep.getOverview());
+                    epDto.setAirDate(ep.getAirDate());
+                    epDto.setRuntime(ep.getRuntime());
+                    epDto.setVoteAverage(ep.getVoteAverage());
+                    if (ep.getStillPath() != null) {
+                        epDto.setStillUrl(imageBaseUrl + "/w300" + ep.getStillPath());
+                    }
+                    return epDto;
+                }).collect(Collectors.toList()));
+            }
+            return dto;
+        } catch (Exception e) {
+            log.error("Error fetching season {}/{}: {}", tmdbId, seasonNumber, e.getMessage());
+        }
+        return null;
+    }
+
+    // ── DTOs internos para temporadas ──────────────────────────────
+
+    @Data
+    private static class TmdbTvSeriesDetails {
+        private List<TmdbSeasonSummary> seasons;
+
+        @Data
+        static class TmdbSeasonSummary {
+            @JsonProperty("season_number") private Integer seasonNumber;
+            @JsonProperty("name")          private String name;
+            @JsonProperty("overview")      private String overview;
+            @JsonProperty("episode_count") private Integer episodeCount;
+            @JsonProperty("poster_path")   private String posterPath;
+            @JsonProperty("air_date")      private String airDate;
+        }
+    }
+
+    @Data
+    private static class TmdbSeasonDetails {
+        @JsonProperty("season_number") private Integer seasonNumber;
+        @JsonProperty("name")          private String name;
+        @JsonProperty("overview")      private String overview;
+        @JsonProperty("poster_path")   private String posterPath;
+        @JsonProperty("episodes")      private List<TmdbEpisode> episodes;
+
+        @Data
+        static class TmdbEpisode {
+            @JsonProperty("episode_number") private Integer episodeNumber;
+            @JsonProperty("name")           private String name;
+            @JsonProperty("overview")       private String overview;
+            @JsonProperty("air_date")       private String airDate;
+            @JsonProperty("runtime")        private Integer runtime;
+            @JsonProperty("still_path")     private String stillPath;
+            @JsonProperty("vote_average")   private Double voteAverage;
+        }
     }
 
     // ── DTOs internos para TMDB persons/credits ────────────────────
