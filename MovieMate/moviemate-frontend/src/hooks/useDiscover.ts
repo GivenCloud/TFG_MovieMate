@@ -1,5 +1,6 @@
 import { useQuery } from '@tanstack/react-query'
 import { tmdbApi } from '@/api/tmdb'
+import type { DiscoverParams } from '@/api/tmdb'
 import { queryKeys } from '@/lib/queryKeys'
 import type { ContentResponse, ContentType } from '@/types'
 
@@ -51,6 +52,58 @@ export function usePopular(filter: ContentType | 'ALL') {
   } else {
     data = tvShows.data ?? []
     isLoading = tvShows.isLoading
+  }
+
+  return { data, isLoading }
+}
+
+// Géneros (caché larga, raramente cambian)
+export function useGenres(filter: ContentType | 'ALL') {
+  const movies = useQuery({
+    queryKey: queryKeys.tmdb.genresMovies(),
+    queryFn: () => tmdbApi.getMovieGenres().then((r) => r.data),
+    enabled: filter === 'MOVIE' || filter === 'ALL',
+    staleTime: 1000 * 60 * 60 * 24, // 24h
+  })
+
+  const tv = useQuery({
+    queryKey: queryKeys.tmdb.genresTv(),
+    queryFn: () => tmdbApi.getTvGenres().then((r) => r.data),
+    enabled: filter === 'TV',
+    staleTime: 1000 * 60 * 60 * 24,
+  })
+
+  return filter === 'TV' ? tv.data ?? [] : movies.data ?? []
+}
+
+// Discover con filtros avanzados (reemplaza popular cuando hay filtros activos o tipo concreto)
+export function useDiscover(filter: ContentType | 'ALL', params: DiscoverParams) {
+  const movies = useQuery({
+    queryKey: queryKeys.tmdb.discoverMovies(params),
+    queryFn: () => tmdbApi.discoverMovies(params).then((r) => r.data),
+    enabled: filter === 'MOVIE',
+    staleTime: 1000 * 60 * 5,
+  })
+
+  const tv = useQuery({
+    queryKey: queryKeys.tmdb.discoverTv(params),
+    queryFn: () => tmdbApi.discoverTvShows(params).then((r) => r.data),
+    enabled: filter === 'TV',
+    staleTime: 1000 * 60 * 5,
+  })
+
+  let data: ContentResponse[]
+  let isLoading: boolean
+
+  if (filter === 'MOVIE') {
+    data = movies.data ?? []
+    isLoading = movies.isLoading
+  } else if (filter === 'TV') {
+    data = tv.data ?? []
+    isLoading = tv.isLoading
+  } else {
+    data = []
+    isLoading = false
   }
 
   return { data, isLoading }

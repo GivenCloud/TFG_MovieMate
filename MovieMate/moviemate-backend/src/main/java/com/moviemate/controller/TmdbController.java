@@ -1,6 +1,7 @@
 package com.moviemate.controller;
 
 import com.moviemate.dto.ContentResponse;
+import com.moviemate.dto.GenreDto;
 import com.moviemate.entity.Content;
 import com.moviemate.service.ContentService;
 import com.moviemate.service.TmdbService;
@@ -104,6 +105,42 @@ public class TmdbController {
             @RequestParam(required = false, defaultValue = "1") Integer page
     ) {
         return ResponseEntity.ok(tmdbService.getTrendingAll(page));
+    }
+
+    @Operation(summary = "Géneros de películas", description = "Devuelve la lista de géneros de películas de TMDB.")
+    @GetMapping("/genres/movies")
+    public ResponseEntity<List<GenreDto>> getMovieGenres() {
+        return ResponseEntity.ok(tmdbService.getMovieGenres());
+    }
+
+    @Operation(summary = "Géneros de series", description = "Devuelve la lista de géneros de series de TMDB.")
+    @GetMapping("/genres/tv")
+    public ResponseEntity<List<GenreDto>> getTvGenres() {
+        return ResponseEntity.ok(tmdbService.getTvGenres());
+    }
+
+    @Operation(summary = "Descubrir películas con filtros", description = "Proxy a TMDB Discover para películas con filtros de género, año, puntuación y orden.")
+    @GetMapping("/discover/movies")
+    public ResponseEntity<List<Content>> discoverMovies(
+            @RequestParam(required = false) Integer genre,
+            @RequestParam(required = false) Integer year,
+            @RequestParam(required = false) Double minRating,
+            @RequestParam(required = false, defaultValue = "popularity.desc") String sortBy,
+            @RequestParam(required = false, defaultValue = "1") Integer page
+    ) {
+        return ResponseEntity.ok(tmdbService.discoverMovies(genre, year, minRating, sortBy, page));
+    }
+
+    @Operation(summary = "Descubrir series con filtros", description = "Proxy a TMDB Discover para series con filtros de género, año, puntuación y orden.")
+    @GetMapping("/discover/tv")
+    public ResponseEntity<List<Content>> discoverTvShows(
+            @RequestParam(required = false) Integer genre,
+            @RequestParam(required = false) Integer year,
+            @RequestParam(required = false) Double minRating,
+            @RequestParam(required = false, defaultValue = "popularity.desc") String sortBy,
+            @RequestParam(required = false, defaultValue = "1") Integer page
+    ) {
+        return ResponseEntity.ok(tmdbService.discoverTvShows(genre, year, minRating, sortBy, page));
     }
 
     @Operation(

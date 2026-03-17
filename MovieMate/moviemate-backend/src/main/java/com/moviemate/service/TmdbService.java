@@ -1,5 +1,6 @@
 package com.moviemate.service;
 
+import com.moviemate.dto.GenreDto;
 import com.moviemate.dto.tmdb.MultiSearchResult;
 import com.moviemate.dto.tmdb.TmdbMovieDetails;
 import com.moviemate.dto.tmdb.TmdbSearchResponse;
@@ -14,6 +15,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.Data;
 import java.time.LocalDate;
 import java.util.Collections;
 import java.util.List;
@@ -320,6 +323,72 @@ public class TmdbService {
         content.setLastTmdbSync(LocalDate.now().atStartOfDay());
         
         return content;
+    }
+
+    // ── Géneros ────────────────────────────────────────────────────
+
+    public List<GenreDto> getMovieGenres() {
+        return fetchGenres("/genre/movie/list");
+    }
+
+    public List<GenreDto> getTvGenres() {
+        return fetchGenres("/genre/tv/list");
+    }
+
+    private List<GenreDto> fetchGenres(String path) {
+        String url = buildTmdbUrl(path).build().toUriString();
+        try {
+            GenreListResponse response = restTemplate.getForObject(url, GenreListResponse.class);
+            if (response != null && response.getGenres() != null) {
+                return response.getGenres().stream()
+                        .map(g -> new GenreDto(g.getId(), g.getName()))
+                        .collect(Collectors.toList());
+            }
+        } catch (Exception e) {
+            log.error("Error fetching genres from {}: {}", path, e.getMessage());
+        }
+        return Collections.emptyList();
+    }
+
+    // ── Discover ───────────────────────────────────────────────────
+
+    public List<Content> discoverMovies(Integer genreId, Integer year, Double minRating, String sortBy, Integer page) {
+        UriComponentsBuilder builder = buildTmdbUrl("/discover/movie")
+                .queryParam("page", page != null ? page : 1)
+                .queryParam("vote_count.gte", 20);
+
+        if (genreId != null) builder = builder.queryParam("with_genres", genreId);
+        if (year != null) builder = builder.queryParam("primary_release_year", year);
+        if (minRating != null) builder = builder.queryParam("vote_average.gte", minRating);
+        if (sortBy != null && !sortBy.isBlank()) builder = builder.queryParam("sort_by", sortBy);
+
+        return fetchAndMapContent(builder.build().toUriString(), Content.ContentType.MOVIE);
+    }
+
+    public List<Content> discoverTvShows(Integer genreId, Integer year, Double minRating, String sortBy, Integer page) {
+        UriComponentsBuilder builder = buildTmdbUrl("/discover/tv")
+                .queryParam("page", page != null ? page : 1)
+                .queryParam("vote_count.gte", 20);
+
+        if (genreId != null) builder = builder.queryParam("with_genres", genreId);
+        if (year != null) builder = builder.queryParam("first_air_date_year", year);
+        if (minRating != null) builder = builder.queryParam("vote_average.gte", minRating);
+        if (sortBy != null && !sortBy.isBlank()) builder = builder.queryParam("sort_by", sortBy);
+
+        return fetchAndMapContent(builder.build().toUriString(), Content.ContentType.TV);
+    }
+
+    // ── DTO interno para deserializar la respuesta de géneros de TMDB ─
+
+    @Data
+    private static class GenreListResponse {
+        private List<TmdbGenre> genres;
+
+        @Data
+        static class TmdbGenre {
+            private Integer id;
+            private String name;
+        }
     }
 
     private UriComponentsBuilder buildTmdbUrl(String path) {

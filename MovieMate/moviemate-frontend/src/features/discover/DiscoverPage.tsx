@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { useSearchParams, Link } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import { useDebounce } from '@/hooks/useDebounce'
-import { usePopular, useSearch } from '@/hooks/useDiscover'
+import { usePopular, useSearch, useDiscover, useGenres } from '@/hooks/useDiscover'
 import SearchBar from '@/components/Discover/SearchBar'
 import FilterTabs from '@/components/Discover/FilterTabs'
 import ContentGrid from '@/components/Discover/ContentGrid'
@@ -10,9 +10,27 @@ import { usersApi } from '@/api/users'
 import { queryKeys } from '@/lib/queryKeys'
 import { cn } from '@/lib/utils'
 import type { ContentType, UserResponse } from '../../types'
+import type { DiscoverParams } from '@/api/tmdb'
 
 type Filter = ContentType | 'ALL'
 type Mode = 'content' | 'users'
+
+const SORT_OPTIONS = [
+  { value: 'popularity.desc',     label: 'Popularidad ↓' },
+  { value: 'vote_average.desc',   label: 'Mejor valoradas' },
+  { value: 'release_date.desc',   label: 'Más recientes' },
+  { value: 'revenue.desc',        label: 'Mayor taquilla' },
+]
+
+const RATING_OPTIONS = [
+  { value: '', label: 'Cualquier nota' },
+  { value: '5', label: '5+ ★★★' },
+  { value: '6', label: '6+ ★★★½' },
+  { value: '7', label: '7+ ★★★★' },
+  { value: '8', label: '8+ ★★★★½' },
+]
+
+const currentYear = new Date().getFullYear()
 
 // ── Tarjeta de usuario ──────────────────────────────────────────
 function UserCard({ user }: { user: UserResponse }) {
@@ -56,30 +74,76 @@ function UserCardSkeleton() {
 // ── Página ──────────────────────────────────────────────────────
 export default function DiscoverPage() {
   const [searchParams, setSearchParams] = useSearchParams()
-  const [filter, setFilter] = useState<Filter>('ALL')
+  const [filter, setFilter] = useState<Filter>((searchParams.get('type') as Filter) ?? 'ALL')
   const [mode, setMode] = useState<Mode>('content')
+  const [filtersOpen, setFiltersOpen] = useState(false)
+
+  // Filtros avanzados (desde URL params)
+  const [genreId, setGenreId] = useState<number | undefined>(
+    searchParams.get('genre') ? Number(searchParams.get('genre')) : undefined
+  )
+  const [year, setYear] = useState<string>(searchParams.get('year') ?? '')
+  const [minRating, setMinRating] = useState<string>(searchParams.get('minRating') ?? '')
+  const [sortBy, setSortBy] = useState<string>(searchParams.get('sort') ?? 'popularity.desc')
 
   const urlQuery = searchParams.get('q') ?? ''
   const [inputValue, setInputValue] = useState(urlQuery)
 
+  // Sincronizar todos los filtros a URL params
   useEffect(() => {
     const timeout = setTimeout(() => {
-      if (inputValue.trim()) {
-        setSearchParams({ q: inputValue.trim() }, { replace: true })
-      } else {
-        setSearchParams({}, { replace: true })
-      }
+      const params: Record<string, string> = {}
+      if (inputValue.trim()) params.q = inputValue.trim()
+      if (filter !== 'ALL') params.type = filter
+      if (genreId) params.genre = String(genreId)
+      if (year) params.year = year
+      if (minRating) params.minRating = minRating
+      if (sortBy && sortBy !== 'popularity.desc') params.sort = sortBy
+      setSearchParams(params, { replace: true })
     }, 400)
     return () => clearTimeout(timeout)
-  }, [inputValue])
+  }, [inputValue, filter, genreId, year, minRating, sortBy])
 
   const debouncedQuery = useDebounce(inputValue.trim(), 400)
   const isSearching = debouncedQuery.length >= 2
 
+  // Parámetros de discover (solo cuando no buscando)
+  const discoverParams: DiscoverParams = {
+    genre: genreId,
+    year: year ? Number(year) : undefined,
+    minRating: minRating ? Number(minRating) : undefined,
+    sortBy,
+  }
+
+  const hasActiveFilters =
+    genreId !== undefined || !!year || !!minRating || (sortBy && sortBy !== 'popularity.desc')
+
+  const activeFilterCount = [
+    genreId !== undefined,
+    !!year,
+    !!minRating,
+    sortBy && sortBy !== 'popularity.desc',
+  ].filter(Boolean).length
+
   // ── Contenido ──────────────────────────────────────────────
+  // Cuando hay filtros activos y tipo específico → discover; si no → popular/trending
+  const useDiscoverMode = filter !== 'ALL' && !isSearching
   const popular = usePopular(filter)
+  const discover = useDiscover(filter, discoverParams)
   const search  = useSearch(debouncedQuery, filter)
-  const { data: contentData = [], isLoading: contentLoading } = isSearching ? search : popular
+
+  let contentQuery: { data: typeof popular.data; isLoading: boolean }
+  if (isSearching) {
+    contentQuery = search
+  } else if (useDiscoverMode) {
+    contentQuery = discover
+  } else {
+    contentQuery = popular
+  }
+  const { data: contentData = [], isLoading: contentLoading } = contentQuery
+
+  // ── Géneros (cargados según el filtro activo) ──────────────
+  const genres = useGenres(filter)
 
   // ── Usuarios ───────────────────────────────────────────────
   const { data: userResults = [], isLoading: usersSearchLoading } = useQuery({
@@ -102,13 +166,20 @@ export default function DiscoverPage() {
   // ── Título de sección ──────────────────────────────────────
   const contentTitle = isSearching
     ? `Resultados para "${debouncedQuery}"`
-    : filter === 'MOVIE' ? 'Películas populares 🎬'
-    : filter === 'TV'    ? 'Series populares 📺'
+    : filter === 'MOVIE' ? (hasActiveFilters ? 'Películas filtradas 🎬' : 'Películas populares 🎬')
+    : filter === 'TV'    ? (hasActiveFilters ? 'Series filtradas 📺' : 'Series populares 📺')
     : 'Tendencias ahora 🔥'
 
   const usersTitle = isSearching
     ? `Usuarios para "${debouncedQuery}"`
     : 'Sugerencias de usuarios 👥'
+
+  const resetFilters = () => {
+    setGenreId(undefined)
+    setYear('')
+    setMinRating('')
+    setSortBy('popularity.desc')
+  }
 
   return (
     <div className="px-4 lg:px-8 py-6 lg:py-8 max-w-6xl mx-auto">
@@ -147,24 +218,139 @@ export default function DiscoverPage() {
       {/* Modo Contenido */}
       {mode === 'content' && (
         <>
-          <div className="flex items-center justify-between mb-6 flex-wrap gap-3">
-            <FilterTabs value={filter} onChange={setFilter} />
-            {!contentLoading && contentData.length > 0 && (
-              <p className="text-xs text-muted font-mono">
-                {contentData.length} resultado{contentData.length !== 1 ? 's' : ''}
-              </p>
-            )}
+          <div className="flex items-center justify-between mb-4 flex-wrap gap-3">
+            <FilterTabs value={filter} onChange={(f) => { setFilter(f); setGenreId(undefined) }} />
+
+            <div className="flex items-center gap-2">
+              {/* Botón filtros avanzados (solo para MOVIE/TV) */}
+              {filter !== 'ALL' && !isSearching && (
+                <button
+                  onClick={() => setFiltersOpen((p) => !p)}
+                  className={cn(
+                    'flex items-center gap-2 px-3 py-1.5 rounded-xl text-xs font-medium border transition-all',
+                    filtersOpen || activeFilterCount > 0
+                      ? 'bg-accent/15 border-accent/40 text-accent'
+                      : 'border-white/[0.1] text-muted hover:text-white hover:border-white/[0.2]'
+                  )}
+                >
+                  <span>⚙️ Filtros</span>
+                  {activeFilterCount > 0 && (
+                    <span className="bg-accent text-bg-0 text-[0.6rem] font-bold w-4 h-4 rounded-full flex items-center justify-center">
+                      {activeFilterCount}
+                    </span>
+                  )}
+                </button>
+              )}
+
+              {!contentLoading && contentData.length > 0 && (
+                <p className="text-xs text-muted font-mono">
+                  {contentData.length} resultado{contentData.length !== 1 ? 's' : ''}
+                </p>
+              )}
+            </div>
           </div>
+
+          {/* Panel de filtros avanzados */}
+          {filtersOpen && filter !== 'ALL' && !isSearching && (
+            <div className="bg-bg-1 border border-white/[0.08] rounded-2xl p-4 mb-5 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+              {/* Género */}
+              <div>
+                <label className="block text-xs text-muted font-mono uppercase tracking-wider mb-1.5">
+                  Género
+                </label>
+                <select
+                  value={genreId ?? ''}
+                  onChange={(e) => setGenreId(e.target.value ? Number(e.target.value) : undefined)}
+                  className="w-full bg-bg-2 border border-white/[0.1] rounded-xl px-3 py-2 text-sm text-white outline-none focus:border-accent/50 transition-colors"
+                >
+                  <option value="">Todos</option>
+                  {genres.map((g) => (
+                    <option key={g.id} value={g.id}>{g.name}</option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Año */}
+              <div>
+                <label className="block text-xs text-muted font-mono uppercase tracking-wider mb-1.5">
+                  Año
+                </label>
+                <input
+                  type="number"
+                  value={year}
+                  onChange={(e) => setYear(e.target.value)}
+                  placeholder={`1950–${currentYear}`}
+                  min={1950}
+                  max={currentYear}
+                  className="w-full bg-bg-2 border border-white/[0.1] rounded-xl px-3 py-2 text-sm text-white placeholder:text-muted outline-none focus:border-accent/50 transition-colors"
+                />
+              </div>
+
+              {/* Puntuación mínima */}
+              <div>
+                <label className="block text-xs text-muted font-mono uppercase tracking-wider mb-1.5">
+                  Nota mínima
+                </label>
+                <select
+                  value={minRating}
+                  onChange={(e) => setMinRating(e.target.value)}
+                  className="w-full bg-bg-2 border border-white/[0.1] rounded-xl px-3 py-2 text-sm text-white outline-none focus:border-accent/50 transition-colors"
+                >
+                  {RATING_OPTIONS.map((o) => (
+                    <option key={o.value} value={o.value}>{o.label}</option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Ordenar por */}
+              <div>
+                <label className="block text-xs text-muted font-mono uppercase tracking-wider mb-1.5">
+                  Ordenar por
+                </label>
+                <select
+                  value={sortBy}
+                  onChange={(e) => setSortBy(e.target.value)}
+                  className="w-full bg-bg-2 border border-white/[0.1] rounded-xl px-3 py-2 text-sm text-white outline-none focus:border-accent/50 transition-colors"
+                >
+                  {SORT_OPTIONS.map((o) => (
+                    <option key={o.value} value={o.value}>{o.label}</option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Limpiar filtros */}
+              {activeFilterCount > 0 && (
+                <div className="sm:col-span-2 lg:col-span-4 flex justify-end">
+                  <button
+                    onClick={resetFilters}
+                    className="text-xs text-muted hover:text-red-400 transition-colors"
+                  >
+                    × Limpiar filtros
+                  </button>
+                </div>
+              )}
+            </div>
+          )}
 
           <h2 className="font-display font-bold italic text-xl mb-4">{contentTitle}</h2>
 
-          {!contentLoading && contentData.length === 0 && isSearching ? (
+          {!contentLoading && contentData.length === 0 && (isSearching || hasActiveFilters) ? (
             <div className="flex flex-col items-center justify-center py-24 text-center">
               <span className="text-5xl mb-4">🔍</span>
               <h3 className="text-lg font-semibold text-white/80 mb-2">Sin resultados</h3>
               <p className="text-sm text-muted max-w-xs">
-                No encontramos nada para "{debouncedQuery}". Prueba con otro título.
+                {isSearching
+                  ? `No encontramos nada para "${debouncedQuery}". Prueba con otro título.`
+                  : 'No hay resultados con estos filtros. Prueba a ajustarlos.'}
               </p>
+              {!isSearching && hasActiveFilters && (
+                <button
+                  onClick={resetFilters}
+                  className="mt-4 text-sm text-accent hover:text-accent-light transition-colors"
+                >
+                  Limpiar filtros
+                </button>
+              )}
             </div>
           ) : (
             <ContentGrid items={contentData} isLoading={contentLoading} />
