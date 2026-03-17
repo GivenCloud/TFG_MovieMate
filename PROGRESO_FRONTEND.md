@@ -1,7 +1,7 @@
 # MovieMate — Progreso del Frontend
 
 Resumen de todo lo implementado en el frontend durante el desarrollo del TFG.
-Actualizado: 2026-03-12
+Actualizado: 2026-03-17
 
 ---
 
@@ -30,6 +30,7 @@ Actualizado: 2026-03-12
 | Frontend — Paginación ReviewList | ✅ Completo |
 | Frontend — PersonPage (actores/directores) | ✅ Completo |
 | Frontend — Spoiler tags en reseñas | ✅ Completo |
+| Frontend — Temporadas y episodios (SeasonAccordion) | ✅ Completo |
 
 ---
 

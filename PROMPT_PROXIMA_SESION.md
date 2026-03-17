@@ -21,23 +21,29 @@ Rama activa: `feat/frontend-pages`
 - #6: "¿Dónde ver?" en DetailPage (logos streaming/alquiler/compra + link JustWatch)
 - #16: Películas favoritas fijadas en ProfilePage (4 posters sobre los tabs)
 - #19: Etiquetas de spoiler (checkbox en RatingWidget, overlay blur en ReviewCard)
+- #8: Seguimiento por temporada y episodio (SeasonAccordion en DetailPage para TV)
 
 **Últimos commits (rama feat/frontend-pages):**
-1. `@feat: favoritas en perfil y etiquetas de spoiler en reseñas`
-2. `@feat: filtros avanzados en DiscoverPage (#5)`
-3. `@feat: sección ¿Dónde ver? en DetailPage (#6)`
-4. `@feat: perfiles de actor/director y cast en DetailPage (#3)` ← ÚLTIMO
+1. `@feat: seguimiento por temporada y episodio (#8)` ← ÚLTIMO
+2. `@feat: favoritas en perfil y etiquetas de spoiler en reseñas`
+3. `@feat: filtros avanzados en DiscoverPage (#5)`
+4. `@feat: sección ¿Dónde ver? en DetailPage (#6)`
+5. `@feat: perfiles de actor/director y cast en DetailPage (#3)`
 
-**Nuevos ficheros clave:**
-- `moviemate-backend/src/main/java/com/moviemate/dto/PersonDto.java`
-- `moviemate-backend/src/main/java/com/moviemate/dto/CastMemberDto.java`
-- `moviemate-backend/src/main/java/com/moviemate/dto/GenreDto.java`
-- `moviemate-backend/src/main/java/com/moviemate/dto/WatchProvidersDto.java`
-- `moviemate-frontend/src/features/person/PersonPage.tsx`
+**Nuevos ficheros clave (#8):**
+- `moviemate-backend/src/main/java/com/moviemate/entity/EpisodeWatch.java`
+- `moviemate-backend/src/main/java/com/moviemate/repository/EpisodeWatchRepository.java`
+- `moviemate-backend/src/main/java/com/moviemate/service/EpisodeWatchService.java`
+- `moviemate-backend/src/main/java/com/moviemate/controller/EpisodeWatchController.java`
+- `moviemate-backend/src/main/java/com/moviemate/dto/SeasonSummaryDto.java`
+- `moviemate-backend/src/main/java/com/moviemate/dto/EpisodeDto.java`
+- `moviemate-backend/src/main/java/com/moviemate/dto/SeasonDto.java`
+- `moviemate-frontend/src/api/episodes.ts`
+- `moviemate-frontend/src/hooks/useEpisodes.ts`
+- `moviemate-frontend/src/components/Detail/SeasonAccordion.tsx`
 
 **Pendiente MEDIA restante:**
 - #4: Estadísticas personales avanzadas (backend `/api/users/me/stats/full` + frontend StatsPage/tab)
-- #8: Seguimiento por temporada y episodio (Series → acordeón de temporadas + checkboxes)
 
 **Pendiente BAJA:**
 - #7: Insignias/gamificación
@@ -48,6 +54,6 @@ Rama activa: `feat/frontend-pages`
 - #21: Usuarios sugeridos en HomePage
 
 **Próximo paso recomendado:**
-Continuar con #4 (Estadísticas avanzadas) o #8 (Temporadas/episodios). Ambos tienen alto valor para el TFG.
+#4 (Estadísticas avanzadas) — es el único MEDIA que queda y tiene alto valor para el TFG.
 
 Pregunta al usuario qué quiere hacer a continuación.

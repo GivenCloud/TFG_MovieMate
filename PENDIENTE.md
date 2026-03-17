@@ -227,25 +227,28 @@ Página dedicada de estadísticas del usuario autenticado.
 
 ---
 
-## 8. Seguimiento por temporada y episodio
+## 8. Seguimiento por temporada y episodio ✅
 
 **Prioridad: MEDIA** | Referencia: Serializd (feature core)
 
-### Backend
-- [ ] Entidades `Season` y `Episode` (sincronizadas desde TMDB al hacer sync de una serie)
-- [ ] Entidad `EpisodeWatch` (user, episode, watchedAt, rating opcional)
-- [ ] `EpisodeController` — `/api/tv/:tmdbId/seasons/:seasonNumber/episodes`
-  - `POST /:episodeNumber/watch` — marcar episodio como visto
-  - `DELETE /:episodeNumber/watch` — desmarcar
-  - `POST /season/:seasonNumber/watch` — marcar temporada completa
-- [ ] Calcular progreso de serie en `UserStats` (episodios vistos / total)
+### Backend ✅ (proxy TMDB + persistencia EpisodeWatch)
+- [x] Entidad `EpisodeWatch` (user, tmdbSeriesId, seasonNumber, episodeNumber, watchedAt) con unique constraint
+- [x] `EpisodeWatchRepository` + `EpisodeWatchService` (toggle, marcar/desmarcar temporada completa)
+- [x] `EpisodeWatchController` — `/api/episodes/watched`
+  - `GET /{tmdbSeriesId}` — episodios vistos del usuario como Set<"season-episode">
+  - `POST /{tmdbSeriesId}/{seasonNumber}/{episodeNumber}` — toggle (marca/desmarca)
+  - `POST /{tmdbSeriesId}/{seasonNumber}/all` — marcar temporada completa
+  - `DELETE /{tmdbSeriesId}/{seasonNumber}/all` — desmarcar temporada completa
+- [x] `TmdbService`: `getTvSeasonsSummary`, `getSeasonDetails` (proxy TMDB sin persistencia)
+- [x] `TmdbController`: `GET /api/tmdb/tv/{id}/seasons` y `/seasons/{n}`
 
-### Frontend
-- [ ] Sección "Temporadas y episodios" en `DetailPage` (solo para series)
-- [ ] `SeasonAccordion` — lista de temporadas desplegable con episodios
-- [ ] Checkbox por episodio (marcado/desmarcado) + botón "Marcar temporada"
-- [ ] Barra de progreso de la serie en `DetailPage`
-- [ ] Estado "En progreso" visible en `ProfilePage` (series parcialmente vistas)
+### Frontend ✅
+- [x] Sección "Temporadas y episodios" en `DetailPage` (solo para series TV)
+- [x] `SeasonAccordion` — lista de temporadas colapsable, carga lazy de episodios al abrir
+- [x] Checkbox circular por episodio con actualización optimista (React Query)
+- [x] Barra de progreso por temporada (episodios vistos / total)
+- [x] Botón "Ver todo" / "✓ Vista" para marcar/desmarcar temporada completa
+- [x] Hooks: `useTvSeasons`, `useSeasonDetail`, `useWatchedEpisodes`, `useToggleEpisodeWatched`, `useToggleSeasonWatched`
 
 ---
 
@@ -481,7 +484,7 @@ Igual que comentarios en valoraciones pero para listas. Usar la misma entidad `C
 | Prioridad | Items |
 |-----------|-------|
 | **ALTA** | ~~1 (Comentarios en valoraciones)~~ ✅, ~~2 (Admin/moderación)~~ ✅, ~~11 (Perfil público)~~ ✅, ~~27 (Stats DetailPage)~~ ✅, ~~28 (DevOps)~~ ✅ |
-| **MEDIA** | ~~3 (Actores/directores)~~ ✅, 4 (Stats avanzadas), ~~5 (Filtros Discover)~~ ✅, ~~6 (¿Dónde ver?)~~ ✅, 8 (Temporadas/episodios), ~~10 (Búsqueda usuarios)~~ ✅, ~~13 (Cambio contraseña)~~ ✅, ~~25 (Explorar listas)~~ ✅, ~~26 (Carruseles flechas)~~ ✅ |
+| **MEDIA** | ~~3 (Actores/directores)~~ ✅, 4 (Stats avanzadas), ~~5 (Filtros Discover)~~ ✅, ~~6 (¿Dónde ver?)~~ ✅, ~~8 (Temporadas/episodios)~~ ✅, ~~10 (Búsqueda usuarios)~~ ✅, ~~13 (Cambio contraseña)~~ ✅, ~~25 (Explorar listas)~~ ✅, ~~26 (Carruseles flechas)~~ ✅ |
 | **BAJA** | 7 (Insignias), 9 (Recomendaciones), ~~12 (Lista Vistos)~~ ✅, 14 (Avatar upload), 15 (Import/export), ~~16 (Favoritas en perfil)~~ ✅, 17 (Activity updates), 18 (Votar reseñas), ~~19 (Spoilers)~~ ✅, 20 (Comentarios listas), 21 (Usuarios sugeridos) |
 | **MUY BAJA** | 22 (Menciones), 23 (Push PWA), 24 (Tema claro) |
 
