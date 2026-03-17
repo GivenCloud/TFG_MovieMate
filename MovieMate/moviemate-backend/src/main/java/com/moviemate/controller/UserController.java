@@ -2,6 +2,7 @@ package com.moviemate.controller;
 
 import com.moviemate.annotation.RequirePublicProfile;
 import com.moviemate.dto.ChangePasswordRequest;
+import com.moviemate.dto.FullStatsDto;
 import com.moviemate.dto.FollowRequestDto;
 import com.moviemate.dto.ListResponse;
 import com.moviemate.dto.NotificationDto;
@@ -195,6 +196,14 @@ public class UserController {
         User currentUser = userDetails.getUser();
         List<UserResponse> suggestedUsers = userService.getSuggestedUsers(currentUser.getId());
         return ResponseEntity.ok(suggestedUsers);
+    }
+
+    @Operation(summary = "Obtener estadísticas completas del usuario autenticado")
+    @GetMapping("/me/stats/full")
+    public ResponseEntity<FullStatsDto> getMyFullStats(
+            @AuthenticationPrincipal CustomUserDetails userDetails) {
+        User user = userDetails.getUser();
+        return ResponseEntity.ok(userStatsService.getFullStats(user));
     }
 
     @Operation(summary = "Obtener estadísticas de un usuario")

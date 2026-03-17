@@ -34,6 +34,15 @@ export function useUserStats(userId: number | undefined) {
   })
 }
 
+export function useMyFullStats(enabled: boolean) {
+  return useQuery({
+    queryKey: queryKeys.users.fullStats(),
+    queryFn: () => usersApi.getMyFullStats().then((r) => r.data),
+    enabled,
+    staleTime: 1000 * 60 * 5,
+  })
+}
+
 export function useMyProfileRatings(enabled: boolean) {
   return useQuery({
     queryKey: queryKeys.users.ratings(),

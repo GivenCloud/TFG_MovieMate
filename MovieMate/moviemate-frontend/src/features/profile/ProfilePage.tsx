@@ -19,6 +19,7 @@ import {
 } from '../../hooks/useProfile'
 import { useCreateRating } from '../../hooks/useDetail'
 import { ratingsApi } from '../../api/ratings'
+import StatsTab from '../../components/profile/StatsTab'
 import { queryKeys } from '../../lib/queryKeys'
 import PosterCard from '../../components/shared/PosterdCard'
 import EmptyState from '../../components/shared/EmptyState'
@@ -508,14 +509,15 @@ function FollowListDialog({
 }
 
 // ── Página principal ─────────────────────────────────────────
-const TABS = [
-  { id: 'activity',  label: 'Actividad' },
-  { id: 'ratings',   label: 'Valoraciones' },
-  { id: 'lists',     label: 'Listas' },
-  { id: 'following', label: 'Siguiendo' },
+const ALL_TABS = [
+  { id: 'activity',   label: 'Actividad',    ownerOnly: false },
+  { id: 'ratings',    label: 'Valoraciones', ownerOnly: false },
+  { id: 'lists',      label: 'Listas',       ownerOnly: false },
+  { id: 'following',  label: 'Siguiendo',    ownerOnly: false },
+  { id: 'stats',      label: 'Estadísticas', ownerOnly: true  },
 ] as const
 
-type TabId = (typeof TABS)[number]['id']
+type TabId = (typeof ALL_TABS)[number]['id']
 
 export default function ProfilePage() {
   const { username = '' } = useParams<{ username: string }>()
@@ -698,12 +700,12 @@ export default function ProfilePage() {
       })()}
 
       {/* ── Tabs ───────────────────────────────────────────── */}
-      <div className="flex gap-1 border-b border-white/[0.06] px-6">
-        {TABS.map((tab) => (
+      <div className="flex gap-1 border-b border-white/[0.06] px-6 overflow-x-auto scrollbar-none">
+        {ALL_TABS.filter((tab) => !tab.ownerOnly || isOwnProfile).map((tab) => (
           <button
             key={tab.id}
             onClick={() => setActiveTab(tab.id)}
-            className={`relative px-4 py-3.5 text-sm font-medium transition-colors
+            className={`relative px-4 py-3.5 text-sm font-medium transition-colors shrink-0
               ${activeTab === tab.id
                 ? 'text-white after:absolute after:bottom-0 after:inset-x-0 after:h-0.5 after:bg-accent'
                 : 'text-muted hover:text-white/70'
@@ -832,6 +834,11 @@ export default function ProfilePage() {
               />
             )}
           </>
+        )}
+
+        {/* Estadísticas ──────────────────────────────────── */}
+        {activeTab === 'stats' && isOwnProfile && (
+          <StatsTab userId={userId} />
         )}
 
         {/* Siguiendo ─────────────────────────────────────── */}

@@ -3,6 +3,7 @@ import type {
   UserResponse,
   UserProfileResponse,
   UserStatsResponse,
+  FullStatsDto,
   UpdateProfileRequest,
   FollowRequestDto,
   FollowRequestActionResponse,
@@ -35,6 +36,10 @@ export const usersApi = {
   // Stats — GET /api/users/{userId}/stats
   getStats: (userId: number) =>
     apiClient.get<UserStatsResponse>(`/users/${userId}/stats`),
+
+  // Stats completas (solo propio) — GET /api/users/me/stats/full
+  getMyFullStats: () =>
+    apiClient.get<FullStatsDto>('/users/me/stats/full'),
 
   // Actualizar perfil — PUT /api/users/me/profile
   updateProfile: (data: UpdateProfileRequest) =>

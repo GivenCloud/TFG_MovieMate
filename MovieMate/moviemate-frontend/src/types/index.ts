@@ -268,6 +268,38 @@ export interface CastMemberDto {
   department?: string
 }
 
+// ─── Estadísticas avanzadas ──────────────────────────────────────
+export interface RatingCountDto {
+  rating: number
+  count: number
+}
+
+export interface GenreStatDto {
+  genre: string
+  count: number
+}
+
+export interface MonthlyActivityDto {
+  year: number
+  month: number
+  count: number
+}
+
+export interface FullStatsDto {
+  totalRatings: number
+  averageRating: number
+  moviesWatched: number
+  seriesWatched: number
+  totalWatchTime: number
+  listsCreated: number
+  followersCount: number
+  followingCount: number
+  likesReceived: number
+  ratingDistribution: RatingCountDto[]
+  topGenres: GenreStatDto[]
+  monthlyActivity: MonthlyActivityDto[]
+}
+
 // ─── Temporadas y episodios ─────────────────────────────────────
 export interface SeasonSummary {
   seasonNumber: number
