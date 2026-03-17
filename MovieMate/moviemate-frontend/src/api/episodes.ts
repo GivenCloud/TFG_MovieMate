@@ -1,18 +1,18 @@
-import api from './axios'
+import apiClient from '../lib/apiClient'
 import type { SeasonSummary, SeasonDto } from '../types'
 
 export const episodesApi = {
   /** Resumen de temporadas de una serie (sin episodios) */
   getTvSeasonsSummary: (tmdbId: number): Promise<SeasonSummary[]> =>
-    api.get(`/tmdb/tv/${tmdbId}/seasons`).then((r) => r.data),
+    apiClient.get(`/tmdb/tv/${tmdbId}/seasons`).then((r: { data: SeasonSummary[] }) => r.data),
 
   /** Episodios de una temporada concreta */
   getSeasonDetails: (tmdbId: number, seasonNumber: number): Promise<SeasonDto> =>
-    api.get(`/tmdb/tv/${tmdbId}/seasons/${seasonNumber}`).then((r) => r.data),
+    apiClient.get(`/tmdb/tv/${tmdbId}/seasons/${seasonNumber}`).then((r: { data: SeasonDto }) => r.data),
 
   /** Episodios vistos por el usuario para una serie (Set de "season-episode") */
   getWatchedEpisodes: (tmdbSeriesId: number): Promise<string[]> =>
-    api.get(`/episodes/watched/${tmdbSeriesId}`).then((r) => r.data),
+    apiClient.get(`/episodes/watched/${tmdbSeriesId}`).then((r: { data: string[] }) => r.data),
 
   /** Toggle: marca/desmarca un episodio visto. Devuelve el nuevo estado */
   toggleEpisodeWatched: (
@@ -20,9 +20,9 @@ export const episodesApi = {
     seasonNumber: number,
     episodeNumber: number
   ): Promise<boolean> =>
-    api
+    apiClient
       .post(`/episodes/watched/${tmdbSeriesId}/${seasonNumber}/${episodeNumber}`)
-      .then((r) => r.data),
+      .then((r: { data: boolean }) => r.data),
 
   /** Marca toda una temporada como vista */
   markSeasonWatched: (
@@ -30,13 +30,13 @@ export const episodesApi = {
     seasonNumber: number,
     episodeNumbers: number[]
   ): Promise<void> =>
-    api
+    apiClient
       .post(`/episodes/watched/${tmdbSeriesId}/${seasonNumber}/all`, episodeNumbers)
       .then(() => undefined),
 
   /** Desmarca toda una temporada */
   unmarkSeasonWatched: (tmdbSeriesId: number, seasonNumber: number): Promise<void> =>
-    api
+    apiClient
       .delete(`/episodes/watched/${tmdbSeriesId}/${seasonNumber}/all`)
       .then(() => undefined),
 }
