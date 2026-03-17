@@ -1,6 +1,8 @@
 package com.moviemate.service;
 
+import com.moviemate.dto.CastMemberDto;
 import com.moviemate.dto.GenreDto;
+import com.moviemate.dto.PersonDto;
 import com.moviemate.dto.WatchProvidersDto;
 import com.moviemate.dto.tmdb.MultiSearchResult;
 import com.moviemate.dto.tmdb.TmdbMovieDetails;
@@ -426,6 +428,174 @@ public class TmdbService {
             }
             return dto;
         }).collect(Collectors.toList());
+    }
+
+    // ── Personas ───────────────────────────────────────────────────
+
+    public PersonDto getPersonDetails(Integer personId) {
+        String url = buildTmdbUrl("/person/" + personId).build().toUriString();
+        try {
+            TmdbPersonDetails p = restTemplate.getForObject(url, TmdbPersonDetails.class);
+            if (p != null) {
+                PersonDto dto = new PersonDto();
+                dto.setId(p.getId());
+                dto.setName(p.getName());
+                dto.setBiography(p.getBiography());
+                dto.setBirthday(p.getBirthday());
+                dto.setDeathday(p.getDeathday());
+                dto.setPlaceOfBirth(p.getPlace_of_birth());
+                dto.setKnownForDepartment(p.getKnown_for_department());
+                if (p.getProfile_path() != null) {
+                    dto.setProfileUrl(imageBaseUrl + "/w342" + p.getProfile_path());
+                }
+                return dto;
+            }
+        } catch (Exception e) {
+            log.error("Error fetching person {}: {}", personId, e.getMessage());
+        }
+        return null;
+    }
+
+    public List<Content> getPersonCredits(Integer personId) {
+        String url = buildTmdbUrl("/person/" + personId + "/combined_credits").build().toUriString();
+        try {
+            TmdbCombinedCredits credits = restTemplate.getForObject(url, TmdbCombinedCredits.class);
+            if (credits != null && credits.getCast() != null) {
+                return credits.getCast().stream()
+                        .filter(c -> "movie".equals(c.getMedia_type()) || "tv".equals(c.getMedia_type()))
+                        .sorted((a, b) -> Double.compare(
+                                b.getPopularity() != null ? b.getPopularity() : 0,
+                                a.getPopularity() != null ? a.getPopularity() : 0))
+                        .limit(30)
+                        .map(c -> {
+                            Content.ContentType type = "tv".equals(c.getMedia_type())
+                                    ? Content.ContentType.TV : Content.ContentType.MOVIE;
+                            TmdbSearchResponse.TmdbMovieResult r = new TmdbSearchResponse.TmdbMovieResult();
+                            r.setId(c.getId());
+                            r.setTitle(c.getTitle());
+                            r.setName(c.getName());
+                            r.setOverview(c.getOverview());
+                            r.setPosterPath(c.getPoster_path());
+                            r.setBackdropPath(c.getBackdrop_path());
+                            r.setReleaseDate(c.getRelease_date());
+                            r.setFirstAirDate(c.getFirst_air_date());
+                            r.setVoteAverage(c.getVote_average());
+                            r.setVoteCount(c.getVote_count());
+                            r.setMediaType(c.getMedia_type());
+                            return mapSearchResultToContent(r, type);
+                        })
+                        .collect(Collectors.toList());
+            }
+        } catch (Exception e) {
+            log.error("Error fetching credits for person {}: {}", personId, e.getMessage());
+        }
+        return Collections.emptyList();
+    }
+
+    public List<CastMemberDto> getContentCredits(Integer tmdbId, String contentType) {
+        String path = "TV".equalsIgnoreCase(contentType)
+                ? "/tv/" + tmdbId + "/credits"
+                : "/movie/" + tmdbId + "/credits";
+        String url = buildTmdbUrl(path).build().toUriString();
+
+        try {
+            TmdbCreditsResponse credits = restTemplate.getForObject(url, TmdbCreditsResponse.class);
+            List<CastMemberDto> result = new java.util.ArrayList<>();
+
+            // Top 10 actores
+            if (credits != null && credits.getCast() != null) {
+                credits.getCast().stream().limit(10).forEach(c -> {
+                    CastMemberDto dto = new CastMemberDto();
+                    dto.setPersonId(c.getId());
+                    dto.setName(c.getName());
+                    dto.setCharacter(c.getCharacter());
+                    dto.setDepartment("Acting");
+                    if (c.getProfile_path() != null) {
+                        dto.setProfileUrl(imageBaseUrl + "/w185" + c.getProfile_path());
+                    }
+                    result.add(dto);
+                });
+            }
+
+            // Director(es)
+            if (credits != null && credits.getCrew() != null) {
+                credits.getCrew().stream()
+                        .filter(c -> "Director".equals(c.getJob()))
+                        .forEach(c -> {
+                            CastMemberDto dto = new CastMemberDto();
+                            dto.setPersonId(c.getId());
+                            dto.setName(c.getName());
+                            dto.setJob(c.getJob());
+                            dto.setDepartment(c.getDepartment());
+                            if (c.getProfile_path() != null) {
+                                dto.setProfileUrl(imageBaseUrl + "/w185" + c.getProfile_path());
+                            }
+                            result.add(0, dto); // Director va primero
+                        });
+            }
+            return result;
+        } catch (Exception e) {
+            log.error("Error fetching credits for content {}: {}", tmdbId, e.getMessage());
+        }
+        return Collections.emptyList();
+    }
+
+    // ── DTOs internos para TMDB persons/credits ────────────────────
+
+    @Data
+    private static class TmdbPersonDetails {
+        private Integer id;
+        private String name;
+        private String biography;
+        private String birthday;
+        private String deathday;
+        private String profile_path;
+        private String place_of_birth;
+        private String known_for_department;
+    }
+
+    @Data
+    private static class TmdbCombinedCredits {
+        private List<CreditItem> cast;
+
+        @Data
+        static class CreditItem {
+            private Integer id;
+            private String title;      // movie
+            private String name;       // tv
+            private String overview;
+            private String poster_path;
+            private String backdrop_path;
+            private String release_date;
+            private String first_air_date;
+            private String media_type;
+            private Double vote_average;
+            private Integer vote_count;
+            private Double popularity;
+        }
+    }
+
+    @Data
+    private static class TmdbCreditsResponse {
+        private List<CastEntry> cast;
+        private List<CrewEntry> crew;
+
+        @Data
+        static class CastEntry {
+            private Integer id;
+            private String name;
+            private String character;
+            private String profile_path;
+        }
+
+        @Data
+        static class CrewEntry {
+            private Integer id;
+            private String name;
+            private String job;
+            private String department;
+            private String profile_path;
+        }
     }
 
     // ── DTO interno para respuesta de providers de TMDB ────────────

@@ -1,5 +1,5 @@
 import apiClient from '../lib/apiClient'
-import type { ContentResponse } from '../types'
+import type { CastMemberDto, ContentResponse, PersonDto } from '../types'
 
 export interface GenreDto {
   id: number
@@ -83,6 +83,16 @@ export const tmdbApi = {
   // ¿Dónde ver?
   getWatchProviders: (tmdbId: number, contentType: string) =>
     apiClient.get<WatchProvidersDto>(`/tmdb/${contentType.toLowerCase()}/${tmdbId}/providers`),
+
+  // Personas
+  getPersonDetails: (personId: number) =>
+    apiClient.get<PersonDto>(`/tmdb/people/${personId}`),
+
+  getPersonCredits: (personId: number) =>
+    apiClient.get<ContentResponse[]>(`/tmdb/people/${personId}/credits`),
+
+  getContentCredits: (tmdbId: number, contentType: string) =>
+    apiClient.get<CastMemberDto[]>(`/tmdb/${contentType.toLowerCase()}/${tmdbId}/credits`),
 
   // Sync: obtiene detalles completos Y guarda en BD.
   // Se usa cuando DetailPage se abre por URL directa (sin location.state).

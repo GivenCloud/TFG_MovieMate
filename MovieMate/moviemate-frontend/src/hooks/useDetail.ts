@@ -94,6 +94,16 @@ export function useDeleteRating(contentId: number | undefined) {
   })
 }
 
+// Cast y crew principal de un contenido
+export function useContentCredits(tmdbId: number | undefined, contentType: ContentType | undefined) {
+  return useQuery({
+    queryKey: queryKeys.tmdb.contentCredits(tmdbId!, contentType ?? 'MOVIE'),
+    queryFn: () => tmdbApi.getContentCredits(tmdbId!, contentType ?? 'MOVIE').then((r) => r.data),
+    enabled: !!tmdbId && !!contentType,
+    staleTime: 1000 * 60 * 60, // 1h
+  })
+}
+
 // Proveedores de streaming/alquiler/compra para un contenido
 export function useWatchProviders(tmdbId: number | undefined, contentType: ContentType | undefined) {
   return useQuery({

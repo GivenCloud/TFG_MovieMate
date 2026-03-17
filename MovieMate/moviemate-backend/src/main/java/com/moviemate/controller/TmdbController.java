@@ -1,7 +1,9 @@
 package com.moviemate.controller;
 
+import com.moviemate.dto.CastMemberDto;
 import com.moviemate.dto.ContentResponse;
 import com.moviemate.dto.GenreDto;
+import com.moviemate.dto.PersonDto;
 import com.moviemate.dto.WatchProvidersDto;
 import com.moviemate.entity.Content;
 import com.moviemate.service.ContentService;
@@ -142,6 +144,29 @@ public class TmdbController {
             @RequestParam(required = false, defaultValue = "1") Integer page
     ) {
         return ResponseEntity.ok(tmdbService.discoverTvShows(genre, year, minRating, sortBy, page));
+    }
+
+    @Operation(summary = "Perfil de persona", description = "Devuelve datos de una persona (actor, director, etc.) desde TMDB.")
+    @GetMapping("/people/{personId}")
+    public ResponseEntity<PersonDto> getPersonDetails(@PathVariable Integer personId) {
+        PersonDto person = tmdbService.getPersonDetails(personId);
+        if (person == null) return ResponseEntity.notFound().build();
+        return ResponseEntity.ok(person);
+    }
+
+    @Operation(summary = "Filmografía de persona", description = "Devuelve las películas y series en las que aparece una persona.")
+    @GetMapping("/people/{personId}/credits")
+    public ResponseEntity<List<Content>> getPersonCredits(@PathVariable Integer personId) {
+        return ResponseEntity.ok(tmdbService.getPersonCredits(personId));
+    }
+
+    @Operation(summary = "Cast de un contenido", description = "Devuelve el reparto principal y director de una película o serie.")
+    @GetMapping("/{contentType}/{tmdbId}/credits")
+    public ResponseEntity<List<CastMemberDto>> getContentCredits(
+            @PathVariable String contentType,
+            @PathVariable Integer tmdbId
+    ) {
+        return ResponseEntity.ok(tmdbService.getContentCredits(tmdbId, contentType));
     }
 
     @Operation(

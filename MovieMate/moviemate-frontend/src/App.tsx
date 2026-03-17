@@ -15,6 +15,7 @@ import ActivityPage from './features/activity/ActivityPage'
 import LoginPage from './features/auth/LoginPage'
 import RegisterPage from './features/auth/RegisterPage'
 import AdminPage from './features/admin/AdminPage'
+import PersonPage from './features/person/PersonPage'
 import AdminRoute from './components/AdminRoute'
 
 // Protege rutas que requieren autenticación.
@@ -66,6 +67,7 @@ export default function App() {
         <Route path="/" element={<HomePage />} />
         <Route path="/discover" element={<DiscoverPage />} />
         <Route path="/content/:contentType/:tmdbId/:slug?" element={<DetailPage />} />
+        <Route path="/person/:personId/:slug?" element={<PersonPage />} />
         <Route path="/profile/:username" element={<ProfilePage />} />
         <Route path="/activity" element={<ActivityPage />} />
 

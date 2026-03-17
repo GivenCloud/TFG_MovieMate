@@ -1,10 +1,11 @@
-import { useParams, useLocation, useNavigate } from 'react-router-dom'
-import { useSyncContent, useReviews, useWatchProviders } from '@/hooks/useDetail'
+import { useParams, useLocation, useNavigate, Link } from 'react-router-dom'
+import { useSyncContent, useReviews, useWatchProviders, useContentCredits } from '@/hooks/useDetail'
 import { useAuthStore } from '@/store/authStore'
 import DetailHero from '@/components/Detail/DetailHero'
 import RatingWidget from '@/components/Detail/RatingWidget'
 import AddToListButton from '@/components/Detail/AddToListButton'
 import ReviewList from '@/components/Detail/ReviewList'
+import { toSlug } from '@/lib/utils'
 import type { ContentResponse, ContentType } from '../../types'
 
 function DetailSkeleton() {
@@ -45,6 +46,7 @@ export default function DetailPage() {
   // Las stats se derivan de las reseñas reales (misma caché que ReviewList, cero coste extra)
   const { data: reviews = [] } = useReviews(content?.id)
   const { data: providers } = useWatchProviders(parsedTmdbId, parsedType)
+  const { data: cast = [] } = useContentCredits(parsedTmdbId, parsedType)
   const communityCount = reviews.length
   const communityAvg = communityCount > 0
     ? reviews.reduce((sum, r) => sum + r.rating, 0) / communityCount
@@ -98,6 +100,46 @@ export default function DetailPage() {
 
           {/* Info adicional */}
           <aside className="space-y-5">
+            {/* Cast */}
+            {cast.length > 0 && (
+              <div>
+                <h3 className="text-xs font-mono text-muted uppercase tracking-wider mb-3">
+                  Reparto y equipo
+                </h3>
+                <div className="space-y-2">
+                  {cast.map((member) => (
+                    <Link
+                      key={`${member.personId}-${member.character ?? member.job}`}
+                      to={`/person/${member.personId}/${toSlug(member.name)}`}
+                      className="flex items-center gap-2.5 group"
+                    >
+                      <div className="w-8 h-8 rounded-full bg-bg-3 shrink-0 overflow-hidden border border-white/[0.06]">
+                        {member.profileUrl ? (
+                          <img
+                            src={member.profileUrl}
+                            alt={member.name}
+                            className="w-full h-full object-cover"
+                          />
+                        ) : (
+                          <div className="w-full h-full flex items-center justify-center text-xs text-muted">
+                            {member.name.charAt(0)}
+                          </div>
+                        )}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-xs font-medium text-white/90 truncate group-hover:text-accent transition-colors">
+                          {member.name}
+                        </p>
+                        <p className="text-[0.65rem] text-muted truncate">
+                          {member.character ?? member.job}
+                        </p>
+                      </div>
+                    </Link>
+                  ))}
+                </div>
+              </div>
+            )}
+
             {content.genres?.length > 0 && (
               <div>
                 <h3 className="text-xs font-mono text-muted uppercase tracking-wider mb-2">

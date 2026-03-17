@@ -247,6 +247,27 @@ export interface CommentRequest {
   content: string
 }
 
+// ─── Personas ──────────────────────────────────────────────────
+export interface PersonDto {
+  id: number
+  name: string
+  biography?: string
+  birthday?: string
+  deathday?: string
+  profileUrl?: string
+  placeOfBirth?: string
+  knownForDepartment?: string
+}
+
+export interface CastMemberDto {
+  personId: number
+  name: string
+  profileUrl?: string
+  character?: string
+  job?: string
+  department?: string
+}
+
 // ─── Errores ───────────────────────────────────────────────────
 export interface ErrorResponse {
   error: string
