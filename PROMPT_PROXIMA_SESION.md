@@ -13,45 +13,41 @@ Stack: Spring Boot 3.3.4 + PostgreSQL 16 (backend) / React 19 + TypeScript + Tan
 Rama activa: `feat/frontend-pages`
 
 **HECHO en las últimas sesiones (resumen):**
-- Todas las páginas implementadas y responsive (HomePage, DiscoverPage, DetailPage, ProfilePage, ListsPage, ListDetailPage, SpecialListPage, NotificationsPage, SettingsPage, ActivityPage)
-- #11: Perfil público — tabs Valoraciones y Listas muestran datos reales de perfiles ajenos
-- #1: Comentarios planos en valoraciones — CommentSection en ReviewList con toggle, form inline, delete propio
-- #2: Rol Admin + panel de moderación — AdminPage, AdminRoute, ReportDialog, botón 🚩, link Administración en Sidebar
-- #10: Búsqueda de usuarios en DiscoverPage — modo Contenido / Usuarios con UserCard y sugerencias
-- #12: Lista "Ya vistas" (WATCHED) — SpecialListPage, ruta /watched, Sidebar
-- #13: Cambio de contraseña — SettingsPage con sección Seguridad, endpoint PUT /api/users/me/password
-- WebSocket STOMP, paginación ReviewList, mejoras responsive M1-M19
+- Todas las páginas implementadas y responsive
+- Admin, comentarios, perfil público, WebSocket, paginación ReviewList
+- DevOps completo (CI/CD + Kubernetes + self-hosted runner)
+- #3: PersonPage (/person/:id/:slug) + cast en DetailPage aside con links
+- #5: Filtros avanzados en DiscoverPage (género, año, nota mínima, ordenar + URL sync)
+- #6: "¿Dónde ver?" en DetailPage (logos streaming/alquiler/compra + link JustWatch)
+- #16: Películas favoritas fijadas en ProfilePage (4 posters sobre los tabs)
+- #19: Etiquetas de spoiler (checkbox en RatingWidget, overlay blur en ReviewCard)
 
-**DevOps — estado actual (ver `DEVOPS.md` para documentación completa):**
-- ✅ Paso 1: Dockerfile frontend multi-stage (node:22-alpine → nginx:1.27-alpine)
-- ✅ Paso 2: nginx.conf.template con envsubst para BACKEND_HOST en runtime
-- ✅ Paso 3: docker-compose.yml completo (postgres + backend + frontend)
-- ✅ Paso 4: GitHub Actions — ci.yml (tests en feat/*) + cd.yml (build+push GHCR en main)
-- ✅ Paso 4b: Helm chart completo en k8s/moviemate/ con subdirectorios backend/frontend/postgres
-- ✅ Paso 5: Minikube — desplegado y verificado en local con namespace moviemate
-- ✅ Decisión final: NO se despliega en cloud real — todos los proveedores gratuitos requieren método de pago
-- ✅ Pipeline CD completo con self-hosted runner:
-  - Self-hosted runner registrado en WSL2 (`~/actions-runner-moviemate/`)
-  - imagePullSecrets en Helm chart para GHCR privado (`ghcr-secret` en namespace moviemate)
-  - Job `deploy` en cd.yml activo: push a main → tests → build+push GHCR → helm upgrade Minikube automático
-  - Fix aplicado: imagen tag lowercase (`givencloud`) en cd.yml
-  - CORS configurado para `http://moviemate.local:8080`
+**Últimos commits (rama feat/frontend-pages):**
+1. `@feat: favoritas en perfil y etiquetas de spoiler en reseñas`
+2. `@feat: filtros avanzados en DiscoverPage (#5)`
+3. `@feat: sección ¿Dónde ver? en DetailPage (#6)`
+4. `@feat: perfiles de actor/director y cast en DetailPage (#3)` ← ÚLTIMO
 
-**Bugs/fixes aplicados en esta sesión que están en el código:**
-- `SecurityConfig.java`: CORS lee de env var `CORS_ALLOWED_ORIGINS` con `@Value`, soporta múltiples orígenes separados por coma
-- `k8s/moviemate/templates/postgres/postgres-statefulset.yaml`: probe pg_isready con args separados (no sh -c)
-- `k8s/moviemate/templates/ingress.yaml`: certManagerIssuer como campo limpio (antes usaba sintaxis inválida con '-')
-- 5 tests de servicios corregidos (constructores desincronizados): UserServiceTest, ActivityServiceTest, ListServiceTest, NotificationServiceTest, RatingServiceTest
+**Nuevos ficheros clave:**
+- `moviemate-backend/src/main/java/com/moviemate/dto/PersonDto.java`
+- `moviemate-backend/src/main/java/com/moviemate/dto/CastMemberDto.java`
+- `moviemate-backend/src/main/java/com/moviemate/dto/GenreDto.java`
+- `moviemate-backend/src/main/java/com/moviemate/dto/WatchProvidersDto.java`
+- `moviemate-frontend/src/features/person/PersonPage.tsx`
 
-**Ficheros clave:**
-- `TFG_MovieMate/DEVOPS.md` — documentación completa del despliegue
-- `TFG_MovieMate/PENDIENTE.md` — funcionalidades pendientes con estado
-- `TFG_MovieMate/k8s/moviemate/` — Helm chart completo
-- `.github/workflows/ci.yml` y `cd.yml` — pipelines CI/CD
-- Backend: `MovieMate/moviemate-backend/src/main/java/com/moviemate/`
-- Frontend: `MovieMate/moviemate-frontend/src/`
+**Pendiente MEDIA restante:**
+- #4: Estadísticas personales avanzadas (backend `/api/users/me/stats/full` + frontend StatsPage/tab)
+- #8: Seguimiento por temporada y episodio (Series → acordeón de temporadas + checkboxes)
+
+**Pendiente BAJA:**
+- #7: Insignias/gamificación
+- #9: Recomendaciones personalizadas
+- #14: Subida real de avatar (multipart)
+- #17: Activity RATING_UPDATED / LIST_UPDATED
+- #20: Comentarios en listas
+- #21: Usuarios sugeridos en HomePage
 
 **Próximo paso recomendado:**
-DevOps completado para el TFG. Continuar con features pendientes de PENDIENTE.md (prioridades MEDIAS: #3 perfiles actor/director, #4 stats avanzadas, #5 filtros Discover, etc.)
+Continuar con #4 (Estadísticas avanzadas) o #8 (Temporadas/episodios). Ambos tienen alto valor para el TFG.
 
 Pregunta al usuario qué quiere hacer a continuación.

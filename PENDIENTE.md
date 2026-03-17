@@ -107,26 +107,26 @@ Los usuarios pueden comentar las valoraciones de otros. Esto incluye hilo de com
 
 ---
 
-## 3. Perfiles de actor y director
+## 3. Perfiles de actor y director ✅
 
 **Prioridad: MEDIA** | Referencia: IMDB, Letterboxd
 
 Páginas dedicadas a personas (actores, directores, etc.) con su filmografía completa.
 
-### Backend
-- [ ] Entidad `Person` (tmdbId, name, profilePath, biography, birthday, deathday, placeOfBirth, knownForDepartment)
-- [ ] Entidad `ContentPerson` (content, person, role: ACTOR/DIRECTOR/WRITER/etc., character, order)
-- [ ] `PersonController` — `/api/people`
-  - `GET /:tmdbPersonId` — obtener persona (sync lazy desde TMDB si no existe)
-  - `GET /:tmdbPersonId/credits` — obras en las que aparece (desde `ContentPerson`)
-- [ ] `TmdbService`: `syncPerson(tmdbId)` — llamar a `/person/:id` y `/person/:id/combined_credits`
-- [ ] Al sincronizar un `Content`, persistir también el cast y crew principales (top 10 actores + director)
+### Backend ✅ (proxy TMDB, sin persistencia)
+- [x] `PersonDto` (id, name, biography, birthday, profileUrl, placeOfBirth, knownForDepartment)
+- [x] `CastMemberDto` (personId, name, profileUrl, character, job, department)
+- [x] `TmdbController` — `/api/tmdb/people`
+  - `GET /:personId` — perfil de persona desde TMDB
+  - `GET /:personId/credits` — filmografía (combined_credits, top 30 por popularidad)
+  - `GET /{contentType}/{tmdbId}/credits` — cast top 10 + director de un contenido
+- [x] `TmdbService`: `getPersonDetails`, `getPersonCredits`, `getContentCredits`
 
-### Frontend
-- [ ] Ruta `/person/:tmdbId/:slug`
-- [ ] `PersonPage` — foto, nombre, bio, fechas, filmografía ordenada por popularidad
-- [ ] Links a PersonPage desde el cast/crew en `DetailPage` (el backend ya devuelve cast)
-- [ ] Carrusel de créditos en `PersonPage` usando `PosterCard`
+### Frontend ✅
+- [x] Ruta `/person/:personId/:slug?` en `App.tsx`
+- [x] `PersonPage` — foto, nombre, bio, fechas, filmografía en grid de PosterCards
+- [x] Sección "Reparto y equipo" en aside de `DetailPage` con links a PersonPage
+- [x] `useContentCredits` hook en `useDetail.ts`
 
 ---
 
@@ -159,43 +159,45 @@ Página dedicada de estadísticas del usuario autenticado.
 
 ---
 
-## 5. Filtros avanzados en Discover
+## 5. Filtros avanzados en Discover ✅
 
 **Prioridad: MEDIA** | Referencia: IMDB, Letterboxd
 
-### Backend
-- [ ] Ampliar `TmdbController`:
-  - `GET /tmdb/discover/movies?genre=&year=&minRating=&sortBy=` — proxy a TMDB Discover API
-  - `GET /tmdb/discover/tv?genre=&year=&network=&sortBy=`
-  - `GET /tmdb/genres/movies` — lista de géneros de películas
-  - `GET /tmdb/genres/tv` — lista de géneros de series
+### Backend ✅
+- [x] `GET /api/tmdb/genres/movies` — lista de géneros de películas
+- [x] `GET /api/tmdb/genres/tv` — lista de géneros de series
+- [x] `GET /api/tmdb/discover/movies?genre=&year=&minRating=&sortBy=` — proxy TMDB Discover
+- [x] `GET /api/tmdb/discover/tv?genre=&year=&minRating=&sortBy=`
+- [x] `GenreDto` DTO
+- [x] `TmdbService`: `getMovieGenres`, `getTvGenres`, `discoverMovies`, `discoverTvShows`
 
-### Frontend
-- [ ] Panel de filtros en `DiscoverPage` (colapsable en móvil):
-  - Tipo: Película / Serie / Todo
-  - Género (multi-select con chips)
-  - Año o rango de años (slider o select)
-  - Puntuación mínima (slider 0-10)
-  - Ordenar por: popularidad / nota / fecha estreno / título
-- [ ] URL params sync para todos los filtros (`?genre=28&year=2023&sort=vote_average`)
-- [ ] Indicador visual de filtros activos (badge con número)
+### Frontend ✅
+- [x] Panel de filtros colapsable en `DiscoverPage` (solo activo para MOVIE/TV):
+  - Género (select dinámico según contentType)
+  - Año (input numérico)
+  - Nota mínima (select 5/6/7/8+)
+  - Ordenar por: popularidad / mejor valoradas / más recientes / mayor taquilla
+- [x] URL params sync: `?type=&genre=&year=&minRating=&sort=`
+- [x] Badge con contador de filtros activos en botón ⚙️ Filtros
+- [x] Botón "Limpiar filtros" cuando hay filtros activos
+- [x] `useDiscover`, `useGenres` hooks; `discoverMovies/Tv` en queryKeys
 
 ---
 
-## 6. "¿Dónde ver?" — disponibilidad en plataformas
+## 6. "¿Dónde ver?" — disponibilidad en plataformas ✅
 
 **Prioridad: MEDIA** | Referencia: IMDB, JustWatch
 
-TMDB tiene el endpoint `/movie/:id/watch/providers` que devuelve proveedores por país.
+### Backend ✅ (proxy TMDB, sin persistencia)
+- [x] `WatchProvidersDto` (link JustWatch + flatrate/rent/buy con logos)
+- [x] `TmdbService.getWatchProviders()` — prioriza ES, fallback US
+- [x] `GET /api/tmdb/{contentType}/{tmdbId}/providers`
 
-### Backend
-- [ ] Campo `watchProviders` (JSON) en entidad `Content` (nullable)
-- [ ] Al sincronizar un `Content`, llamar también a `/movie/:id/watch/providers` o `/tv/:id/watch/providers` y persistir resultado
-- [ ] Endpoint `GET /api/content/:id/providers` — devuelve proveedores del contenido
-
-### Frontend
-- [ ] Sección "¿Dónde ver?" en `DetailPage` (logos de plataformas: Netflix, Prime, Disney+, etc.)
-- [ ] Filtro por plataforma en `DiscoverPage` (requiere feat. 5)
+### Frontend ✅
+- [x] Sección "¿Dónde ver?" en aside de `DetailPage` con logos por categoría (streaming/alquiler/compra)
+- [x] Link "Ver en JustWatch →" cuando disponible
+- [x] `useWatchProviders` hook con staleTime 6h
+- [ ] Filtro por plataforma en `DiscoverPage` (pendiente, requiere persistencia en BD)
 
 ---
 
@@ -337,15 +339,15 @@ TMDB tiene el endpoint `/movie/:id/watch/providers` que devuelve proveedores por
 
 ---
 
-## 16. Películas favoritas fijadas en el perfil
+## 16. Películas favoritas fijadas en el perfil ✅
 
 **Prioridad: BAJA** | Referencia: Letterboxd (4 favoritas en portada)
 
-La lista `FAVORITES` ya existe; solo falta la sección visual destacada en el perfil.
-
-### Frontend
-- [ ] En `ProfilePage`, mostrar los primeros 4 ítems de FAVORITES con posters grandes y destacados, por encima de las tabs
-- [ ] Estilo similar al de Letterboxd (4 posters en fila, prominentes)
+### Frontend ✅
+- [x] Sección "❤️ Películas favoritas" entre Stats y Tabs en `ProfilePage`
+- [x] Muestra hasta 4 items de la lista FAVORITES con `PosterCard`
+- [x] Slots vacíos con placeholder "+" si hay menos de 4 favoritas
+- [x] Solo visible si hay al menos 1 favorita
 
 ---
 
@@ -371,16 +373,18 @@ El like en valoraciones ya existe. Esto añadiría un voto explícito de utilida
 
 ---
 
-## 19. Etiquetas de spoiler en reseñas
+## 19. Etiquetas de spoiler en reseñas ✅
 
 **Prioridad: BAJA** | Referencia: Letterboxd, Serializd
 
-### Backend
-- [ ] Campo `containsSpoiler` (boolean) en `Rating`
+### Backend ✅
+- [x] Campo `containsSpoiler boolean` en entidad `Rating` (default false)
+- [x] Propagado en `RatingRequest`, `RatingResponse`, `RatingService`
 
-### Frontend
-- [ ] Checkbox "Contiene spoilers" en `RatingWidget`
-- [ ] En `ReviewCard`, si `containsSpoiler === true`: ocultar el texto de la reseña con un overlay "Contiene spoilers — haz clic para leer"
+### Frontend ✅
+- [x] Checkbox "⚠️ Esta reseña contiene spoilers" en `RatingWidget` y `QuickEditRatingDialog`
+- [x] Badge "⚠️ Spoilers" en `ReviewCard` cuando `containsSpoiler === true`
+- [x] Overlay blur con botón "Contiene spoilers — clic para leer" sobre el texto
 
 ---
 
@@ -477,8 +481,8 @@ Igual que comentarios en valoraciones pero para listas. Usar la misma entidad `C
 | Prioridad | Items |
 |-----------|-------|
 | **ALTA** | ~~1 (Comentarios en valoraciones)~~ ✅, ~~2 (Admin/moderación)~~ ✅, ~~11 (Perfil público)~~ ✅, ~~27 (Stats DetailPage)~~ ✅, ~~28 (DevOps)~~ ✅ |
-| **MEDIA** | 3 (Actores/directores), 4 (Stats avanzadas), 5 (Filtros Discover), 6 (¿Dónde ver?), 8 (Temporadas/episodios), ~~10 (Búsqueda usuarios)~~ ✅, ~~13 (Cambio contraseña)~~ ✅, ~~25 (Explorar listas)~~ ✅, ~~26 (Carruseles flechas)~~ ✅ |
-| **BAJA** | 7 (Insignias), 9 (Recomendaciones), ~~12 (Lista Vistos)~~ ✅, 14 (Avatar upload), 15 (Import/export), 16 (Favoritas en perfil), 17 (Activity updates), 18 (Votar reseñas), 19 (Spoilers), 20 (Comentarios listas), 21 (Usuarios sugeridos) |
+| **MEDIA** | ~~3 (Actores/directores)~~ ✅, 4 (Stats avanzadas), ~~5 (Filtros Discover)~~ ✅, ~~6 (¿Dónde ver?)~~ ✅, 8 (Temporadas/episodios), ~~10 (Búsqueda usuarios)~~ ✅, ~~13 (Cambio contraseña)~~ ✅, ~~25 (Explorar listas)~~ ✅, ~~26 (Carruseles flechas)~~ ✅ |
+| **BAJA** | 7 (Insignias), 9 (Recomendaciones), ~~12 (Lista Vistos)~~ ✅, 14 (Avatar upload), 15 (Import/export), ~~16 (Favoritas en perfil)~~ ✅, 17 (Activity updates), 18 (Votar reseñas), ~~19 (Spoilers)~~ ✅, 20 (Comentarios listas), 21 (Usuarios sugeridos) |
 | **MUY BAJA** | 22 (Menciones), 23 (Push PWA), 24 (Tema claro) |
 
 ---

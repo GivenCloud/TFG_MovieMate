@@ -13,9 +13,9 @@ Actualizado: 2026-03-12
 | Frontend — Auth flow (login + register) | ✅ Completo |
 | Frontend — Layout (Sidebar + Topbar) | ✅ Completo |
 | Frontend — HomePage | ✅ Completo |
-| Frontend — DiscoverPage | ✅ Completo |
-| Frontend — DetailPage | ✅ Completo |
-| Frontend — ProfilePage | ✅ Completo |
+| Frontend — DiscoverPage + filtros avanzados | ✅ Completo |
+| Frontend — DetailPage + ¿Dónde ver? + Cast | ✅ Completo |
+| Frontend — ProfilePage + favoritas fijadas | ✅ Completo |
 | Frontend — NotificationsPage | ✅ Completo |
 | Frontend — ListsPage | ✅ Completo |
 | Frontend — PosterCard interactivo | ✅ Completo |
@@ -28,6 +28,8 @@ Actualizado: 2026-03-12
 | Frontend — ProfilePage deep-link por tab | ✅ Completo |
 | Frontend — WebSocket tiempo real | ✅ Completo |
 | Frontend — Paginación ReviewList | ✅ Completo |
+| Frontend — PersonPage (actores/directores) | ✅ Completo |
+| Frontend — Spoiler tags en reseñas | ✅ Completo |
 
 ---
 
@@ -37,14 +39,19 @@ Actualizado: 2026-03-12
 /login                              → LoginPage (pública)
 /register                           → RegisterPage (pública)
 /                                   → HomePage (pública)
-/discover                           → DiscoverPage (pública)
-/content/:contentType/:tmdbId/:slug → DetailPage (pública)
-/profile/:username                  → ProfilePage (pública)
+/discover                           → DiscoverPage (pública) — filtros avanzados
+/content/:contentType/:tmdbId/:slug → DetailPage (pública) — cast + ¿dónde ver?
+/person/:personId/:slug?            → PersonPage (pública) — filmografía
+/profile/:username                  → ProfilePage (pública) — favoritas fijadas
 /lists                              → ListsPage (PrivateRoute)
 /lists/:listId                      → ListDetailPage (pública)
 /watchlist                          → SpecialListPage WATCHLIST (PrivateRoute)
 /favorites                          → SpecialListPage FAVORITES (PrivateRoute)
+/watched                            → SpecialListPage WATCHED (PrivateRoute)
 /notifications                      → NotificationsPage (PrivateRoute)
+/settings                           → SettingsPage (PrivateRoute)
+/activity                           → ActivityPage (pública)
+/admin                              → AdminPage (AdminRoute)
 ```
 
 Sidebar — "Mi espacio" (todas las rutas resueltas):
