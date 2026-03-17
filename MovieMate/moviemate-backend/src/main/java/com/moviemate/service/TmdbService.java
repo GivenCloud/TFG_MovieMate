@@ -1,6 +1,7 @@
 package com.moviemate.service;
 
 import com.moviemate.dto.GenreDto;
+import com.moviemate.dto.WatchProvidersDto;
 import com.moviemate.dto.tmdb.MultiSearchResult;
 import com.moviemate.dto.tmdb.TmdbMovieDetails;
 import com.moviemate.dto.tmdb.TmdbSearchResponse;
@@ -20,6 +21,7 @@ import lombok.Data;
 import java.time.LocalDate;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -376,6 +378,76 @@ public class TmdbService {
         if (sortBy != null && !sortBy.isBlank()) builder = builder.queryParam("sort_by", sortBy);
 
         return fetchAndMapContent(builder.build().toUriString(), Content.ContentType.TV);
+    }
+
+    // ── ¿Dónde ver? ────────────────────────────────────────────────
+
+    /**
+     * Obtiene los proveedores de streaming, alquiler y compra para un contenido.
+     * Prioriza ES (España), luego US; si ninguno existe usa el primer país disponible.
+     */
+    public WatchProvidersDto getWatchProviders(Integer tmdbId, String contentType) {
+        String path = "TV".equalsIgnoreCase(contentType)
+                ? "/tv/" + tmdbId + "/watch/providers"
+                : "/movie/" + tmdbId + "/watch/providers";
+
+        String url = buildTmdbUrl(path).build().toUriString();
+        try {
+            TmdbProvidersResponse response = restTemplate.getForObject(url, TmdbProvidersResponse.class);
+            if (response != null && response.getResults() != null && !response.getResults().isEmpty()) {
+                TmdbProvidersResponse.CountryProviders country =
+                        response.getResults().getOrDefault("ES",
+                        response.getResults().getOrDefault("US",
+                        response.getResults().values().iterator().next()));
+
+                if (country != null) {
+                    WatchProvidersDto dto = new WatchProvidersDto();
+                    dto.setLink(country.getLink());
+                    dto.setFlatrate(mapProviders(country.getFlatrate()));
+                    dto.setRent(mapProviders(country.getRent()));
+                    dto.setBuy(mapProviders(country.getBuy()));
+                    return dto;
+                }
+            }
+        } catch (Exception e) {
+            log.error("Error fetching watch providers for tmdbId={}: {}", tmdbId, e.getMessage());
+        }
+        return new WatchProvidersDto();
+    }
+
+    private List<WatchProvidersDto.ProviderDto> mapProviders(List<TmdbProvidersResponse.Provider> providers) {
+        if (providers == null) return Collections.emptyList();
+        return providers.stream().map(p -> {
+            WatchProvidersDto.ProviderDto dto = new WatchProvidersDto.ProviderDto();
+            dto.setProviderId(p.getProviderId());
+            dto.setProviderName(p.getProviderName());
+            if (p.getLogoPath() != null) {
+                dto.setLogoUrl(imageBaseUrl + "/w92" + p.getLogoPath());
+            }
+            return dto;
+        }).collect(Collectors.toList());
+    }
+
+    // ── DTO interno para respuesta de providers de TMDB ────────────
+
+    @Data
+    private static class TmdbProvidersResponse {
+        private Map<String, CountryProviders> results;
+
+        @Data
+        static class CountryProviders {
+            private String link;
+            private List<Provider> flatrate;
+            private List<Provider> rent;
+            private List<Provider> buy;
+        }
+
+        @Data
+        static class Provider {
+            @JsonProperty("provider_id")   private Integer providerId;
+            @JsonProperty("provider_name") private String providerName;
+            @JsonProperty("logo_path")     private String logoPath;
+        }
     }
 
     // ── DTO interno para deserializar la respuesta de géneros de TMDB ─

@@ -11,8 +11,9 @@ export const queryKeys = {
     sync: (tmdbId: number, type: string) => ['tmdb', 'sync', type, tmdbId] as const,
     genresMovies:  () => ['tmdb', 'genres', 'movies'] as const,
     genresTv:      () => ['tmdb', 'genres', 'tv'] as const,
-    discoverMovies: (params: object) => ['tmdb', 'discover', 'movies', params] as const,
-    discoverTv:     (params: object) => ['tmdb', 'discover', 'tv', params] as const,
+    discoverMovies:   (params: object) => ['tmdb', 'discover', 'movies', params] as const,
+    discoverTv:       (params: object) => ['tmdb', 'discover', 'tv', params] as const,
+    watchProviders:   (tmdbId: number, type: string) => ['tmdb', 'providers', type, tmdbId] as const,
   },
   // Contenido en BD (caché local — ficha de detalle)
   content: {

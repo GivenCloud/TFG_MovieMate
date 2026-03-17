@@ -1,5 +1,5 @@
 import { useParams, useLocation, useNavigate } from 'react-router-dom'
-import { useSyncContent, useReviews } from '@/hooks/useDetail'
+import { useSyncContent, useReviews, useWatchProviders } from '@/hooks/useDetail'
 import { useAuthStore } from '@/store/authStore'
 import DetailHero from '@/components/Detail/DetailHero'
 import RatingWidget from '@/components/Detail/RatingWidget'
@@ -44,6 +44,7 @@ export default function DetailPage() {
 
   // Las stats se derivan de las reseñas reales (misma caché que ReviewList, cero coste extra)
   const { data: reviews = [] } = useReviews(content?.id)
+  const { data: providers } = useWatchProviders(parsedTmdbId, parsedType)
   const communityCount = reviews.length
   const communityAvg = communityCount > 0
     ? reviews.reduce((sum, r) => sum + r.rating, 0) / communityCount
@@ -143,6 +144,83 @@ export default function DetailPage() {
                 </div>
               </div>
             </div>
+
+            {/* ¿Dónde ver? */}
+            {providers && (providers.flatrate?.length || providers.rent?.length || providers.buy?.length) ? (
+              <div>
+                <h3 className="text-xs font-mono text-muted uppercase tracking-wider mb-3">
+                  ¿Dónde ver?
+                </h3>
+
+                {providers.flatrate && providers.flatrate.length > 0 && (
+                  <div className="mb-3">
+                    <p className="text-[0.65rem] text-muted font-mono uppercase tracking-wider mb-1.5">
+                      Streaming
+                    </p>
+                    <div className="flex flex-wrap gap-2">
+                      {providers.flatrate.map((p) => (
+                        <img
+                          key={p.providerId}
+                          src={p.logoUrl}
+                          alt={p.providerName}
+                          title={p.providerName}
+                          className="w-9 h-9 rounded-lg object-cover border border-white/10"
+                        />
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {providers.rent && providers.rent.length > 0 && (
+                  <div className="mb-3">
+                    <p className="text-[0.65rem] text-muted font-mono uppercase tracking-wider mb-1.5">
+                      Alquiler
+                    </p>
+                    <div className="flex flex-wrap gap-2">
+                      {providers.rent.map((p) => (
+                        <img
+                          key={p.providerId}
+                          src={p.logoUrl}
+                          alt={p.providerName}
+                          title={p.providerName}
+                          className="w-9 h-9 rounded-lg object-cover border border-white/10 opacity-80"
+                        />
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {providers.buy && providers.buy.length > 0 && (
+                  <div className="mb-3">
+                    <p className="text-[0.65rem] text-muted font-mono uppercase tracking-wider mb-1.5">
+                      Compra
+                    </p>
+                    <div className="flex flex-wrap gap-2">
+                      {providers.buy.map((p) => (
+                        <img
+                          key={p.providerId}
+                          src={p.logoUrl}
+                          alt={p.providerName}
+                          title={p.providerName}
+                          className="w-9 h-9 rounded-lg object-cover border border-white/10 opacity-80"
+                        />
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {providers.link && (
+                  <a
+                    href={providers.link}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-xs text-accent hover:text-accent-light transition-colors"
+                  >
+                    Ver en JustWatch →
+                  </a>
+                )}
+              </div>
+            ) : null}
           </aside>
         </div>
       </div>

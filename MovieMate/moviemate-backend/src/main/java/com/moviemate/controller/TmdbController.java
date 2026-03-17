@@ -2,6 +2,7 @@ package com.moviemate.controller;
 
 import com.moviemate.dto.ContentResponse;
 import com.moviemate.dto.GenreDto;
+import com.moviemate.dto.WatchProvidersDto;
 import com.moviemate.entity.Content;
 import com.moviemate.service.ContentService;
 import com.moviemate.service.TmdbService;
@@ -141,6 +142,18 @@ public class TmdbController {
             @RequestParam(required = false, defaultValue = "1") Integer page
     ) {
         return ResponseEntity.ok(tmdbService.discoverTvShows(genre, year, minRating, sortBy, page));
+    }
+
+    @Operation(
+            summary = "Proveedores de streaming (¿Dónde ver?)",
+            description = "Devuelve las plataformas donde está disponible el contenido (streaming, alquiler, compra). Prioriza España (ES), luego US."
+    )
+    @GetMapping("/{contentType}/{tmdbId}/providers")
+    public ResponseEntity<WatchProvidersDto> getWatchProviders(
+            @PathVariable String contentType,
+            @PathVariable Integer tmdbId
+    ) {
+        return ResponseEntity.ok(tmdbService.getWatchProviders(tmdbId, contentType));
     }
 
     @Operation(

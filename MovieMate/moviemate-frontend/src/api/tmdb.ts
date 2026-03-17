@@ -6,6 +6,19 @@ export interface GenreDto {
   name: string
 }
 
+export interface ProviderDto {
+  providerId: number
+  providerName: string
+  logoUrl: string
+}
+
+export interface WatchProvidersDto {
+  link?: string
+  flatrate?: ProviderDto[]
+  rent?: ProviderDto[]
+  buy?: ProviderDto[]
+}
+
 export interface DiscoverParams {
   genre?: number
   year?: number
@@ -66,6 +79,10 @@ export const tmdbApi = {
         page: params.page ?? 1,
       },
     }),
+
+  // ¿Dónde ver?
+  getWatchProviders: (tmdbId: number, contentType: string) =>
+    apiClient.get<WatchProvidersDto>(`/tmdb/${contentType.toLowerCase()}/${tmdbId}/providers`),
 
   // Sync: obtiene detalles completos Y guarda en BD.
   // Se usa cuando DetailPage se abre por URL directa (sin location.state).

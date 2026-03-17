@@ -3,7 +3,7 @@ import { toast } from 'sonner'
 import { tmdbApi } from '@/api/tmdb'
 import { ratingsApi } from '@/api/ratings'
 import { queryKeys } from '@/lib/queryKeys'
-import type { ContentResponse, RatingRequest } from '@/types'
+import type { ContentResponse, ContentType, RatingRequest } from '@/types'
 
 // Carga el contenido sincronizando con BD para tener stats actualizadas (appRating, appVoteCount)
 export function useSyncContent(
@@ -91,6 +91,16 @@ export function useDeleteRating(contentId: number | undefined) {
     onError: (err: any) => {
       toast.error(err?.response?.data?.message || 'Error al eliminar la valoración')
     },
+  })
+}
+
+// Proveedores de streaming/alquiler/compra para un contenido
+export function useWatchProviders(tmdbId: number | undefined, contentType: ContentType | undefined) {
+  return useQuery({
+    queryKey: queryKeys.tmdb.watchProviders(tmdbId!, contentType ?? 'MOVIE'),
+    queryFn: () => tmdbApi.getWatchProviders(tmdbId!, contentType ?? 'MOVIE').then((r) => r.data),
+    enabled: !!tmdbId && !!contentType,
+    staleTime: 1000 * 60 * 60 * 6, // 6h — los proveedores cambian poco
   })
 }
 
