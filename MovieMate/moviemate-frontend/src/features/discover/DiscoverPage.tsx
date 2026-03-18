@@ -128,7 +128,7 @@ export default function DiscoverPage() {
 
   // ── Contenido ──────────────────────────────────────────────
   // MOVIE/TV: siempre discover; ALL: discover solo si hay filtros activos; si no → popular/trending
-  const useDiscoverMode = !isSearching && (filter !== 'ALL' || hasActiveFilters)
+  const useDiscoverMode = !isSearching && (filter !== 'ALL' || !!hasActiveFilters)
   const popular = usePopular(filter)
   const discover = useDiscover(filter, discoverParams, useDiscoverMode)
   const search  = useSearch(debouncedQuery, filter)

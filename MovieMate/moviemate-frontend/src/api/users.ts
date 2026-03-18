@@ -11,6 +11,7 @@ import type {
   RatingResponse,
   ListResponse,
   BadgeDto,
+  ContentResponse,
 } from '../types'
 
 export const usersApi = {

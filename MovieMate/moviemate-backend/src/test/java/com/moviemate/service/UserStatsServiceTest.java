@@ -21,6 +21,7 @@ class UserStatsServiceTest {
     private ListRepository listRepository;
     private FollowerRepository followerRepository;
     private ReviewLikeRepository reviewLikeRepository;
+    private BadgeService badgeService;
     private UserStatsService userStatsService;
 
     @BeforeEach
@@ -31,14 +32,16 @@ class UserStatsServiceTest {
         listRepository = mock(ListRepository.class);
         followerRepository = mock(FollowerRepository.class);
         reviewLikeRepository = mock(ReviewLikeRepository.class);
-        
+        badgeService = mock(BadgeService.class);
+
         userStatsService = new UserStatsService(
             userStatsRepository,
             userRepository,
             ratingRepository,
             listRepository,
             followerRepository,
-            reviewLikeRepository
+            reviewLikeRepository,
+            badgeService
         );
     }
 
