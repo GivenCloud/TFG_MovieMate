@@ -1,7 +1,7 @@
 # MovieMate — Progreso del Frontend
 
 Resumen de todo lo implementado en el frontend durante el desarrollo del TFG.
-Actualizado: 2026-03-18 (sesión fixes BD + smoke test)
+Actualizado: 2026-03-18 (memoria TFG + fix doble-save backend)
 
 ---
 
@@ -352,6 +352,19 @@ queryClient.invalidateQueries({ queryKey: queryKeys.users.lists() })
   - Función `check()` imprime el cuerpo de error para diagnóstico de fallos
   - Ejecutar: `cd moviemate-backend && bash smoke-test.sh`
 
+### Fix: doble save en ContentService (B19) ⭐ NUEVO
+- `service/ContentService.java` — eliminada llamada redundante a `contentRepository.save(content)` al final de `fetchFromTmdb`. `TmdbService` ya persistía la entidad; la segunda llamada causaba un error de Hibernate al intentar re-insertar un registro ya gestionado, retornando 400 al cliente.
+- `exception/GlobalExceptionHandler.java` — añadido `@Slf4j` + `log.error(...)` en `handleRuntimeException` para que las excepciones inesperadas queden registradas en los logs del contenedor.
+
+### Memoria TFG — documentación académica ⭐ NUEVO
+Trabajo de documentación de la memoria del TFG. No afecta al código fuente del proyecto.
+
+- **`Memoria TFG_rev260318.docx`** — revisión intermedia con 12 cambios aplicados: Resumen, Introducción, §2.2.2 librerías React, §4.2.3 diseño front-end, §4.3.2 arquitectura front-end (primera versión), §5 Conclusiones + Trabajo futuro, integración TMDB en §4.3.1, todos los comentarios del tutor atendidos (incluidos 3 marcados "NO HECHO").
+- **`Memoria TFG_rev260319.docx`** — revisión definitiva (802 párrafos). Cambios principales:
+  - **§4.3.2** completamente reescrita: 10 subsecciones (Heading 4) con contenido técnico detallado por página y feature, 11 pistas de figura `[Figura 4.X: ...]` para insertar capturas.
+  - **§4.5.3** ampliada con sección de estrategia de ramificación (`develop` → `main` con CI/CD como cortafuegos).
+  - **§4.5.4** nueva sección «Despliegue en Kubernetes con Minikube»: introducción a Kubernetes, 8 manifiestos descritos (Namespace, ConfigMap, Secret, PVC, Deployments, Services), pipeline de despliegue de 5 pasos con Minikube, integración con el pipeline de CI/CD.
+
 ---
 
 ## Estado del proyecto — COMPLETO
@@ -359,14 +372,14 @@ queryClient.invalidateQueries({ queryKey: queryKeys.users.lists() })
 **Toda la funcionalidad está implementada (prioridades ALTA, MEDIA y BAJA).**
 
 ### Bugs resueltos (todos)
-- B1–B12: todos ✅
+- B1–B19: todos ✅
 
 ### Funcionalidades completadas (todas)
-- M1–M31: todas ✅
+- M1–M34: todas ✅
 
 ### Pendiente operacional
 - **Avatar en producción/Docker**: los archivos se guardan en `uploads/` en el filesystem local. En un entorno productivo habría que montar un volumen Docker o migrar a un object storage (S3, Cloudflare R2). No afecta a la funcionalidad del TFG.
-- **Memoria de la TFG**: la documentación escrita (memoria académica) es el siguiente paso natural.
+- **Memoria TFG — tareas manuales pendientes**: términos en inglés en cursiva, nombres de entidades en Courier New, colores en tabla de endpoints, §II resumen extendido en inglés (~2000 palabras), insertar capturas reales en las posiciones `[Figura X.X: ...]`, actualizar tabla de contenidos.
 
 ---
 
@@ -388,4 +401,5 @@ feat/frontend-pages
 | `@feat: integrar WebSocket STOMP para notificaciones en tiempo real y paginacion en ReviewList` | useWebSocket hook, Layout integración, backend WebSocketAuthInterceptor, ReviewList "Ver más" |
 | `@feat: subida de avatar, recomendaciones, insignias y comentarios en listas` | UserService.uploadAvatar, WebMvcConfig static, BadgeService+UserBadge, ListCommentService+entity, ProfilePage badges, ListDetailPage comments, HomePage Para Ti |
 | `@fix: corregir errores de esquema BD, toggle CSS y queries nativas; añadir smoke test` | columnDefinition DEFAULT en 6 entidades, FROM ratings fix, toggle left en lugar de translate-x, NPE en calculateAverageRating, smoke-test.sh, secciones "mejor valoradas" en HomePage |
+| `@fix: eliminar doble save en ContentService y añadir logging a GlobalExceptionHandler` | B19: fetchFromTmdb sin contentRepository.save redundante; @Slf4j + log.error en handleRuntimeException |
 

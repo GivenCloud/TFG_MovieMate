@@ -1,6 +1,6 @@
 # MovieMate — Mejoras y bugs pendientes de UI/UX
 
-Registradas el 2026-03-12. Última actualización: 2026-03-17. Marcar con ✅ conforme se vayan completando.
+Registradas el 2026-03-12. Última actualización: 2026-03-18. Marcar con ✅ conforme se vayan completando.
 
 ---
 
@@ -71,6 +71,7 @@ Registradas el 2026-03-12. Última actualización: 2026-03-17. Marcar con ✅ co
 | B16 | ✅ | **Error 400 al añadir contenido a una lista** — `ContentService.getOrFetch` usaba `/search/multi?query={id}` (búsqueda de texto con un ID numérico) para detectar el tipo de contenido. El ID nunca aparecía en resultados → `orElseThrow` → 400. Arreglado: ahora prueba MOVIE primero y luego TV usando los endpoints directos `/movie/{id}` y `/tv/{id}`. | `service/ContentService.java` |
 | B17 | ✅ | **Error 400 en recomendaciones y ratings** — dos fixes: (1) `UserStatsService.getFullStats` no era `@Transactional`, causando que `updateUserStats` via self-invocation se ejecutase sin transacción gestionada; (2) `fetchFromTmdb` podía NPE si TMDB devolvía `null`. | `service/UserStatsService.java`, `service/ContentService.java` |
 | B18 | ✅ | **Toggle privacidad en SettingsPage mal renderizado** — el switch de perfil privado no reflejaba el estado inicial correctamente. | `features/settings/SettingsPage.tsx` |
+| B19 | ✅ | **Error 400 persistente al añadir contenido a lista (doble save)** — `ContentService.fetchFromTmdb` llamaba a `contentRepository.save(content)` de forma redundante después de que `TmdbService` ya había persistido la entidad; Hibernate lanzaba excepción al intentar re-insertar un registro ya gestionado. Eliminada la llamada duplicada; el dirty-checking de Hibernate persiste los cambios al hacer commit. Además `GlobalExceptionHandler.handleRuntimeException` carecía de `@Slf4j`, por lo que la excepción real era invisible en los logs — añadido logging con `log.error(...)`. | `service/ContentService.java`, `exception/GlobalExceptionHandler.java` |
 
 ## Mejoras (M32–M34)
 
@@ -84,7 +85,7 @@ Registradas el 2026-03-12. Última actualización: 2026-03-17. Marcar con ✅ co
 
 ## Estado final
 
-**Todos los bugs (B1–B18) resueltos. Todas las mejoras (M1–M34) implementadas.**
+**Todos los bugs (B1–B19) resueltos. Todas las mejoras (M1–M34) implementadas.**
 
 ---
 

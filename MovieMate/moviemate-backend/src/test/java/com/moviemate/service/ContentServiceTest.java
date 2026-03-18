@@ -14,7 +14,6 @@ import java.util.Optional;
 import static org.assertj.core.api.Assertions.*;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.*;
 
 class ContentServiceTest {
@@ -139,7 +138,6 @@ class ContentServiceTest {
 
         when(contentRepository.findByTmdbId(100)).thenReturn(Optional.empty());
         when(tmdbService.syncMovieFromTmdb(100)).thenReturn(newContent);
-        when(contentRepository.save(any(Content.class))).thenAnswer(i -> i.getArgument(0));
 
         Content result = contentService.getOrFetch(100);
 
@@ -150,7 +148,7 @@ class ContentServiceTest {
 
         verify(contentRepository).findByTmdbId(100);
         verify(tmdbService).syncMovieFromTmdb(100);
-        verify(contentRepository).save(argThat(c -> c.getTmdbId().equals(100)));
+        verify(contentRepository, never()).save(any()); // TmdbService ya persiste; no hay segundo save
     }
 
     @Test
@@ -161,7 +159,6 @@ class ContentServiceTest {
         when(contentRepository.findByTmdbId(200)).thenReturn(Optional.empty());
         when(tmdbService.syncMovieFromTmdb(200)).thenThrow(new RuntimeException("not a movie"));
         when(tmdbService.syncTvShowFromTmdb(200)).thenReturn(tvShow);
-        when(contentRepository.save(any(Content.class))).thenAnswer(i -> i.getArgument(0));
 
         Content result = contentService.getOrFetch(200);
 
