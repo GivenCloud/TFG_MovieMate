@@ -61,12 +61,30 @@ Registradas el 2026-03-12. Última actualización: 2026-03-17. Marcar con ✅ co
 
 ---
 
+## Bugs descubiertos en sesiones posteriores (B13–B18)
+
+| # | Estado | Descripción | Archivo(s) afectado(s) |
+|---|--------|-------------|------------------------|
+| B13 | ✅ | **Sin botón volver en Login/Register** — añadido `BackButton` en ambas páginas. | `LoginPage.tsx`, `RegisterPage.tsx` |
+| B14 | ✅ | **NPE al ver perfil de usuario (unauthenticated)** — `getUserProfile` llamaba a `userDetails.getUser()` sin null-check. Perfiles públicos accedidos sin JWT fallaban con NPE → 400. | `controller/UserController.java` |
+| B15 | ✅ | **Películas favoritas se pisan en ProfilePage** — grids de posters migrados a `flex flex-wrap gap-3`. | `features/profile/ProfilePage.tsx` |
+| B16 | ✅ | **Error 400 al añadir contenido a una lista** — `ContentService.getOrFetch` usaba `/search/multi?query={id}` (búsqueda de texto con un ID numérico) para detectar el tipo de contenido. El ID nunca aparecía en resultados → `orElseThrow` → 400. Arreglado: ahora prueba MOVIE primero y luego TV usando los endpoints directos `/movie/{id}` y `/tv/{id}`. | `service/ContentService.java` |
+| B17 | ✅ | **Error 400 en recomendaciones y ratings** — dos fixes: (1) `UserStatsService.getFullStats` no era `@Transactional`, causando que `updateUserStats` via self-invocation se ejecutase sin transacción gestionada; (2) `fetchFromTmdb` podía NPE si TMDB devolvía `null`. | `service/UserStatsService.java`, `service/ContentService.java` |
+| B18 | ✅ | **Toggle privacidad en SettingsPage mal renderizado** — el switch de perfil privado no reflejaba el estado inicial correctamente. | `features/settings/SettingsPage.tsx` |
+
+## Mejoras (M32–M34)
+
+| # | Estado | Descripción | Archivo(s) afectado(s) |
+|---|--------|-------------|------------------------|
+| M32 | ✅ | **Botón volver atrás en todas las páginas** — `BackButton` añadido a: NotificationsPage, ActivityPage, ListsPage, SpecialListPage, SettingsPage, PersonPage, ProfilePage (solo perfiles ajenos). | Múltiples páginas |
+| M33 | ✅ | **Filtros en DiscoverPage para tipo ALL** — `useDiscover` ahora hace fetch de películas + series cuando `filter=ALL` y los interleaves. Filtros visibles para ALL cuando `hasActiveFilters`. | `hooks/useDiscover.ts`, `features/discover/DiscoverPage.tsx` |
+| M34 | ✅ | **Episodios marcados como vistos visibles en perfil** — nueva sección "Progreso de series" en StatsTab. Backend: `GET /episodes/watched/summary` (JPQL GROUP BY serie). Frontend: `SeriesProgressSection` con cards clickables. | `controller/EpisodeWatchController.java`, `service/EpisodeWatchService.java`, `components/profile/StatsTab.tsx` |
+
+---
+
 ## Estado final
 
-**Todos los bugs (B1–B12) resueltos. Todas las mejoras (M1–M31) implementadas.**
-
-El único punto pendiente menor es:
-- **Tabs "Valoraciones" y "Listas" en perfiles ajenos** — el backend SÍ tiene `GET /users/{id}/ratings` y `GET /users/{id}/lists`. Las tabs ya funcionan para perfiles públicos o seguidos. Para perfiles privados no seguidos devuelve 403 (comportamiento correcto). ✅ Resuelto por diseño.
+**Todos los bugs (B1–B18) resueltos. Todas las mejoras (M1–M34) implementadas.**
 
 ---
 

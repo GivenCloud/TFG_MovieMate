@@ -6,6 +6,7 @@ import RatingWidget from '@/components/Detail/RatingWidget'
 import AddToListButton from '@/components/Detail/AddToListButton'
 import ReviewList from '@/components/Detail/ReviewList'
 import SeasonAccordion from '@/components/Detail/SeasonAccordion'
+import BackButton from '@/components/shared/BackButton'
 import { toSlug } from '@/lib/utils'
 import type { ContentResponse, ContentType } from '../../types'
 
@@ -44,8 +45,9 @@ export default function DetailPage() {
 
   const content = syncedContent ?? stateContent
 
-  // Las stats se derivan de las reseñas reales (misma caché que ReviewList, cero coste extra)
-  const { data: reviews = [] } = useReviews(content?.id)
+  // Las stats se derivan de las reseñas reales — solo usa el id del contenido YA sincronizado
+  // para evitar llamadas con ids obsoletos del state de navegación
+  const { data: reviews = [] } = useReviews(syncedContent?.id)
   const { data: providers } = useWatchProviders(parsedTmdbId, parsedType)
   const { data: cast = [] } = useContentCredits(parsedTmdbId, parsedType)
   const communityCount = reviews.length
@@ -67,6 +69,11 @@ export default function DetailPage() {
 
   return (
     <div className="pb-12">
+      {/* Botón volver */}
+      <div className="px-4 lg:px-8 pt-4">
+        <BackButton />
+      </div>
+
       {/* Hero — backdrop + poster + info */}
       <DetailHero content={content} />
 
@@ -194,7 +201,7 @@ export default function DetailPage() {
                 <div className="flex items-center justify-between text-sm">
                   <span className="text-muted">Nota TMDB</span>
                   <span className="font-mono text-yellow-400 font-semibold">
-                    {content.tmdbRating.toFixed(1)}<span className="text-white/30 font-normal">/10</span>
+                    {content.tmdbRating != null ? content.tmdbRating.toFixed(1) : '—'}<span className="text-white/30 font-normal">/10</span>
                   </span>
                 </div>
               </div>

@@ -77,18 +77,18 @@ export function useGenres(filter: ContentType | 'ALL') {
 }
 
 // Discover con filtros avanzados (reemplaza popular cuando hay filtros activos o tipo concreto)
-export function useDiscover(filter: ContentType | 'ALL', params: DiscoverParams) {
+export function useDiscover(filter: ContentType | 'ALL', params: DiscoverParams, active = true) {
   const movies = useQuery({
     queryKey: queryKeys.tmdb.discoverMovies(params),
     queryFn: () => tmdbApi.discoverMovies(params).then((r) => r.data),
-    enabled: filter === 'MOVIE',
+    enabled: active && (filter === 'MOVIE' || filter === 'ALL'),
     staleTime: 1000 * 60 * 5,
   })
 
   const tv = useQuery({
     queryKey: queryKeys.tmdb.discoverTv(params),
     queryFn: () => tmdbApi.discoverTvShows(params).then((r) => r.data),
-    enabled: filter === 'TV',
+    enabled: active && (filter === 'TV' || filter === 'ALL'),
     staleTime: 1000 * 60 * 5,
   })
 
@@ -102,8 +102,9 @@ export function useDiscover(filter: ContentType | 'ALL', params: DiscoverParams)
     data = tv.data ?? []
     isLoading = tv.isLoading
   } else {
-    data = []
-    isLoading = false
+    // ALL: interleave películas y series
+    data = interleave(movies.data ?? [], tv.data ?? [])
+    isLoading = movies.isLoading || tv.isLoading
   }
 
   return { data, isLoading }

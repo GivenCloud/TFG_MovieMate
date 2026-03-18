@@ -6,6 +6,7 @@ import { queryKeys } from '../../lib/queryKeys'
 import PosterCard from '../../components/shared/PosterdCard'
 import EmptyState from '../../components/shared/EmptyState'
 import AddContentToListDialog from './AddContentToListDialog'
+import BackButton from '../../components/shared/BackButton'
 
 type SpecialListType = 'WATCHLIST' | 'FAVORITES' | 'WATCHED'
 
@@ -86,6 +87,11 @@ export default function SpecialListPage({ listType }: { listType: SpecialListTyp
 
   return (
     <div className="pb-12">
+      {/* Botón volver */}
+      <div className="px-4 lg:px-6 pt-4 pb-1">
+        <BackButton to="/" label="Inicio" />
+      </div>
+
       {/* Cabecera */}
       <div className="px-4 lg:px-6 py-5 border-b border-white/[0.06]">
         <div className="flex items-center gap-3 mb-1">

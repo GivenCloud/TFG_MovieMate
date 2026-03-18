@@ -128,6 +128,7 @@ public class UserStatsService {
         userStatsRepository.save(stats);
     }
 
+    @Transactional
     public FullStatsDto getFullStats(User user) {
         // 1. Estadísticas básicas (reutiliza la lógica existente)
         UserStatsResponse basic = updateUserStats(user);

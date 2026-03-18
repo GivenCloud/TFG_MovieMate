@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useSearchParams, Link } from 'react-router-dom'
+import BackButton from '@/components/shared/BackButton'
 import { useQuery } from '@tanstack/react-query'
 import { useDebounce } from '@/hooks/useDebounce'
 import { usePopular, useSearch, useDiscover, useGenres } from '@/hooks/useDiscover'
@@ -126,10 +127,10 @@ export default function DiscoverPage() {
   ].filter(Boolean).length
 
   // ── Contenido ──────────────────────────────────────────────
-  // Cuando hay filtros activos y tipo específico → discover; si no → popular/trending
-  const useDiscoverMode = filter !== 'ALL' && !isSearching
+  // MOVIE/TV: siempre discover; ALL: discover solo si hay filtros activos; si no → popular/trending
+  const useDiscoverMode = !isSearching && (filter !== 'ALL' || hasActiveFilters)
   const popular = usePopular(filter)
-  const discover = useDiscover(filter, discoverParams)
+  const discover = useDiscover(filter, discoverParams, useDiscoverMode)
   const search  = useSearch(debouncedQuery, filter)
 
   let contentQuery: { data: typeof popular.data; isLoading: boolean }
@@ -168,6 +169,7 @@ export default function DiscoverPage() {
     ? `Resultados para "${debouncedQuery}"`
     : filter === 'MOVIE' ? (hasActiveFilters ? 'Películas filtradas 🎬' : 'Películas populares 🎬')
     : filter === 'TV'    ? (hasActiveFilters ? 'Series filtradas 📺' : 'Series populares 📺')
+    : hasActiveFilters   ? 'Resultados filtrados 🎬📺'
     : 'Tendencias ahora 🔥'
 
   const usersTitle = isSearching
@@ -183,6 +185,8 @@ export default function DiscoverPage() {
 
   return (
     <div className="px-4 lg:px-8 py-6 lg:py-8 max-w-6xl mx-auto">
+      <BackButton to="/" label="Inicio" className="mb-5" />
+
       {/* Cabecera */}
       <div className="mb-8">
         <h1 className="font-display font-bold italic text-3xl mb-1">Descubrir</h1>
@@ -222,8 +226,8 @@ export default function DiscoverPage() {
             <FilterTabs value={filter} onChange={(f) => { setFilter(f); setGenreId(undefined) }} />
 
             <div className="flex items-center gap-2">
-              {/* Botón filtros avanzados (solo para MOVIE/TV) */}
-              {filter !== 'ALL' && !isSearching && (
+              {/* Botón filtros avanzados */}
+              {!isSearching && (
                 <button
                   onClick={() => setFiltersOpen((p) => !p)}
                   className={cn(
@@ -251,7 +255,7 @@ export default function DiscoverPage() {
           </div>
 
           {/* Panel de filtros avanzados */}
-          {filtersOpen && filter !== 'ALL' && !isSearching && (
+          {filtersOpen && !isSearching && (
             <div className="bg-bg-1 border border-white/[0.08] rounded-2xl p-4 mb-5 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
               {/* Género */}
               <div>

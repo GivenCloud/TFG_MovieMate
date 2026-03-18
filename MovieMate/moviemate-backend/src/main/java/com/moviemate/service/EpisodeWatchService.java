@@ -1,7 +1,10 @@
 package com.moviemate.service;
 
+import com.moviemate.dto.SeriesProgressDto;
+import com.moviemate.entity.Content;
 import com.moviemate.entity.EpisodeWatch;
 import com.moviemate.entity.User;
+import com.moviemate.repository.ContentRepository;
 import com.moviemate.repository.EpisodeWatchRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -17,6 +20,7 @@ import java.util.stream.Collectors;
 public class EpisodeWatchService {
 
     private final EpisodeWatchRepository episodeWatchRepository;
+    private final ContentRepository contentRepository;
 
     /**
      * Devuelve el conjunto de episodios vistos por el usuario para una serie,
@@ -87,5 +91,23 @@ public class EpisodeWatchService {
                 .filter(e -> e.getSeasonNumber().equals(seasonNumber))
                 .collect(Collectors.toList());
         episodeWatchRepository.deleteAll(entries);
+    }
+
+    /**
+     * Devuelve el progreso de episodios vistos del usuario agrupado por serie,
+     * enriquecido con el título y poster de la serie si existe en la base de datos local.
+     */
+    public List<SeriesProgressDto> getSeriesProgress(User user) {
+        return episodeWatchRepository.findWatchedCountByUserGroupedBySeries(user)
+                .stream()
+                .map(row -> {
+                    Integer tmdbId = (Integer) row[0];
+                    long count = (Long) row[1];
+                    Optional<Content> content = contentRepository.findByTmdbId(tmdbId);
+                    String title = content.map(Content::getTitle).orElse("Serie " + tmdbId);
+                    String poster = content.map(Content::getPosterUrl).orElse(null);
+                    return new SeriesProgressDto(tmdbId, title, poster, count);
+                })
+                .collect(Collectors.toList());
     }
 }

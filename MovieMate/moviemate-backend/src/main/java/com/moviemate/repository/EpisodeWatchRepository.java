@@ -27,4 +27,7 @@ public interface EpisodeWatchRepository extends JpaRepository<EpisodeWatch, Long
         @Param("seriesId") Integer seriesId,
         @Param("season") Integer season
     );
+
+    @Query("SELECT e.tmdbSeriesId, COUNT(e) FROM EpisodeWatch e WHERE e.user = :user GROUP BY e.tmdbSeriesId ORDER BY COUNT(e) DESC")
+    List<Object[]> findWatchedCountByUserGroupedBySeries(@Param("user") User user);
 }

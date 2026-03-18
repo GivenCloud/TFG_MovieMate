@@ -1,5 +1,6 @@
 package com.moviemate.controller;
 
+import com.moviemate.dto.SeriesProgressDto;
 import com.moviemate.entity.User;
 import com.moviemate.security.CustomUserDetails;
 import com.moviemate.service.EpisodeWatchService;
@@ -18,6 +19,14 @@ import java.util.Set;
 public class EpisodeWatchController {
 
     private final EpisodeWatchService episodeWatchService;
+
+    @Operation(summary = "Progreso de episodios vistos agrupado por serie")
+    @GetMapping("/watched/summary")
+    public ResponseEntity<List<SeriesProgressDto>> getSeriesProgress(
+            @AuthenticationPrincipal CustomUserDetails userDetails) {
+        User user = userDetails.getUser();
+        return ResponseEntity.ok(episodeWatchService.getSeriesProgress(user));
+    }
 
     @Operation(summary = "Obtener episodios vistos de una serie")
     @GetMapping("/watched/{tmdbSeriesId}")

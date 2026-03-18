@@ -9,8 +9,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.moviemate.dto.ContentResponse;
-import com.moviemate.dto.tmdb.MultiSearchResult;
-import com.moviemate.dto.tmdb.SearchResult;
 import com.moviemate.entity.Content;
 import com.moviemate.repository.ContentRepository;
 
@@ -42,7 +40,7 @@ public class ContentService {
                 .toList();
     }
 
-    @Transactional(readOnly = true)
+    @Transactional
     public Content getOrFetch(Integer tmdbId) {
         return contentRepository.findByTmdbId(tmdbId)
             .map(content -> {
@@ -54,20 +52,12 @@ public class ContentService {
             })
             .orElseGet(() -> {
                 System.out.println("No encontrado en cache, fetching TMDB " + tmdbId);
-                MultiSearchResult result = tmdbService.detectContentType(tmdbId);
-                SearchResult match = result.getResults().stream()
-                    .filter(r -> r.getId().equals(tmdbId.longValue()))
-                    .findFirst()
-                    .orElseThrow(() -> new RuntimeException("Contenido no encontrado: " + tmdbId));
-                    
-                Content.ContentType type = switch (match.getMediaType()) {
-                    case "movie" -> Content.ContentType.MOVIE;
-                    case "tv" -> Content.ContentType.TV;
-                    default -> throw new RuntimeException("Tipo desconocido: " + match.getMediaType());
-                };
-                
-                Content newContent = fetchFromTmdb(tmdbId, type);
-                return newContent;
+                // Try movie first, then TV show
+                try {
+                    Content newContent = fetchFromTmdb(tmdbId, Content.ContentType.MOVIE);
+                    if (newContent != null) return newContent;
+                } catch (Exception ignored) {}
+                return fetchFromTmdb(tmdbId, Content.ContentType.TV);
             });
     }
 
@@ -97,6 +87,9 @@ public class ContentService {
                 ? tmdbService.syncMovieFromTmdb(tmdbId)
                 : tmdbService.syncTvShowFromTmdb(tmdbId);
 
+        if (content == null) {
+            throw new RuntimeException("Contenido no encontrado en TMDB: " + tmdbId);
+        }
         content.setLastTmdbSync(LocalDateTime.now());
         content.setLastInteraction(LocalDateTime.now());
 

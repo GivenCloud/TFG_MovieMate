@@ -24,6 +24,7 @@ import StatsTab from '../../components/profile/StatsTab'
 import { queryKeys } from '../../lib/queryKeys'
 import PosterCard from '../../components/shared/PosterdCard'
 import EmptyState from '../../components/shared/EmptyState'
+import BackButton from '../../components/shared/BackButton'
 import {
   Dialog,
   DialogContent,
@@ -625,6 +626,13 @@ export default function ProfilePage() {
 
   return (
     <div className="pb-12">
+      {/* Botón volver */}
+      {!isOwnProfile && (
+        <div className="px-4 lg:px-6 pt-4 pb-1">
+          <BackButton />
+        </div>
+      )}
+
       {/* ── Header ─────────────────────────────────────────── */}
       <div className="px-4 lg:px-6 pt-6 lg:pt-8 pb-6 border-b border-white/[0.06]">
         <div className="flex items-start gap-5 flex-wrap">
@@ -716,9 +724,9 @@ export default function ProfilePage() {
             <p className="text-xs text-muted font-mono uppercase tracking-wider mb-3">
               ❤️ Películas favoritas
             </p>
-            <div className="flex gap-3">
+            <div className="flex flex-wrap gap-3">
               {favItems.map((c) => (
-                <div key={c.id} className="flex-1 max-w-[120px]">
+                <div key={c.id} className="shrink-0">
                   <PosterCard content={c} />
                 </div>
               ))}
@@ -726,7 +734,7 @@ export default function ProfilePage() {
               {Array.from({ length: Math.max(0, 4 - favItems.length) }).map((_, i) => (
                 <div
                   key={`empty-${i}`}
-                  className="flex-1 max-w-[120px] aspect-[2/3] rounded-xl bg-bg-2 border border-dashed border-white/[0.08] flex items-center justify-center text-white/15 text-2xl"
+                  className="w-[90px] aspect-[2/3] rounded-xl bg-bg-2 border border-dashed border-white/[0.08] flex items-center justify-center text-white/15 text-2xl shrink-0"
                 >
                   +
                 </div>

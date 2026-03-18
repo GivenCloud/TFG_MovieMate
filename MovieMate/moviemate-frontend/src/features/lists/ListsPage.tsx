@@ -5,6 +5,7 @@ import { toast } from 'sonner'
 import { listsApi } from '../../api/lists'
 import { queryKeys } from '../../lib/queryKeys'
 import EmptyState from '../../components/shared/EmptyState'
+import BackButton from '../../components/shared/BackButton'
 import {
   Dialog,
   DialogContent,
@@ -485,6 +486,11 @@ export default function ListsPage() {
 
   return (
     <div className="pb-12">
+      {/* Botón volver */}
+      <div className="px-4 lg:px-6 pt-4 pb-1">
+        <BackButton to="/" label="Inicio" />
+      </div>
+
       {/* ── Cabecera ─────────────────────────────────────── */}
       <div className="flex items-center justify-between px-4 lg:px-6 py-5 border-b border-white/[0.06]">
         <h1 className="font-display font-bold italic text-2xl">Listas</h1>

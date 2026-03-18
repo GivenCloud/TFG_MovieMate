@@ -1,5 +1,6 @@
 import { useState, useRef } from 'react'
 import { useParams, useLocation, Link } from 'react-router-dom'
+import BackButton from '../../components/shared/BackButton'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
 import { listsApi } from '../../api/lists'
@@ -108,6 +109,11 @@ export default function ListDetailPage() {
 
   return (
     <div className="pb-12">
+      {/* Botón volver */}
+      <div className="px-4 lg:px-6 pt-4 pb-1">
+        <BackButton to="/lists" label="Mis listas" />
+      </div>
+
       {/* Cabecera */}
       <div className="px-4 lg:px-6 py-5 border-b border-white/[0.06]">
         <div className="flex items-center gap-4 mb-1.5">

@@ -22,7 +22,8 @@ export const queryKeys = {
   },
   // Episodios vistos (por usuario autenticado)
   episodes: {
-    watched: (tmdbSeriesId: number) => ['episodes', 'watched', tmdbSeriesId] as const,
+    watched:  (tmdbSeriesId: number) => ['episodes', 'watched', tmdbSeriesId] as const,
+    progress: () => ['episodes', 'watched', 'summary'] as const,
   },
   // Contenido en BD (caché local — ficha de detalle)
   content: {

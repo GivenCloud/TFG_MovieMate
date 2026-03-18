@@ -1,5 +1,8 @@
+import { Link } from 'react-router-dom'
 import { useMyFullStats } from '@/hooks/useProfile'
-import type { FullStatsDto } from '@/types'
+import { useSeriesProgress } from '@/hooks/useEpisodes'
+import { toSlug } from '@/lib/utils'
+import type { FullStatsDto, SeriesProgressDto } from '@/types'
 
 const MONTHS = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic']
 
@@ -8,10 +11,17 @@ interface Props {
 }
 
 export default function StatsTab({ userId }: Props) {
-  const { data: stats, isLoading } = useMyFullStats(!!userId)
+  const { data: stats, isLoading: statsLoading } = useMyFullStats(!!userId)
+  const { data: progress = [], isLoading: progressLoading } = useSeriesProgress(!!userId)
+
+  const isLoading = statsLoading || progressLoading
 
   if (isLoading) return <StatsSkeleton />
-  if (!stats || stats.totalRatings === 0) {
+
+  const hasStats = stats && stats.totalRatings > 0
+  const hasProgress = progress.length > 0
+
+  if (!hasStats && !hasProgress) {
     return (
       <div className="flex flex-col items-center justify-center py-20 text-center">
         <span className="text-4xl mb-3">📊</span>
@@ -22,19 +32,22 @@ export default function StatsTab({ userId }: Props) {
 
   return (
     <div className="space-y-8">
-      {/* Resumen numérico */}
-      <SummaryCards stats={stats} />
+      {hasStats && stats && (
+        <>
+          {/* Resumen numérico */}
+          <SummaryCards stats={stats} />
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        {/* Distribución de notas */}
-        <RatingDistributionChart stats={stats} />
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            <RatingDistributionChart stats={stats} />
+            {stats.topGenres.length > 0 && <TopGenresChart stats={stats} />}
+          </div>
 
-        {/* Top géneros */}
-        {stats.topGenres.length > 0 && <TopGenresChart stats={stats} />}
-      </div>
+          {stats.monthlyActivity.length > 0 && <MonthlyActivityChart stats={stats} />}
+        </>
+      )}
 
-      {/* Actividad mensual */}
-      {stats.monthlyActivity.length > 0 && <MonthlyActivityChart stats={stats} />}
+      {/* Progreso de series */}
+      {hasProgress && <SeriesProgressSection progress={progress} />}
     </div>
   )
 }
@@ -172,6 +185,45 @@ function MonthlyActivityChart({ stats }: { stats: FullStatsDto }) {
             </div>
           )
         })}
+      </div>
+    </div>
+  )
+}
+
+// ── Progreso de series ────────────────────────────────────────────
+function SeriesProgressSection({ progress }: { progress: SeriesProgressDto[] }) {
+  return (
+    <div>
+      <h3 className="text-xs font-mono text-muted uppercase tracking-wider mb-4">
+        Progreso de series 📺
+      </h3>
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        {progress.map((s) => (
+          <Link
+            key={s.tmdbSeriesId}
+            to={`/content/tv/${s.tmdbSeriesId}/${toSlug(s.title)}`}
+            className="flex items-center gap-3 bg-bg-2 border border-white/[0.06] rounded-xl p-3 hover:border-white/[0.14] transition-colors group"
+          >
+            {/* Poster */}
+            <div className="w-10 h-14 rounded-lg overflow-hidden shrink-0 bg-bg-3">
+              {s.posterUrl ? (
+                <img src={s.posterUrl} alt={s.title} className="w-full h-full object-cover" />
+              ) : (
+                <div className="w-full h-full flex items-center justify-center text-lg">📺</div>
+              )}
+            </div>
+            {/* Info */}
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-medium text-white/90 truncate group-hover:text-accent transition-colors">
+                {s.title}
+              </p>
+              <p className="text-xs text-muted mt-0.5 font-mono">
+                {s.watchedCount} ep. {s.watchedCount === 1 ? 'visto' : 'vistos'}
+              </p>
+            </div>
+            <span className="text-xs text-muted shrink-0">→</span>
+          </Link>
+        ))}
       </div>
     </div>
   )

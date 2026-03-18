@@ -1,5 +1,5 @@
 import apiClient from '../lib/apiClient'
-import type { SeasonSummary, SeasonDto } from '../types'
+import type { SeasonSummary, SeasonDto, SeriesProgressDto } from '../types'
 
 export const episodesApi = {
   /** Resumen de temporadas de una serie (sin episodios) */
@@ -39,4 +39,8 @@ export const episodesApi = {
     apiClient
       .delete(`/episodes/watched/${tmdbSeriesId}/${seasonNumber}/all`)
       .then(() => undefined),
+
+  /** Progreso de episodios vistos agrupado por serie */
+  getSeriesProgress: (): Promise<SeriesProgressDto[]> =>
+    apiClient.get('/episodes/watched/summary').then((r: { data: SeriesProgressDto[] }) => r.data),
 }

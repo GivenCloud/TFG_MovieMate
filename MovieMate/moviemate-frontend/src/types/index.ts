@@ -342,6 +342,14 @@ export interface BadgeDto {
   awardedAt: string
 }
 
+// ─── Progreso de episodios ────────────────────────────────────
+export interface SeriesProgressDto {
+  tmdbSeriesId: number
+  title: string
+  posterUrl: string | null
+  watchedCount: number
+}
+
 // ─── Comentarios de listas ────────────────────────────────────
 export interface ListCommentResponse {
   id: number

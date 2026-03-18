@@ -3,6 +3,17 @@ import { episodesApi } from '@/api/episodes'
 import { queryKeys } from '@/lib/queryKeys'
 import { useAuthStore } from '@/store/authStore'
 
+/** Progreso de series (episodios vistos agrupados por serie) — solo propio perfil autenticado */
+export function useSeriesProgress(enabled = true) {
+  const { isAuthenticated } = useAuthStore()
+  return useQuery({
+    queryKey: queryKeys.episodes.progress(),
+    queryFn: () => episodesApi.getSeriesProgress(),
+    enabled: isAuthenticated && enabled,
+    staleTime: 1000 * 60 * 5,
+  })
+}
+
 /** Resumen de temporadas de una serie (solo para TV) */
 export function useTvSeasons(tmdbId: number | undefined) {
   return useQuery({

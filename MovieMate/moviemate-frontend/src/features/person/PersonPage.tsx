@@ -3,6 +3,7 @@ import { useQuery } from '@tanstack/react-query'
 import { tmdbApi } from '@/api/tmdb'
 import { queryKeys } from '@/lib/queryKeys'
 import PosterCard from '@/components/shared/PosterdCard'
+import BackButton from '@/components/shared/BackButton'
 
 function PersonSkeleton() {
   return (
@@ -51,6 +52,11 @@ export default function PersonPage() {
 
   return (
     <div className="pb-12">
+      {/* Botón volver */}
+      <div className="px-4 lg:px-8 pt-4 pb-1">
+        <BackButton />
+      </div>
+
       {/* ── Cabecera ─────────────────────────────────────────── */}
       <div className="px-4 lg:px-8 py-8 max-w-5xl mx-auto">
         <div className="flex gap-6 flex-col sm:flex-row items-start">

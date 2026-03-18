@@ -6,6 +6,7 @@ import { useUpdateProfile } from '../../hooks/useProfile'
 import { useAuthStore } from '../../store/authStore'
 import { usersApi } from '../../api/users'
 import { queryKeys } from '../../lib/queryKeys'
+import BackButton from '../../components/shared/BackButton'
 
 // ── Esqueleto de carga ───────────────────────────────────────
 function SettingsSkeleton() {
@@ -57,6 +58,8 @@ export default function SettingsPage() {
   const [avatarPreview, setAvatarPreview] = useState<string | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
   const [confirmLogout, setConfirmLogout] = useState(false)
+  // Estado optimista para el toggle de privacidad — refleja el cambio de inmediato
+  const [isPublicOptimistic, setIsPublicOptimistic] = useState<boolean | null>(null)
 
   // Cambio de contraseña
   const [currentPwd, setCurrentPwd] = useState('')
@@ -93,6 +96,8 @@ export default function SettingsPage() {
       setBio(me.bio ?? '')
       setAvatarUrl(me.avatarUrl ?? '')
       setAvatarError(false)
+      // Solo inicializa el optimista si aún no se ha fijado (primera carga)
+      setIsPublicOptimistic((prev) => prev === null ? me.isPublic : prev)
     }
   }, [me])
 
@@ -123,9 +128,14 @@ export default function SettingsPage() {
     mutationFn: (isPublic: boolean) => usersApi.updatePublicStatus(isPublic),
     onSuccess: ({ data }) => {
       queryClient.setQueryData(queryKeys.users.me(), data)
+      setIsPublicOptimistic(data.isPublic)
       toast.success(data.isPublic ? 'Perfil ahora público' : 'Perfil ahora privado')
     },
-    onError: () => toast.error('No se pudo cambiar la privacidad'),
+    onError: () => {
+      // Revertir el estado optimista si falla
+      setIsPublicOptimistic(me?.isPublic ?? null)
+      toast.error('No se pudo cambiar la privacidad')
+    },
   })
 
   const handleSaveProfile = () => {
@@ -146,6 +156,11 @@ export default function SettingsPage() {
 
   return (
     <div className="pb-12">
+      {/* Botón volver */}
+      <div className="px-4 lg:px-6 pt-4 pb-1">
+        <BackButton to={sessionUser ? `/profile/${sessionUser.username}` : '/'} label="Mi perfil" />
+      </div>
+
       {/* Cabecera */}
       <div className="px-4 lg:px-6 py-5 border-b border-white/[0.06]">
         <h1 className="font-display font-bold italic text-2xl">Ajustes</h1>
@@ -268,23 +283,30 @@ export default function SettingsPage() {
             <div className="flex items-center justify-between gap-4">
               <div>
                 <p className="text-sm font-medium text-white/90">
-                  {me?.isPublic ? '🔓 Perfil público' : '🔒 Perfil privado'}
+                  {isPublicOptimistic ? '🔓 Perfil público' : '🔒 Perfil privado'}
                 </p>
                 <p className="text-xs text-muted mt-0.5">
-                  {me?.isPublic
+                  {isPublicOptimistic
                     ? 'Cualquier usuario puede ver tus valoraciones y listas públicas.'
                     : 'Solo tus seguidores aprobados pueden ver tu actividad.'}
                 </p>
               </div>
               <button
-                onClick={() => me && togglePrivacy(!me.isPublic)}
+                onClick={() => {
+                  if (!me || isPublicOptimistic === null) return
+                  const next = !isPublicOptimistic
+                  setIsPublicOptimistic(next)
+                  togglePrivacy(next)
+                }}
                 disabled={isTogglingPrivacy || !me}
-                className={`relative w-11 h-6 rounded-full transition-colors shrink-0 disabled:opacity-60
-                  ${me?.isPublic ? 'bg-accent' : 'bg-bg-3 border border-white/[0.1]'}`}
+                aria-checked={isPublicOptimistic ?? false}
+                role="switch"
+                className={`relative w-12 h-6 rounded-full transition-colors duration-200 shrink-0 focus:outline-none focus:ring-2 focus:ring-accent/40 disabled:opacity-50
+                  ${isPublicOptimistic ? 'bg-accent' : 'bg-white/20'}`}
               >
                 <span
-                  className={`absolute top-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform
-                    ${me?.isPublic ? 'translate-x-5' : 'translate-x-0.5'}`}
+                  className={`absolute top-[3px] w-[18px] h-[18px] bg-white rounded-full shadow-md transition-transform duration-200
+                    ${isPublicOptimistic ? 'translate-x-[27px]' : 'translate-x-[3px]'}`}
                 />
               </button>
             </div>

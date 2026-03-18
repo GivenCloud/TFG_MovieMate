@@ -78,7 +78,7 @@ public class UserController {
             @AuthenticationPrincipal CustomUserDetails userDetails,
             @Parameter(description = "ID del usuario") @PathVariable Long userId) {
         User targetUser = userService.findUserById(userId);
-        User currentUser = userDetails.getUser();
+        User currentUser = userDetails != null ? userDetails.getUser() : null;
 
         UserProfileResponse profile = new UserProfileResponse();
         profile.setId(targetUser.getId());
@@ -90,7 +90,7 @@ public class UserController {
         profile.setCreatedAt(targetUser.getCreatedAt());
         profile.setFollowersCount(followerService.getFollowersCount(targetUser));
         profile.setFollowingCount(followerService.getFollowingCount(targetUser));
-        profile.setIsFollowing(followerService.isFollowing(currentUser, targetUser));
+        profile.setIsFollowing(currentUser != null && followerService.isFollowing(currentUser, targetUser));
 
         return ResponseEntity.ok(profile);
     }
