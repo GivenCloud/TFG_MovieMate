@@ -364,6 +364,12 @@ Trabajo de documentación de la memoria del TFG. No afecta al código fuente del
   - **§4.3.2** completamente reescrita: 10 subsecciones (Heading 4) con contenido técnico detallado por página y feature, 11 pistas de figura `[Figura 4.X: ...]` para insertar capturas.
   - **§4.5.3** ampliada con sección de estrategia de ramificación (`develop` → `main` con CI/CD como cortafuegos).
   - **§4.5.4** nueva sección «Despliegue en Kubernetes con Minikube»: introducción a Kubernetes, 8 manifiestos descritos (Namespace, ConfigMap, Secret, PVC, Deployments, Services), pipeline de despliegue de 5 pasos con Minikube, integración con el pipeline de CI/CD.
+- **`Memoria TFG_rev260320.docx`** — (825 párrafos). Cambios principales:
+  - **§II Abstract extendido en inglés** insertado (~1894 palabras, 7 secciones con headings en negrita): Context and Motivation, Objectives, Methodology, Back-End Architecture, Front-End Architecture, Testing and Deployment, Results and Conclusions.
+- **`Memoria TFG_rev260321.docx`** — (831 párrafos) ← **VERSIÓN MÁS RECIENTE**. Cambios principales:
+  - **Tabla de endpoints** ampliada de 41 a 64 filas (+23 endpoints faltantes: recommendations, badges, avatar, trending, rating comments, list comments, episodeWatch, reports, admin endpoints).
+  - **§4.2.1** ampliada con 3 párrafos sobre 7 entidades no documentadas: Comment, ReviewLike, EpisodeWatch, ListComment, ContentReport, UserBadge.
+  - **§4.3.1** ampliada con 3 párrafos sobre: WebSocket/STOMP con WebSocketAuthInterceptor, BadgeService/UserStatsService/CacheCleaner, SwaggerConfig/@RequirePublicProfile.
 
 ---
 
@@ -379,7 +385,7 @@ Trabajo de documentación de la memoria del TFG. No afecta al código fuente del
 
 ### Pendiente operacional
 - **Avatar en producción/Docker**: los archivos se guardan en `uploads/` en el filesystem local. En un entorno productivo habría que montar un volumen Docker o migrar a un object storage (S3, Cloudflare R2). No afecta a la funcionalidad del TFG.
-- **Memoria TFG — tareas manuales pendientes**: términos en inglés en cursiva, nombres de entidades en Courier New, colores en tabla de endpoints, §II resumen extendido en inglés (~2000 palabras), insertar capturas reales en las posiciones `[Figura X.X: ...]`, actualizar tabla de contenidos.
+- **Memoria TFG — tareas manuales pendientes**: términos en inglés en cursiva, nombres de entidades en Courier New, colores en tabla de endpoints, insertar capturas reales en las posiciones `[Figura X.X: ...]`, actualizar tabla de contenidos.
 
 ---
 
@@ -402,4 +408,5 @@ feat/frontend-pages
 | `@feat: subida de avatar, recomendaciones, insignias y comentarios en listas` | UserService.uploadAvatar, WebMvcConfig static, BadgeService+UserBadge, ListCommentService+entity, ProfilePage badges, ListDetailPage comments, HomePage Para Ti |
 | `@fix: corregir errores de esquema BD, toggle CSS y queries nativas; añadir smoke test` | columnDefinition DEFAULT en 6 entidades, FROM ratings fix, toggle left en lugar de translate-x, NPE en calculateAverageRating, smoke-test.sh, secciones "mejor valoradas" en HomePage |
 | `@fix: eliminar doble save en ContentService y añadir logging a GlobalExceptionHandler` | B19: fetchFromTmdb sin contentRepository.save redundante; @Slf4j + log.error en handleRuntimeException |
+| `@fix: actualizar ContentServiceTest tras eliminar doble save en fetchFromTmdb` | Test getOrFetch_shouldFetchFromTmdb: verify never().save() en lugar de verify().save(); pipeline CI/CD verde |
 

@@ -10,43 +10,44 @@ Continuamos el TFG MovieMate. Lee MEMORY.md para el contexto completo.
 
 PROYECTO: Plataforma social de cine/series (IMDB + Letterboxd + Serializd).
 Stack: Spring Boot 3.3.4 + PostgreSQL 16 (backend) / React 19 + TypeScript + TanStack Query 5 + Tailwind CSS 4 (frontend).
-Rama activa: `feat/frontend-pages`
+Rama activa: `feat/frontend-pages` — **pipeline CI/CD verde (205/205 tests)**.
 
 **EL PROYECTO ESTÁ FUNCIONALMENTE COMPLETO.**
 Todos los bugs (B1–B19) y mejoras (M1–M34) están implementados y resueltos.
 
 ---
 
-**HECHO en la última sesión (2026-03-18):**
-
-Backend:
-- **B19** — eliminada llamada redundante a `contentRepository.save(content)` en `ContentService.fetchFromTmdb` (TmdbService ya persistía la entidad; la segunda llamada causaba error de Hibernate al re-insertar). Añadido `@Slf4j` + `log.error(...)` en `GlobalExceptionHandler.handleRuntimeException`.
-- Archivos modificados: `service/ContentService.java`, `exception/GlobalExceptionHandler.java`
+**HECHO en la última sesión (2026-03-26):**
 
 Memoria TFG:
-- Generado **`Memoria TFG_rev260319.docx`** (802 párrafos) a partir de `rev260318.docx` con tres bloques de cambios:
-  - **§4.3.2 Arquitectura del front-end** — completamente reescrita con 10 subsecciones (Heading 4): estructura del proyecto (árbol de directorios feature-based), navegación y autenticación, gestión del estado (Zustand + TanStack Query), y una subsección por página (HomePage, DiscoverPage, DetailPage, ProfilePage, ListsPage, Actividad/WebSocket, Sistema de diseño). Cada subsección incluye una pista `[Figura 4.X: ...]` para insertar capturas de pantalla.
-  - **§4.5.3 CI/CD** — añadidos 3 párrafos sobre la estrategia de ramificación: `develop` para el desarrollo activo, merge a `main` solo cuando el pipeline pasa, `main` dispara la construcción de la imagen Docker.
-  - **§4.5.4 Despliegue en Kubernetes con Minikube** — sección nueva (Heading 3) con: introducción a Kubernetes y Minikube, descripción de los 8 manifiestos (Namespace, ConfigMap, Secret, PVC, Deployments, Services), proceso de despliegue local en 5 pasos con comandos exactos, integración con el pipeline de CI/CD.
-- Script utilizado: `TFG_MovieMate/expand_frontend_k8s.py`
+- Generado **`Memoria TFG_rev260320.docx`** (825 párrafos):
+  - §II Abstract extendido en inglés insertado (~1894 palabras, 7 secciones con headings en negrita).
+    Secciones: Context and Motivation, Objectives, Methodology, Back-End Architecture, Front-End Architecture, Testing and Deployment, Results and Conclusions.
+- Generado **`Memoria TFG_rev260321.docx`** (831 párrafos) ← **VERSIÓN MÁS RECIENTE**:
+  - Tabla de endpoints: 41 → 64 filas (+23 endpoints faltantes: recommendations, badges, avatar, trending, comments, listComments, episodeWatch, reports, admin).
+  - §4.2.1 ampliada con 3 párrafos sobre 7 entidades faltantes: Comment, ReviewLike, EpisodeWatch, ListComment, ContentReport, UserBadge.
+  - §4.3.1 ampliada con 3 párrafos sobre: WebSocket/STOMP, BadgeService/UserStatsService/CacheCleaner, SwaggerConfig/@RequirePublicProfile.
 
-**Último commit de código:**
-`@fix: eliminar doble save en ContentService y añadir logging a GlobalExceptionHandler`
+**Scripts usados:**
+- `TFG_MovieMate/insert_abstract.py` → generó rev260320
+- `TFG_MovieMate/update_backend_docs.py` → generó rev260321
+
+**Últimos commits (rama `feat/frontend-pages`):**
+1. `@fix: eliminar doble save en ContentService y añadir logging a GlobalExceptionHandler`
+2. `@fix: actualizar ContentServiceTest tras eliminar doble save en fetchFromTmdb` ← ÚLTIMO
 
 ---
 
 **Archivos clave de la memoria:**
-- `TFG_MovieMate/Memoria TFG_rev260319.docx` ← versión más reciente
-- `TFG_MovieMate/Memoria TFG_rev260318.docx` ← revisión anterior
-- `TFG_MovieMate/expand_frontend_k8s.py` ← script python-docx para modificar el .docx
+- `TFG_MovieMate/Memoria TFG_rev260321.docx` ← versión más reciente
+- `TFG_MovieMate/update_backend_docs.py` ← último script python-docx ejecutado
 
 ---
 
-**Tareas manuales pendientes en Word** (no automatizables fácilmente con python-docx):
+**Tareas manuales pendientes en Word** (no automatizables fácilmente):
 - Términos en inglés en cursiva (React, Spring Boot, JWT, endpoint, etc.)
 - Nombres de entidades/clases en Courier New
-- Colores en las filas de la tabla de endpoints
-- **§II Resumen extendido en inglés** (~2000 palabras) — abstract obligatorio del TFG
+- Colores en filas de la tabla de endpoints
 - Insertar capturas de pantalla reales en las posiciones `[Figura 4.X: ...]`
 - Actualizar tabla de contenidos (F9 en Word)
 
@@ -54,11 +55,10 @@ Memoria TFG:
 
 **Posibles tareas para esta sesión:**
 
-1. **§II Abstract en inglés** — redactar el resumen extendido (~2000 palabras) obligatorio del TFG
-2. **Revisar o ampliar cualquier sección de la memoria** — si el tutor pide más detalle o hay secciones incompletas
-3. **Capturas de pantalla** — decidir qué capturas hacer y en qué orden insertarlas en las posiciones `[Figura X.X: ...]`
-4. **Preparar la defensa oral** — esquema de presentación, posibles preguntas del tribunal, estructura de slides
-5. **Correcciones de formato** — automatizar cursivas, Courier New u otros ajustes de estilo en el .docx
-6. **Ajustes de código de última hora** — si surge algún bug o mejora menor antes de entregar
+1. **Revisar o ampliar secciones de la memoria** — si el tutor pide más detalle en algún punto
+2. **Capturas de pantalla** — planificar qué capturas hacer y dónde insertarlas
+3. **Preparar la defensa oral** — esquema de presentación, posibles preguntas del tribunal, slides
+4. **Correcciones de formato** — automatizar cursivas, Courier New u otros ajustes en el .docx
+5. **Ajustes de código de última hora** — si surge algún bug antes de la entrega
 
 Pregunta al usuario qué quiere hacer a continuación.
