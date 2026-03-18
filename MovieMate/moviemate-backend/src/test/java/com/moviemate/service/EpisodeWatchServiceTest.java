@@ -178,8 +178,9 @@ class EpisodeWatchServiceTest {
         User user = buildUser(1L);
         Content content = buildContent(100, "Breaking Bad", "poster.jpg");
 
-        when(episodeWatchRepository.findWatchedCountByUserGroupedBySeries(user))
-                .thenReturn(List.of(new Object[]{100, 5L}));
+        java.util.ArrayList<Object[]> rows1 = new java.util.ArrayList<>();
+        rows1.add(new Object[]{100, 5L});
+        when(episodeWatchRepository.findWatchedCountByUserGroupedBySeries(user)).thenReturn(rows1);
         when(contentRepository.findByTmdbId(100)).thenReturn(Optional.of(content));
 
         List<SeriesProgressDto> result = episodeWatchService.getSeriesProgress(user);
@@ -195,8 +196,9 @@ class EpisodeWatchServiceTest {
     void getSeriesProgress_shouldUseFallbackTitle_whenContentNotFound() {
         User user = buildUser(1L);
 
-        when(episodeWatchRepository.findWatchedCountByUserGroupedBySeries(user))
-                .thenReturn(List.of(new Object[]{999, 3L}));
+        java.util.ArrayList<Object[]> rows2 = new java.util.ArrayList<>();
+        rows2.add(new Object[]{999, 3L});
+        when(episodeWatchRepository.findWatchedCountByUserGroupedBySeries(user)).thenReturn(rows2);
         when(contentRepository.findByTmdbId(999)).thenReturn(Optional.empty());
 
         List<SeriesProgressDto> result = episodeWatchService.getSeriesProgress(user);
