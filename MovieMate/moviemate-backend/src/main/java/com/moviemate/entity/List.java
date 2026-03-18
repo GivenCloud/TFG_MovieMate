@@ -32,7 +32,7 @@ public class List {
     @Column(columnDefinition = "TEXT")
     private String description;
 
-    @Column(nullable = false)
+    @Column(nullable = false, columnDefinition = "boolean not null default true")
     private Boolean isPublic = true;
 
     @Enumerated(EnumType.STRING)

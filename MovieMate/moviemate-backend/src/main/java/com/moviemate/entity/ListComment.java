@@ -27,7 +27,7 @@ public class ListComment {
     @JoinColumn(name = "list_id", nullable = false)
     private List list;
 
-    @Column(nullable = false)
+    @Column(nullable = false, columnDefinition = "boolean not null default false")
     private boolean deleted = false;
 
     @CreationTimestamp

@@ -48,7 +48,7 @@ public interface RatingRepository extends JpaRepository<Rating, Long> {
             SELECT EXTRACT(YEAR FROM created_at)  AS year,
                    EXTRACT(MONTH FROM created_at) AS month,
                    COUNT(*)                        AS count
-              FROM rating
+              FROM ratings
              WHERE user_id = :userId
                AND created_at >= :since
              GROUP BY 1, 2

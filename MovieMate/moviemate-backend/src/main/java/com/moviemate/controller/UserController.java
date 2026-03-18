@@ -171,8 +171,8 @@ public class UserController {
     public ResponseEntity<List<UserResponse>> searchUsers(
             @AuthenticationPrincipal CustomUserDetails userDetails,
             @Parameter(description = "Query de búsqueda") @RequestParam String q) {
-        User currentUser = userDetails.getUser();
-        List<UserResponse> users = userService.searchUsers(currentUser.getId(), q);
+        Long currentUserId = userDetails != null ? userDetails.getUser().getId() : null;
+        List<UserResponse> users = userService.searchUsers(currentUserId, q);
         return ResponseEntity.ok(users);
     }
 

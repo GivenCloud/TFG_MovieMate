@@ -1,7 +1,7 @@
 # MovieMate — Progreso del Frontend
 
 Resumen de todo lo implementado en el frontend durante el desarrollo del TFG.
-Actualizado: 2026-03-17 (sesión final BAJA)
+Actualizado: 2026-03-18 (sesión fixes BD + smoke test)
 
 ---
 
@@ -327,6 +327,31 @@ queryClient.invalidateQueries({ queryKey: queryKeys.users.lists() })
 - Backend `service/ListCommentService.java` — `getByList`, `create`, `delete` (verifica autoría)
 - Backend `controller/ListCommentController.java` — `GET/POST /api/lists/{id}/comments`, `DELETE .../comments/{cid}`
 
+### Correcciones de esquema BD y estabilidad ⭐ NUEVO
+- **Patrón `columnDefinition` con DEFAULT**: Hibernate `ddl-auto=update` no puede añadir columnas `NOT NULL` sin `DEFAULT` a tablas con filas existentes (el `ALTER TABLE` falla silenciosamente). Solución: añadir `columnDefinition = "boolean not null default false/true"` al `@Column`.
+  - `Rating.containsSpoiler` → `boolean not null default false`
+  - `Notification.read` → `boolean not null default false`
+  - `Comment.deleted` → `boolean not null default false`
+  - `ListComment.deleted` → `boolean not null default false`
+  - `User.isPublic` → `boolean not null default true`
+  - `List.isPublic` → `boolean not null default true`
+- **Native SQL: `FROM rating` → `FROM ratings`**: `RatingRepository.findMonthlyActivity` usaba el nombre incorrecto de tabla (singular). Las queries JPQL usan el nombre de la clase Java, las nativas usan el nombre de tabla real.
+- **NPE en `UserStatsService.calculateAverageRating`**: `mapToInt(Rating::getRating)` auto-unboxea `Integer` null → NPE. Fix: `.filter(r -> r.getRating() != null)` antes del `mapToInt`.
+- **Toggle CSS (`overflow-hidden` + `translate-x`)**: `overflow: hidden` en el botón padre recortaba el `transform: translateX()` del círculo hijo, haciéndolo desaparecer. Fix: eliminar `overflow-hidden` del botón y usar `left-[Xpx]` en lugar de `translate-x-[Xpx]` con `transition-all`.
+  - Aplicado en: `SettingsPage.tsx` (toggle privacidad perfil), `ListsPage.tsx` (dialog crear y editar lista)
+
+### HomePage — Secciones "mejor valoradas" ⭐ NUEVO
+- `src/features/home/HomePage.tsx`
+  - Sección **"Películas mejor valoradas ⭐"**: `discoverMovies` con `sortBy: 'vote_average.desc'`, `minRating: 7.5`
+  - Sección **"Series mejor valoradas 🏆"**: `discoverTvShows` con `sortBy: 'vote_average.desc'`, `minRating: 7.5`
+
+### Smoke test ⭐ NUEVO
+- `moviemate-backend/smoke-test.sh`
+  - Script bash completo que prueba ~70 endpoints de todos los controladores
+  - Crea datos de prueba (lista, comentarios, likes, follow), prueba todos los endpoints y limpia con `trap cleanup EXIT`
+  - Función `check()` imprime el cuerpo de error para diagnóstico de fallos
+  - Ejecutar: `cd moviemate-backend && bash smoke-test.sh`
+
 ---
 
 ## Estado del proyecto — COMPLETO
@@ -362,3 +387,5 @@ feat/frontend-pages
 | `@fix: corregir toSlug con titulo undefined, tab deep-link en ProfilePage y mutacion segura en SpecialListPage` | 3 bugs corregidos tras revisión de código |
 | `@feat: integrar WebSocket STOMP para notificaciones en tiempo real y paginacion en ReviewList` | useWebSocket hook, Layout integración, backend WebSocketAuthInterceptor, ReviewList "Ver más" |
 | `@feat: subida de avatar, recomendaciones, insignias y comentarios en listas` | UserService.uploadAvatar, WebMvcConfig static, BadgeService+UserBadge, ListCommentService+entity, ProfilePage badges, ListDetailPage comments, HomePage Para Ti |
+| `@fix: corregir errores de esquema BD, toggle CSS y queries nativas; añadir smoke test` | columnDefinition DEFAULT en 6 entidades, FROM ratings fix, toggle left en lugar de translate-x, NPE en calculateAverageRating, smoke-test.sh, secciones "mejor valoradas" en HomePage |
+

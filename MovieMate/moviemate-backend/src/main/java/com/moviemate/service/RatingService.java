@@ -28,6 +28,7 @@ public class RatingService {
     private final UserRepository userRepository;
     private final ReviewLikeRepository reviewLikeRepository;
 
+    @Transactional(readOnly = true)
     public List<RatingResponse> getRatingsByContent(User currentUser, Long contentId) {
         Content content = contentRepository.findById(contentId)
                 .orElseThrow(() -> new RuntimeException("Contenido no encontrado"));
@@ -123,6 +124,7 @@ public class RatingService {
     @Transactional
     public List<RatingResponse> getUserRatings(User user) {
         return ratingRepository.findByUser(user).stream()
+            .filter(r -> r.getContent() != null && r.getUser() != null)
             .map(this::mapToRatingResponse)
             .collect(Collectors.toList());
     }

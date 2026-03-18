@@ -29,7 +29,7 @@ public class User {
     @Column(length = 500)
     private String bio;
 
-    @Column(nullable = false)
+    @Column(nullable = false, columnDefinition = "boolean not null default true")
     private Boolean isPublic = true;
 
     @Enumerated(EnumType.STRING)

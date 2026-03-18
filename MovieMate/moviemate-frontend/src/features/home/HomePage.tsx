@@ -146,6 +146,20 @@ export default function HomePage() {
     staleTime: 1000 * 60 * 10,
   })
 
+  const { data: topRatedMovies, isLoading: loadingTopMovies } = useQuery({
+    queryKey: queryKeys.tmdb.discoverMovies({ sortBy: 'vote_average.desc', minRating: 7.5 }),
+    queryFn: () => tmdbApi.discoverMovies({ sortBy: 'vote_average.desc', minRating: 7.5 }),
+    select: (res) => res.data,
+    staleTime: 1000 * 60 * 30,
+  })
+
+  const { data: topRatedTv, isLoading: loadingTopTv } = useQuery({
+    queryKey: queryKeys.tmdb.discoverTv({ sortBy: 'vote_average.desc', minRating: 7.5 }),
+    queryFn: () => tmdbApi.discoverTvShows({ sortBy: 'vote_average.desc', minRating: 7.5 }),
+    select: (res) => res.data,
+    staleTime: 1000 * 60 * 30,
+  })
+
   const { data: suggestions = [] } = useQuery({
     queryKey: queryKeys.users.suggestions(),
     queryFn: () => usersApi.getSuggestions().then((r) => r.data),
@@ -164,6 +178,8 @@ export default function HomePage() {
   const trendingRest = (trending ?? []).slice(1).filter((item) => item.tmdbId && item.contentType)
   const popularMoviesFiltered = (popularMovies ?? []).filter((item) => item.tmdbId && item.contentType)
   const popularTvFiltered = (popularTv ?? []).filter((item) => item.tmdbId && item.contentType)
+  const topRatedMoviesFiltered = (topRatedMovies ?? []).filter((item) => item.tmdbId && item.contentType)
+  const topRatedTvFiltered = (topRatedTv ?? []).filter((item) => item.tmdbId && item.contentType)
 
   const featuredUrl = featured
     ? (() => {
@@ -290,6 +306,22 @@ export default function HomePage() {
           <h2 className="font-display font-bold italic text-xl">Series populares 📺</h2>
         </div>
         <ContentCarousel items={popularTvFiltered} loading={loadingTv} />
+      </section>
+
+      {/* ── MEJOR VALORADAS ── */}
+      <section className="px-4 lg:px-6 pt-8">
+        <div className="flex items-baseline justify-between mb-4">
+          <h2 className="font-display font-bold italic text-xl">Películas mejor valoradas ⭐</h2>
+        </div>
+        <ContentCarousel items={topRatedMoviesFiltered} loading={loadingTopMovies} />
+      </section>
+
+      {/* ── SERIES MEJOR VALORADAS ── */}
+      <section className="px-4 lg:px-6 pt-8">
+        <div className="flex items-baseline justify-between mb-4">
+          <h2 className="font-display font-bold italic text-xl">Series mejor valoradas 🏆</h2>
+        </div>
+        <ContentCarousel items={topRatedTvFiltered} loading={loadingTopTv} />
       </section>
 
       {/* ── PARA TI ── */}

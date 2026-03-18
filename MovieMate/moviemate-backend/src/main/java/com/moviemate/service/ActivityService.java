@@ -59,6 +59,7 @@ public class ActivityService {
         allActivities.addAll(recentRatings.stream()
                 .map(rating -> {
                     boolean updated = rating.getUpdatedAt() != null &&
+                            rating.getCreatedAt() != null &&
                             rating.getUpdatedAt().isAfter(rating.getCreatedAt().plusMinutes(1));
                     return ActivityResponse.builder()
                             .type(updated ? ActivityType.RATING_UPDATED : ActivityType.RATING_CREATED)
@@ -79,6 +80,7 @@ public class ActivityService {
         allActivities.addAll(recentLists.stream()
                 .map(list -> {
                     boolean updated = list.getUpdatedAt() != null &&
+                            list.getCreatedAt() != null &&
                             list.getUpdatedAt().isAfter(list.getCreatedAt().plusMinutes(1));
                     return ActivityResponse.builder()
                             .type(updated ? ActivityType.LIST_UPDATED : ActivityType.LIST_CREATED)
@@ -105,13 +107,14 @@ public class ActivityService {
                         .build())
                 .collect(Collectors.toList()));
 
-        // Ordenar por fecha descendente
-        allActivities.sort(Comparator.comparing(ActivityResponse::getCreatedAt).reversed());
+        // Ordenar por fecha descendente (null-safe)
+        allActivities.sort(Comparator.comparing(ActivityResponse::getCreatedAt,
+                Comparator.nullsLast(Comparator.naturalOrder())).reversed());
 
         // Paginar
         int start = (int) pageable.getOffset();
         int end = Math.min((start + pageable.getPageSize()), allActivities.size());
-        
+
         if (start > allActivities.size()) {
             return Page.empty(pageable);
         }
@@ -133,6 +136,7 @@ public class ActivityService {
         allActivities.addAll(recentRatings.stream()
                 .map(rating -> {
                     boolean updated = rating.getUpdatedAt() != null &&
+                            rating.getCreatedAt() != null &&
                             rating.getUpdatedAt().isAfter(rating.getCreatedAt().plusMinutes(1));
                     return ActivityResponse.builder()
                             .type(updated ? ActivityType.RATING_UPDATED : ActivityType.RATING_CREATED)
@@ -149,6 +153,7 @@ public class ActivityService {
         allActivities.addAll(recentLists.stream()
                 .map(list -> {
                     boolean updated = list.getUpdatedAt() != null &&
+                            list.getCreatedAt() != null &&
                             list.getUpdatedAt().isAfter(list.getCreatedAt().plusMinutes(1));
                     return ActivityResponse.builder()
                             .type(updated ? ActivityType.LIST_UPDATED : ActivityType.LIST_CREATED)
@@ -159,8 +164,9 @@ public class ActivityService {
                 })
                 .collect(Collectors.toList()));
 
-        // Ordenar por fecha descendente
-        allActivities.sort(Comparator.comparing(ActivityResponse::getCreatedAt).reversed());
+        // Ordenar por fecha descendente (null-safe)
+        allActivities.sort(Comparator.comparing(ActivityResponse::getCreatedAt,
+                Comparator.nullsLast(Comparator.naturalOrder())).reversed());
 
         // Paginar
         int start = (int) pageable.getOffset();

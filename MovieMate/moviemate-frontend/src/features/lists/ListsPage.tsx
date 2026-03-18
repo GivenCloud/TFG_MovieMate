@@ -194,8 +194,8 @@ function EditListDialog({
                 ${isPublic ? 'bg-accent' : 'bg-bg-3 border border-white/[0.1]'}`}
             >
               <span
-                className={`absolute top-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform
-                  ${isPublic ? 'translate-x-5' : 'translate-x-0.5'}`}
+                className={`absolute top-0.5 w-5 h-5 bg-zinc-800 rounded-full shadow transition-all
+                  ${isPublic ? 'left-5' : 'left-0.5'}`}
               />
             </button>
           </div>
@@ -390,8 +390,8 @@ function CreateListDialog({
                 ${isPublic ? 'bg-accent' : 'bg-bg-3 border border-white/[0.1]'}`}
             >
               <span
-                className={`absolute top-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform
-                  ${isPublic ? 'translate-x-5' : 'translate-x-0.5'}`}
+                className={`absolute top-0.5 w-5 h-5 bg-zinc-800 rounded-full shadow transition-all
+                  ${isPublic ? 'left-5' : 'left-0.5'}`}
               />
             </button>
           </div>

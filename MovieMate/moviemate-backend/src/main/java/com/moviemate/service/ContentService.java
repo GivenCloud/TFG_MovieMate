@@ -13,7 +13,9 @@ import com.moviemate.entity.Content;
 import com.moviemate.repository.ContentRepository;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 @EnableAsync
@@ -65,9 +67,10 @@ public class ContentService {
 
     private int getTtlDays(Content content) {
         // Popular: 1 día
-        if (content.getAppVoteCount() > 50) return 1;
+        int votes = content.getAppVoteCount() != null ? content.getAppVoteCount() : 0;
+        if (votes > 50) return 1;
         // Nueva: 3 días
-        if (content.getLastTmdbSync().isAfter(LocalDateTime.now().minusDays(7))) return 3;
+        if (content.getLastTmdbSync() != null && content.getLastTmdbSync().isAfter(LocalDateTime.now().minusDays(7))) return 3;
         // Resto: 14 días
         return 14;
     }
@@ -93,7 +96,8 @@ public class ContentService {
         content.setLastTmdbSync(LocalDateTime.now());
         content.setLastInteraction(LocalDateTime.now());
 
-        return contentRepository.save(content);
+        // TmdbService ya persistió la entidad; Hibernate dirty-checking persiste los cambios al hacer commit
+        return content;
     }
 
     @Async

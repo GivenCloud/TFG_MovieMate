@@ -133,7 +133,7 @@ export default function SettingsPage() {
     },
     onError: () => {
       // Revertir el estado optimista si falla
-      setIsPublicOptimistic(me?.isPublic ?? null)
+      setIsPublicOptimistic(me?.isPublic ?? false)
       toast.error('No se pudo cambiar la privacidad')
     },
   })
@@ -293,20 +293,21 @@ export default function SettingsPage() {
               </div>
               <button
                 onClick={() => {
-                  if (!me || isPublicOptimistic === null) return
-                  const next = !isPublicOptimistic
+                  if (!me) return
+                  const current = isPublicOptimistic ?? me.isPublic
+                  const next = !current
                   setIsPublicOptimistic(next)
                   togglePrivacy(next)
                 }}
-                disabled={isTogglingPrivacy || !me}
-                aria-checked={isPublicOptimistic ?? false}
+                disabled={isTogglingPrivacy}
+                aria-checked={(isPublicOptimistic ?? me?.isPublic) ?? false}
                 role="switch"
                 className={`relative w-12 h-6 rounded-full transition-colors duration-200 shrink-0 focus:outline-none focus:ring-2 focus:ring-accent/40 disabled:opacity-50
-                  ${isPublicOptimistic ? 'bg-accent' : 'bg-white/20'}`}
+                  ${(isPublicOptimistic ?? me?.isPublic) ? 'bg-accent' : 'bg-white/20'}`}
               >
                 <span
-                  className={`absolute top-[3px] w-[18px] h-[18px] bg-white rounded-full shadow-md transition-transform duration-200
-                    ${isPublicOptimistic ? 'translate-x-[27px]' : 'translate-x-[3px]'}`}
+                  className={`absolute top-[3px] w-[18px] h-[18px] bg-zinc-800 rounded-full shadow transition-all duration-200
+                    ${(isPublicOptimistic ?? me?.isPublic) ? 'left-[27px]' : 'left-[3px]'}`}
                 />
               </button>
             </div>

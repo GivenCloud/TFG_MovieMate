@@ -94,8 +94,9 @@ public class UserStatsService {
         if (ratings.isEmpty()) {
             return 0.0;
         }
-        
+
         return ratings.stream()
+                .filter(r -> r.getRating() != null)
                 .mapToInt(Rating::getRating)
                 .average()
                 .orElse(0.0);
