@@ -114,7 +114,7 @@ jobs:
 
       - name: Deploy with Helm
         run: |
-          helm upgrade moviemate ./k8s/moviemate \
+          helm upgrade --install moviemate ./k8s/moviemate \
             --namespace moviemate \
             --reuse-values \
             --set backend.image.repository=${{ env.BACKEND_IMAGE }} \
