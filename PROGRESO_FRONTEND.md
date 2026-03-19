@@ -1,7 +1,7 @@
 # MovieMate — Progreso del Frontend
 
 Resumen de todo lo implementado en el frontend durante el desarrollo del TFG.
-Actualizado: 2026-03-12
+Actualizado: 2026-03-18 (memoria TFG + fix doble-save backend)
 
 ---
 
@@ -13,9 +13,9 @@ Actualizado: 2026-03-12
 | Frontend — Auth flow (login + register) | ✅ Completo |
 | Frontend — Layout (Sidebar + Topbar) | ✅ Completo |
 | Frontend — HomePage | ✅ Completo |
-| Frontend — DiscoverPage | ✅ Completo |
-| Frontend — DetailPage | ✅ Completo |
-| Frontend — ProfilePage | ✅ Completo |
+| Frontend — DiscoverPage + filtros avanzados | ✅ Completo |
+| Frontend — DetailPage + ¿Dónde ver? + Cast | ✅ Completo |
+| Frontend — ProfilePage + favoritas fijadas | ✅ Completo |
 | Frontend — NotificationsPage | ✅ Completo |
 | Frontend — ListsPage | ✅ Completo |
 | Frontend — PosterCard interactivo | ✅ Completo |
@@ -23,11 +23,20 @@ Actualizado: 2026-03-12
 | Frontend — SettingsPage | ✅ Completo |
 | Frontend — ActivityPage/Feed | ✅ Completo |
 | Frontend — Sidebar links + avatar en layout | ✅ Completo |
-| Frontend — ListDetailPage | ✅ Completo |
+| Frontend — ListDetailPage + comentarios | ✅ Completo |
 | Frontend — WatchlistPage / FavoritesPage | ✅ Completo |
 | Frontend — ProfilePage deep-link por tab | ✅ Completo |
 | Frontend — WebSocket tiempo real | ✅ Completo |
 | Frontend — Paginación ReviewList | ✅ Completo |
+| Frontend — PersonPage (actores/directores) | ✅ Completo |
+| Frontend — Spoiler tags en reseñas | ✅ Completo |
+| Frontend — Temporadas y episodios (SeasonAccordion) | ✅ Completo |
+| Frontend — Estadísticas avanzadas (StatsTab en perfil) | ✅ Completo |
+| Frontend — Subida de avatar (multipart) | ✅ Completo |
+| Frontend — Recomendaciones personalizadas | ✅ Completo |
+| Frontend — Insignias/gamificación | ✅ Completo |
+| Backend — RATING_UPDATED / LIST_UPDATED en ActivityService | ✅ Completo |
+| Backend — Usuarios sugeridos en HomePage | ✅ Completo |
 
 ---
 
@@ -37,14 +46,19 @@ Actualizado: 2026-03-12
 /login                              → LoginPage (pública)
 /register                           → RegisterPage (pública)
 /                                   → HomePage (pública)
-/discover                           → DiscoverPage (pública)
-/content/:contentType/:tmdbId/:slug → DetailPage (pública)
-/profile/:username                  → ProfilePage (pública)
+/discover                           → DiscoverPage (pública) — filtros avanzados
+/content/:contentType/:tmdbId/:slug → DetailPage (pública) — cast + ¿dónde ver?
+/person/:personId/:slug?            → PersonPage (pública) — filmografía
+/profile/:username                  → ProfilePage (pública) — favoritas fijadas
 /lists                              → ListsPage (PrivateRoute)
 /lists/:listId                      → ListDetailPage (pública)
 /watchlist                          → SpecialListPage WATCHLIST (PrivateRoute)
 /favorites                          → SpecialListPage FAVORITES (PrivateRoute)
+/watched                            → SpecialListPage WATCHED (PrivateRoute)
 /notifications                      → NotificationsPage (PrivateRoute)
+/settings                           → SettingsPage (PrivateRoute)
+/activity                           → ActivityPage (pública)
+/admin                              → AdminPage (AdminRoute)
 ```
 
 Sidebar — "Mi espacio" (todas las rutas resueltas):
@@ -262,38 +276,116 @@ queryClient.invalidateQueries({ queryKey: queryKeys.users.lists() })
   - Dos tabs: "Para ti" (feed personal, lazy) y "Global"; "Para ti" solo visible si autenticado
   - Paginación "Ver más": re-fetcha con `size` creciente (0..20..40...) sin infinite scroll
   - `ActivityItem`: renderizado diferente por tipo vía switch
-  - `RATING_*`: card con poster mini, estrellas, tag emocional, extracto de reseña, enlaza a DetailPage
-  - `LIST_*`: texto con nombre de lista
+  - `RATING_CREATED` / `RATING_UPDATED`: card con poster mini, estrellas, tag emocional, extracto de reseña
+  - `LIST_CREATED` / `LIST_UPDATED`: texto con nombre de lista
   - `FOLLOW`: enlaza al perfil del targetUser
   - Avatar con link al perfil; `key` compuesto (ActivityResponse no tiene id)
+- Backend `ActivityService.java` detecta edición comparando `updatedAt > createdAt + 1min` — no requiere entidad separada
+
+### SettingsPage — Subida de avatar ⭐ NUEVO
+- `src/features/settings/SettingsPage.tsx`
+  - Botón de subir archivo + input file hidden (trigger con `useRef`)
+  - Preview instantáneo con `URL.createObjectURL(file)` antes de que complete el upload
+  - Mutation `uploadAvatar`: POST multipart a `/api/users/me/avatar`; en success actualiza cache y limpia preview
+  - Mantiene opción de pegar URL manualmente como fallback
+- Backend `service/UserService.java` — `uploadAvatar(User, MultipartFile)`:
+  - Valida `contentType.startsWith("image/")` y tamaño ≤5MB
+  - Guarda en `uploads/avatars/{userId}_{8charUUID}{ext}`
+  - Actualiza `user.avatarUrl` a `/uploads/avatars/{filename}`
+- Backend `config/WebMvcConfig.java` — sirve `/uploads/**` desde el sistema de ficheros
+- Backend `config/SecurityConfig.java` — `/uploads/**` en `permitAll()` (imágenes públicas sin auth)
+
+### HomePage — Recomendaciones + Usuarios sugeridos ⭐ NUEVO
+- `src/features/home/HomePage.tsx`
+  - Sección **"Para ti ✨"** (solo autenticados): carrusel con `recommendations` — top género del usuario → discover TMDB rating ≥7 → 6 películas + 6 series
+  - Sección **"Cinéfilos que quizás conozcas 👥"** (solo autenticados): hasta 5 `SuggestedUserCard` con avatar, @username y bio
+  - `queryKeys.users.recommendations()` / `queryKeys.users.suggestions()` con staleTime 30/10 min
+- Backend `GET /api/users/me/recommendations`: extrae top-1 género de `FullStatsDto`, mapea nombre a ID TMDB, llama `discoverMovies` + `discoverTvShows`
+
+### ProfilePage — Insignias ⭐ NUEVO
+- `src/features/profile/ProfilePage.tsx`
+  - Componente `BadgesSection`: chips `emoji + nombre` con tooltip de descripción, visibles en todos los perfiles (propio y ajeno), entre stats y películas favoritas
+  - Query `badgesQuery`: usa `getMyBadges()` si es perfil propio, `getBadgesByUserId(id)` si es ajeno
+- Backend `entity/UserBadge.java` — tabla `user_badges` con constraint unique (user_id, badge_type)
+- Backend `service/BadgeService.java` — 10 insignias (enum `BadgeType`), evaluación idempotente en `checkAndAward(user, stats)`:
+  - FIRST_REVIEW (≥1 rating) · CRITIC (≥10) · CINEPHILE (≥50) · FILM_BUFF (≥100)
+  - MOVIE_MARATHON (≥10 películas) · SERIES_BINGE (≥10 series)
+  - SOCIAL (≥1 seguidor) · POPULAR (≥10 seguidores)
+  - LISTER (≥1 lista) · LIKED (≥1 like recibido)
+- Integrado en `UserStatsService.updateUserStats()` → se evalúa en cada recalculación de stats
+- `GET /api/users/me/badges` y `GET /api/users/{id}/badges`
+
+### ListDetailPage — Comentarios ⭐ NUEVO
+- `src/features/lists/ListDetailPage.tsx`
+  - Sección de comentarios al final: textarea + botón Publicar (disabled si vacío o enviando)
+  - Lista de comentarios: avatar (imagen o inicial), @username con link al perfil, `timeAgo`, texto del comentario
+  - Botón `×` para eliminar propio (solo visible en hover del autor)
+  - Skeleton de carga (2 filas animadas)
+  - Estado vacío: "Sin comentarios todavía. ¡Sé el primero!"
+  - `queryKeys.comments.byList(listId)` con staleTime 2 min
+- Backend `entity/ListComment.java` — tabla `list_comments`, FK a `User` + `List`, soft delete (`deleted = false`)
+- Backend `service/ListCommentService.java` — `getByList`, `create`, `delete` (verifica autoría)
+- Backend `controller/ListCommentController.java` — `GET/POST /api/lists/{id}/comments`, `DELETE .../comments/{cid}`
+
+### Correcciones de esquema BD y estabilidad ⭐ NUEVO
+- **Patrón `columnDefinition` con DEFAULT**: Hibernate `ddl-auto=update` no puede añadir columnas `NOT NULL` sin `DEFAULT` a tablas con filas existentes (el `ALTER TABLE` falla silenciosamente). Solución: añadir `columnDefinition = "boolean not null default false/true"` al `@Column`.
+  - `Rating.containsSpoiler` → `boolean not null default false`
+  - `Notification.read` → `boolean not null default false`
+  - `Comment.deleted` → `boolean not null default false`
+  - `ListComment.deleted` → `boolean not null default false`
+  - `User.isPublic` → `boolean not null default true`
+  - `List.isPublic` → `boolean not null default true`
+- **Native SQL: `FROM rating` → `FROM ratings`**: `RatingRepository.findMonthlyActivity` usaba el nombre incorrecto de tabla (singular). Las queries JPQL usan el nombre de la clase Java, las nativas usan el nombre de tabla real.
+- **NPE en `UserStatsService.calculateAverageRating`**: `mapToInt(Rating::getRating)` auto-unboxea `Integer` null → NPE. Fix: `.filter(r -> r.getRating() != null)` antes del `mapToInt`.
+- **Toggle CSS (`overflow-hidden` + `translate-x`)**: `overflow: hidden` en el botón padre recortaba el `transform: translateX()` del círculo hijo, haciéndolo desaparecer. Fix: eliminar `overflow-hidden` del botón y usar `left-[Xpx]` en lugar de `translate-x-[Xpx]` con `transition-all`.
+  - Aplicado en: `SettingsPage.tsx` (toggle privacidad perfil), `ListsPage.tsx` (dialog crear y editar lista)
+
+### HomePage — Secciones "mejor valoradas" ⭐ NUEVO
+- `src/features/home/HomePage.tsx`
+  - Sección **"Películas mejor valoradas ⭐"**: `discoverMovies` con `sortBy: 'vote_average.desc'`, `minRating: 7.5`
+  - Sección **"Series mejor valoradas 🏆"**: `discoverTvShows` con `sortBy: 'vote_average.desc'`, `minRating: 7.5`
+
+### Smoke test ⭐ NUEVO
+- `moviemate-backend/smoke-test.sh`
+  - Script bash completo que prueba ~70 endpoints de todos los controladores
+  - Crea datos de prueba (lista, comentarios, likes, follow), prueba todos los endpoints y limpia con `trap cleanup EXIT`
+  - Función `check()` imprime el cuerpo de error para diagnóstico de fallos
+  - Ejecutar: `cd moviemate-backend && bash smoke-test.sh`
+
+### Fix: doble save en ContentService (B19) ⭐ NUEVO
+- `service/ContentService.java` — eliminada llamada redundante a `contentRepository.save(content)` al final de `fetchFromTmdb`. `TmdbService` ya persistía la entidad; la segunda llamada causaba un error de Hibernate al intentar re-insertar un registro ya gestionado, retornando 400 al cliente.
+- `exception/GlobalExceptionHandler.java` — añadido `@Slf4j` + `log.error(...)` en `handleRuntimeException` para que las excepciones inesperadas queden registradas en los logs del contenedor.
+
+### Memoria TFG — documentación académica ⭐ NUEVO
+Trabajo de documentación de la memoria del TFG. No afecta al código fuente del proyecto.
+
+- **`Memoria TFG_rev260318.docx`** — revisión intermedia con 12 cambios aplicados: Resumen, Introducción, §2.2.2 librerías React, §4.2.3 diseño front-end, §4.3.2 arquitectura front-end (primera versión), §5 Conclusiones + Trabajo futuro, integración TMDB en §4.3.1, todos los comentarios del tutor atendidos (incluidos 3 marcados "NO HECHO").
+- **`Memoria TFG_rev260319.docx`** — revisión definitiva (802 párrafos). Cambios principales:
+  - **§4.3.2** completamente reescrita: 10 subsecciones (Heading 4) con contenido técnico detallado por página y feature, 11 pistas de figura `[Figura 4.X: ...]` para insertar capturas.
+  - **§4.5.3** ampliada con sección de estrategia de ramificación (`develop` → `main` con CI/CD como cortafuegos).
+  - **§4.5.4** nueva sección «Despliegue en Kubernetes con Minikube»: introducción a Kubernetes, 8 manifiestos descritos (Namespace, ConfigMap, Secret, PVC, Deployments, Services), pipeline de despliegue de 5 pasos con Minikube, integración con el pipeline de CI/CD.
+- **`Memoria TFG_rev260320.docx`** — (825 párrafos). Cambios principales:
+  - **§II Abstract extendido en inglés** insertado (~1894 palabras, 7 secciones con headings en negrita): Context and Motivation, Objectives, Methodology, Back-End Architecture, Front-End Architecture, Testing and Deployment, Results and Conclusions.
+- **`Memoria TFG_rev260321.docx`** — (831 párrafos) ← **VERSIÓN MÁS RECIENTE**. Cambios principales:
+  - **Tabla de endpoints** ampliada de 41 a 64 filas (+23 endpoints faltantes: recommendations, badges, avatar, trending, rating comments, list comments, episodeWatch, reports, admin endpoints).
+  - **§4.2.1** ampliada con 3 párrafos sobre 7 entidades no documentadas: Comment, ReviewLike, EpisodeWatch, ListComment, ContentReport, UserBadge.
+  - **§4.3.1** ampliada con 3 párrafos sobre: WebSocket/STOMP con WebSocketAuthInterceptor, BadgeService/UserStatsService/CacheCleaner, SwaggerConfig/@RequirePublicProfile.
 
 ---
 
-## Pendiente para próximas sesiones
+## Estado del proyecto — COMPLETO
 
-### Bugs / mejoras identificadas
+**Toda la funcionalidad está implementada (prioridades ALTA, MEDIA y BAJA).**
 
-1. ~~**Sidebar links rotos**~~ ✅ — rutas dedicadas para cada sección: `?tab=ratings`, `/watchlist`, `/favorites`
+### Bugs resueltos (todos)
+- B1–B19: todos ✅
 
-2. ~~**Avatar en Topbar y Sidebar no se actualiza**~~ ✅ — `Topbar` y `Sidebar` usan `useMyProfile().avatarUrl`; se actualiza automáticamente al guardar en Settings
+### Funcionalidades completadas (todas)
+- M1–M34: todas ✅
 
-3. **Tabs "Valoraciones" y "Listas" vacías en perfiles ajenos** — limitación de backend (`GET /users/:id/ratings` no existe). Baja prioridad para el TFG.
-
-4. ~~**ListCard no navega**~~ ✅ — `ListDetailPage` creada en `/lists/:listId`; ListCard envuelta con Link en ListsPage y ProfilePage
-
-### Bugs corregidos (revisión de código)
-
-- ~~`toSlug(undefined)` crash en HomePage~~ ✅ — `utils.ts` acepta ahora `string | null | undefined`
-- ~~`activeTab` no se actualizaba al navegar al mismo perfil con distinto `?tab=`~~ ✅ — `useEffect` sincroniza searchParams → estado
-- ~~`list!.id` non-null assertion inseguro en `SpecialListPage`~~ ✅ — guard explícito con `Promise.reject`
-
-### Pendiente mayor
-
-1. ~~**WebSocket tiempo real**~~ ✅ — `@stomp/stompjs` + `sockjs-client` integrados. `useWebSocket` en `Layout.tsx` conecta al broker, suscribe a `/user/queue/notifications`, prepende la notificación al cache y refresca el badge automáticamente. Backend: `WebSocketAuthInterceptor` valida el JWT del frame CONNECT, `/ws/**` en permitAll.
-
-2. ~~**Paginación en ReviewList**~~ ✅ — Paginación cliente de 5 en 5 con botón "Ver más" que muestra los restantes. El backend devuelve lista plana; no requiere cambios de API.
-
-3. **Tabs "Valoraciones" y "Listas" en perfiles ajenos** — limitación de backend (`GET /users/:id/ratings` no existe). Baja prioridad para el TFG.
+### Pendiente operacional
+- **Avatar en producción/Docker**: los archivos se guardan en `uploads/` en el filesystem local. En un entorno productivo habría que montar un volumen Docker o migrar a un object storage (S3, Cloudflare R2). No afecta a la funcionalidad del TFG.
+- **Memoria TFG — tareas manuales pendientes**: términos en inglés en cursiva, nombres de entidades en Courier New, colores en tabla de endpoints, insertar capturas reales en las posiciones `[Figura X.X: ...]`, actualizar tabla de contenidos.
 
 ---
 
@@ -313,3 +405,8 @@ feat/frontend-pages
 | `@feat: arreglar sidebar links y avatar, añadir paginas de lista` | Sidebar/Topbar avatar reactivo, ListDetailPage, SpecialListPage watchlist/favorites, ProfilePage tab deep-link |
 | `@fix: corregir toSlug con titulo undefined, tab deep-link en ProfilePage y mutacion segura en SpecialListPage` | 3 bugs corregidos tras revisión de código |
 | `@feat: integrar WebSocket STOMP para notificaciones en tiempo real y paginacion en ReviewList` | useWebSocket hook, Layout integración, backend WebSocketAuthInterceptor, ReviewList "Ver más" |
+| `@feat: subida de avatar, recomendaciones, insignias y comentarios en listas` | UserService.uploadAvatar, WebMvcConfig static, BadgeService+UserBadge, ListCommentService+entity, ProfilePage badges, ListDetailPage comments, HomePage Para Ti |
+| `@fix: corregir errores de esquema BD, toggle CSS y queries nativas; añadir smoke test` | columnDefinition DEFAULT en 6 entidades, FROM ratings fix, toggle left en lugar de translate-x, NPE en calculateAverageRating, smoke-test.sh, secciones "mejor valoradas" en HomePage |
+| `@fix: eliminar doble save en ContentService y añadir logging a GlobalExceptionHandler` | B19: fetchFromTmdb sin contentRepository.save redundante; @Slf4j + log.error en handleRuntimeException |
+| `@fix: actualizar ContentServiceTest tras eliminar doble save en fetchFromTmdb` | Test getOrFetch_shouldFetchFromTmdb: verify never().save() en lugar de verify().save(); pipeline CI/CD verde |
+

@@ -33,7 +33,7 @@ public class Notification {
     @Column(nullable = false)
     private Long referenceId;
 
-    @Column(nullable = false)
+    @Column(nullable = false, columnDefinition = "boolean not null default false")
     private boolean read = false;
 
     // Texto libre para notificaciones del sistema (ej. CONTENT_REMOVED)

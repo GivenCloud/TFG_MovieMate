@@ -6,6 +6,7 @@ import { usersApi } from '../../api/users'
 import { queryKeys } from '../../lib/queryKeys'
 import { timeAgo } from '../../lib/utils'
 import EmptyState from '../../components/shared/EmptyState'
+import BackButton from '../../components/shared/BackButton'
 import type { NotificationDto, NotificationType } from '../../types'
 
 // ── Config por tipo de notificación ─────────────────────────
@@ -164,6 +165,11 @@ export default function NotificationsPage() {
 
   return (
     <div className="pb-12">
+      {/* Botón volver */}
+      <div className="px-4 lg:px-6 pt-4 pb-1">
+        <BackButton to="/" label="Inicio" />
+      </div>
+
       {/* ── Topbar interno ───────────────────────────────── */}
       <div className="flex items-center justify-between px-6 py-5 border-b border-white/[0.06]">
         <h1 className="font-display font-bold italic text-2xl">Notificaciones</h1>

@@ -163,6 +163,7 @@ function ReviewCard({
 }) {
   const { isAuthenticated, sessionUser } = useAuthStore()
   const [reportOpen, setReportOpen] = useState(false)
+  const [spoilerRevealed, setSpoilerRevealed] = useState(false)
   const isOwnReview = sessionUser?.username === review.user.username
 
   return (
@@ -203,16 +204,37 @@ function ReviewCard({
         </div>
       </div>
 
-      {/* Tag emocional */}
-      {review.emotionalTag && (
-        <span className="inline-block text-xs font-medium bg-accent/10 text-accent border border-accent/20 px-2 py-0.5 rounded-full mb-2">
-          {TAG_LABELS[review.emotionalTag] ?? review.emotionalTag}
-        </span>
-      )}
+      {/* Tag emocional + badge spoiler */}
+      <div className="flex flex-wrap items-center gap-2 mb-2">
+        {review.emotionalTag && (
+          <span className="text-xs font-medium bg-accent/10 text-accent border border-accent/20 px-2 py-0.5 rounded-full">
+            {TAG_LABELS[review.emotionalTag] ?? review.emotionalTag}
+          </span>
+        )}
+        {review.containsSpoiler && (
+          <span className="text-xs font-medium bg-yellow-500/10 text-yellow-400 border border-yellow-500/20 px-2 py-0.5 rounded-full">
+            ⚠️ Spoilers
+          </span>
+        )}
+      </div>
 
-      {/* Texto de reseña */}
+      {/* Texto de reseña con overlay de spoiler */}
       {review.reviewText && (
-        <p className="text-sm text-white/70 leading-relaxed">{review.reviewText}</p>
+        review.containsSpoiler && !spoilerRevealed ? (
+          <div className="relative">
+            <p className="text-sm text-white/70 leading-relaxed blur-sm select-none pointer-events-none">
+              {review.reviewText}
+            </p>
+            <button
+              onClick={() => setSpoilerRevealed(true)}
+              className="absolute inset-0 flex items-center justify-center bg-bg-2/60 rounded-lg text-xs font-medium text-yellow-400 hover:text-yellow-300 transition-colors"
+            >
+              ⚠️ Contiene spoilers — clic para leer
+            </button>
+          </div>
+        ) : (
+          <p className="text-sm text-white/70 leading-relaxed">{review.reviewText}</p>
+        )
       )}
 
       {/* Botón comentarios + reportar */}

@@ -96,6 +96,7 @@ public class SecurityConfig {
                                  "/api/tmdb/tv/**",
                                  "/api/tmdb/movies/**",
                                  "/api/tmdb/trending",
+                                 "/uploads/**",
                                  "/ws/**"
                 ).permitAll()
                 .anyRequest().authenticated()

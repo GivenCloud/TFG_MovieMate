@@ -118,7 +118,8 @@ export interface RatingRequest {
   reviewText?: string
   emotionalTag: EmotionalTag
   status: Status
-  watchedDate: string     
+  watchedDate: string
+  containsSpoiler?: boolean
 }
 
 export interface RatingResponse {
@@ -133,6 +134,7 @@ export interface RatingResponse {
   content: ContentResponse
   likesCount?: number
   likedByCurrentUser?: boolean
+  containsSpoiler?: boolean
 }
 
 // ─── Listas ────────────────────────────────────────────────────
@@ -245,6 +247,83 @@ export interface CommentRequest {
   content: string
 }
 
+// ─── Personas ──────────────────────────────────────────────────
+export interface PersonDto {
+  id: number
+  name: string
+  biography?: string
+  birthday?: string
+  deathday?: string
+  profileUrl?: string
+  placeOfBirth?: string
+  knownForDepartment?: string
+}
+
+export interface CastMemberDto {
+  personId: number
+  name: string
+  profileUrl?: string
+  character?: string
+  job?: string
+  department?: string
+}
+
+// ─── Estadísticas avanzadas ──────────────────────────────────────
+export interface RatingCountDto {
+  rating: number
+  count: number
+}
+
+export interface GenreStatDto {
+  genre: string
+  count: number
+}
+
+export interface MonthlyActivityDto {
+  year: number
+  month: number
+  count: number
+}
+
+export interface FullStatsDto {
+  totalRatings: number
+  averageRating: number
+  moviesWatched: number
+  seriesWatched: number
+  totalWatchTime: number
+  listsCreated: number
+  followersCount: number
+  followingCount: number
+  likesReceived: number
+  ratingDistribution: RatingCountDto[]
+  topGenres: GenreStatDto[]
+  monthlyActivity: MonthlyActivityDto[]
+}
+
+// ─── Temporadas y episodios ─────────────────────────────────────
+export interface SeasonSummary {
+  seasonNumber: number
+  name: string
+  overview: string
+  episodeCount: number
+  posterUrl?: string
+  airDate?: string
+}
+
+export interface EpisodeDto {
+  episodeNumber: number
+  name: string
+  overview: string
+  airDate?: string
+  runtime?: number
+  stillUrl?: string
+  voteAverage?: number
+}
+
+export interface SeasonDto extends SeasonSummary {
+  episodes: EpisodeDto[]
+}
+
 // ─── Errores ───────────────────────────────────────────────────
 export interface ErrorResponse {
   error: string
@@ -252,4 +331,31 @@ export interface ErrorResponse {
   status: number
   timestamp: string
   details: { [key: string]: string }
+}
+
+// ─── Insignias ────────────────────────────────────────────────
+export interface BadgeDto {
+  type: string
+  name: string
+  description: string
+  icon: string
+  awardedAt: string
+}
+
+// ─── Progreso de episodios ────────────────────────────────────
+export interface SeriesProgressDto {
+  tmdbSeriesId: number
+  title: string
+  posterUrl: string | null
+  watchedCount: number
+}
+
+// ─── Comentarios de listas ────────────────────────────────────
+export interface ListCommentResponse {
+  id: number
+  content: string
+  createdAt: string
+  updatedAt: string
+  author: UserResponse
+  listId: number
 }

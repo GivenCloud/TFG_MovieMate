@@ -5,7 +5,6 @@ import com.moviemate.dto.ListRequest;
 import com.moviemate.dto.ListResponse;
 import com.moviemate.entity.User;
 import com.moviemate.security.CustomUserDetails;
-import com.moviemate.service.ContentService;
 import com.moviemate.service.ListService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -27,7 +26,6 @@ import io.swagger.v3.oas.annotations.parameters.RequestBody;
 public class ListController {
     
     private final ListService listService;
-    private final ContentService contentService;
 
     @Operation(
             summary = "Crear una lista",
@@ -80,10 +78,7 @@ public class ListController {
             @PathVariable Long listId,
             @org.springframework.web.bind.annotation.RequestBody AddToListRequest request) {
         User user = userDetails.getUser();
-        com.moviemate.entity.Content content = contentService.getOrFetch(
-                request.getTmdbId().intValue()
-        );
-        return ResponseEntity.ok(listService.addContentToList(user, listId, content.getTmdbId()));
+        return ResponseEntity.ok(listService.addContentToList(user, listId, request.getTmdbId()));
     }
 
     @Operation(

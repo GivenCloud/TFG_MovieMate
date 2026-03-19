@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
 import { useMyProfile, useLogout } from '../../hooks/useAuth'
@@ -6,6 +6,7 @@ import { useUpdateProfile } from '../../hooks/useProfile'
 import { useAuthStore } from '../../store/authStore'
 import { usersApi } from '../../api/users'
 import { queryKeys } from '../../lib/queryKeys'
+import BackButton from '../../components/shared/BackButton'
 
 // ── Esqueleto de carga ───────────────────────────────────────
 function SettingsSkeleton() {
@@ -54,7 +55,11 @@ export default function SettingsPage() {
   const [bio, setBio] = useState('')
   const [avatarUrl, setAvatarUrl] = useState('')
   const [avatarError, setAvatarError] = useState(false)
+  const [avatarPreview, setAvatarPreview] = useState<string | null>(null)
+  const fileInputRef = useRef<HTMLInputElement>(null)
   const [confirmLogout, setConfirmLogout] = useState(false)
+  // Estado optimista para el toggle de privacidad — refleja el cambio de inmediato
+  const [isPublicOptimistic, setIsPublicOptimistic] = useState<boolean | null>(null)
 
   // Cambio de contraseña
   const [currentPwd, setCurrentPwd] = useState('')
@@ -91,8 +96,29 @@ export default function SettingsPage() {
       setBio(me.bio ?? '')
       setAvatarUrl(me.avatarUrl ?? '')
       setAvatarError(false)
+      // Solo inicializa el optimista si aún no se ha fijado (primera carga)
+      setIsPublicOptimistic((prev) => prev === null ? me.isPublic : prev)
     }
   }, [me])
+
+  const { mutate: uploadAvatar, isPending: isUploading } = useMutation({
+    mutationFn: (file: File) => usersApi.uploadAvatar(file),
+    onSuccess: ({ data }) => {
+      queryClient.setQueryData(queryKeys.users.me(), data)
+      setAvatarUrl(data.avatarUrl ?? '')
+      setAvatarPreview(null)
+      toast.success('Avatar actualizado')
+    },
+    onError: () => toast.error('Error al subir el avatar'),
+  })
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+    const preview = URL.createObjectURL(file)
+    setAvatarPreview(preview)
+    uploadAvatar(file)
+  }
 
   const { mutate: saveProfile, isPending: isSaving } = useUpdateProfile(
     sessionUser?.username ?? ''
@@ -102,9 +128,14 @@ export default function SettingsPage() {
     mutationFn: (isPublic: boolean) => usersApi.updatePublicStatus(isPublic),
     onSuccess: ({ data }) => {
       queryClient.setQueryData(queryKeys.users.me(), data)
+      setIsPublicOptimistic(data.isPublic)
       toast.success(data.isPublic ? 'Perfil ahora público' : 'Perfil ahora privado')
     },
-    onError: () => toast.error('No se pudo cambiar la privacidad'),
+    onError: () => {
+      // Revertir el estado optimista si falla
+      setIsPublicOptimistic(me?.isPublic ?? false)
+      toast.error('No se pudo cambiar la privacidad')
+    },
   })
 
   const handleSaveProfile = () => {
@@ -125,6 +156,11 @@ export default function SettingsPage() {
 
   return (
     <div className="pb-12">
+      {/* Botón volver */}
+      <div className="px-4 lg:px-6 pt-4 pb-1">
+        <BackButton to={sessionUser ? `/profile/${sessionUser.username}` : '/'} label="Mi perfil" />
+      </div>
+
       {/* Cabecera */}
       <div className="px-4 lg:px-6 py-5 border-b border-white/[0.06]">
         <h1 className="font-display font-bold italic text-2xl">Ajustes</h1>
@@ -143,32 +179,67 @@ export default function SettingsPage() {
           <div className="px-6 py-5 space-y-5">
             {/* Avatar */}
             <div className="flex items-start gap-4">
-              <div className="w-16 h-16 rounded-full bg-gradient-to-br from-accent to-pink-500 flex items-center justify-center text-2xl font-bold text-bg-0 shrink-0 overflow-hidden border-2 border-white/10">
-                {avatarUrl && !avatarError ? (
-                  <img
-                    src={avatarUrl}
-                    alt="Avatar"
-                    className="w-full h-full object-cover"
-                    onError={() => setAvatarError(true)}
-                  />
-                ) : (
-                  <span>{sessionUser?.username.charAt(0).toUpperCase()}</span>
-                )}
-              </div>
-              <div className="flex-1">
-                <label className="block text-xs font-mono text-muted uppercase tracking-wider mb-1.5">
-                  URL del avatar
-                </label>
+              {/* Preview */}
+              <div className="relative group shrink-0">
+                <div className="w-16 h-16 rounded-full bg-gradient-to-br from-accent to-pink-500 flex items-center justify-center text-2xl font-bold text-bg-0 overflow-hidden border-2 border-white/10">
+                  {(avatarPreview || (avatarUrl && !avatarError)) ? (
+                    <img
+                      src={avatarPreview ?? avatarUrl}
+                      alt="Avatar"
+                      className="w-full h-full object-cover"
+                      onError={() => { setAvatarError(true); setAvatarPreview(null) }}
+                    />
+                  ) : (
+                    <span>{sessionUser?.username.charAt(0).toUpperCase()}</span>
+                  )}
+                </div>
+                {/* Botón overlay para subir archivo */}
+                <button
+                  type="button"
+                  onClick={() => fileInputRef.current?.click()}
+                  disabled={isUploading}
+                  className="absolute inset-0 rounded-full bg-black/50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity text-white text-xs font-medium"
+                >
+                  {isUploading ? '...' : '📷'}
+                </button>
                 <input
-                  type="url"
-                  value={avatarUrl}
-                  onChange={(e) => { setAvatarUrl(e.target.value); setAvatarError(false) }}
-                  placeholder="https://ejemplo.com/mi-foto.jpg"
-                  className="w-full bg-bg-2 border border-white/[0.1] rounded-xl px-3.5 py-2.5 text-sm text-white placeholder:text-muted outline-none focus:border-accent/50 focus:ring-2 focus:ring-accent/10 transition-all"
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/*"
+                  onChange={handleFileChange}
+                  className="hidden"
                 />
-                <p className="text-[0.65rem] text-muted mt-1">
-                  Enlace directo a una imagen (JPG, PNG, WebP)
-                </p>
+              </div>
+
+              <div className="flex-1 space-y-2">
+                {/* Subir archivo */}
+                <div>
+                  <label className="block text-xs font-mono text-muted uppercase tracking-wider mb-1.5">
+                    Subir imagen
+                  </label>
+                  <button
+                    type="button"
+                    onClick={() => fileInputRef.current?.click()}
+                    disabled={isUploading}
+                    className="flex items-center gap-2 bg-bg-2 border border-white/[0.1] hover:border-accent/40 text-white/70 hover:text-white text-sm px-3.5 py-2 rounded-xl transition-colors disabled:opacity-50"
+                  >
+                    {isUploading ? '⏳ Subiendo…' : '📎 Elegir archivo'}
+                  </button>
+                  <p className="text-[0.65rem] text-muted mt-1">JPG, PNG o WebP · máx. 5 MB</p>
+                </div>
+                {/* URL manual */}
+                <div>
+                  <label className="block text-xs font-mono text-muted uppercase tracking-wider mb-1.5">
+                    O pegar URL
+                  </label>
+                  <input
+                    type="url"
+                    value={avatarUrl}
+                    onChange={(e) => { setAvatarUrl(e.target.value); setAvatarError(false) }}
+                    placeholder="https://ejemplo.com/mi-foto.jpg"
+                    className="w-full bg-bg-2 border border-white/[0.1] rounded-xl px-3.5 py-2.5 text-sm text-white placeholder:text-muted outline-none focus:border-accent/50 focus:ring-2 focus:ring-accent/10 transition-all"
+                  />
+                </div>
               </div>
             </div>
 
@@ -212,23 +283,31 @@ export default function SettingsPage() {
             <div className="flex items-center justify-between gap-4">
               <div>
                 <p className="text-sm font-medium text-white/90">
-                  {me?.isPublic ? '🔓 Perfil público' : '🔒 Perfil privado'}
+                  {isPublicOptimistic ? '🔓 Perfil público' : '🔒 Perfil privado'}
                 </p>
                 <p className="text-xs text-muted mt-0.5">
-                  {me?.isPublic
+                  {isPublicOptimistic
                     ? 'Cualquier usuario puede ver tus valoraciones y listas públicas.'
                     : 'Solo tus seguidores aprobados pueden ver tu actividad.'}
                 </p>
               </div>
               <button
-                onClick={() => me && togglePrivacy(!me.isPublic)}
-                disabled={isTogglingPrivacy || !me}
-                className={`relative w-11 h-6 rounded-full transition-colors shrink-0 disabled:opacity-60
-                  ${me?.isPublic ? 'bg-accent' : 'bg-bg-3 border border-white/[0.1]'}`}
+                onClick={() => {
+                  if (!me) return
+                  const current = isPublicOptimistic ?? me.isPublic
+                  const next = !current
+                  setIsPublicOptimistic(next)
+                  togglePrivacy(next)
+                }}
+                disabled={isTogglingPrivacy}
+                aria-checked={(isPublicOptimistic ?? me?.isPublic) ?? false}
+                role="switch"
+                className={`relative w-12 h-6 rounded-full transition-colors duration-200 shrink-0 focus:outline-none focus:ring-2 focus:ring-accent/40 disabled:opacity-50
+                  ${(isPublicOptimistic ?? me?.isPublic) ? 'bg-accent' : 'bg-white/20'}`}
               >
                 <span
-                  className={`absolute top-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform
-                    ${me?.isPublic ? 'translate-x-5' : 'translate-x-0.5'}`}
+                  className={`absolute top-[3px] w-[18px] h-[18px] bg-zinc-800 rounded-full shadow transition-all duration-200
+                    ${(isPublicOptimistic ?? me?.isPublic) ? 'left-[27px]' : 'left-[3px]'}`}
                 />
               </button>
             </div>

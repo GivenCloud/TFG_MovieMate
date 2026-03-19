@@ -9,13 +9,13 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.moviemate.dto.ContentResponse;
-import com.moviemate.dto.tmdb.MultiSearchResult;
-import com.moviemate.dto.tmdb.SearchResult;
 import com.moviemate.entity.Content;
 import com.moviemate.repository.ContentRepository;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 @EnableAsync
@@ -42,7 +42,7 @@ public class ContentService {
                 .toList();
     }
 
-    @Transactional(readOnly = true)
+    @Transactional
     public Content getOrFetch(Integer tmdbId) {
         return contentRepository.findByTmdbId(tmdbId)
             .map(content -> {
@@ -54,20 +54,12 @@ public class ContentService {
             })
             .orElseGet(() -> {
                 System.out.println("No encontrado en cache, fetching TMDB " + tmdbId);
-                MultiSearchResult result = tmdbService.detectContentType(tmdbId);
-                SearchResult match = result.getResults().stream()
-                    .filter(r -> r.getId().equals(tmdbId.longValue()))
-                    .findFirst()
-                    .orElseThrow(() -> new RuntimeException("Contenido no encontrado: " + tmdbId));
-                    
-                Content.ContentType type = switch (match.getMediaType()) {
-                    case "movie" -> Content.ContentType.MOVIE;
-                    case "tv" -> Content.ContentType.TV;
-                    default -> throw new RuntimeException("Tipo desconocido: " + match.getMediaType());
-                };
-                
-                Content newContent = fetchFromTmdb(tmdbId, type);
-                return newContent;
+                // Try movie first, then TV show
+                try {
+                    Content newContent = fetchFromTmdb(tmdbId, Content.ContentType.MOVIE);
+                    if (newContent != null) return newContent;
+                } catch (Exception ignored) {}
+                return fetchFromTmdb(tmdbId, Content.ContentType.TV);
             });
     }
 
@@ -75,9 +67,10 @@ public class ContentService {
 
     private int getTtlDays(Content content) {
         // Popular: 1 día
-        if (content.getAppVoteCount() > 50) return 1;
+        int votes = content.getAppVoteCount() != null ? content.getAppVoteCount() : 0;
+        if (votes > 50) return 1;
         // Nueva: 3 días
-        if (content.getLastTmdbSync().isAfter(LocalDateTime.now().minusDays(7))) return 3;
+        if (content.getLastTmdbSync() != null && content.getLastTmdbSync().isAfter(LocalDateTime.now().minusDays(7))) return 3;
         // Resto: 14 días
         return 14;
     }
@@ -97,10 +90,14 @@ public class ContentService {
                 ? tmdbService.syncMovieFromTmdb(tmdbId)
                 : tmdbService.syncTvShowFromTmdb(tmdbId);
 
+        if (content == null) {
+            throw new RuntimeException("Contenido no encontrado en TMDB: " + tmdbId);
+        }
         content.setLastTmdbSync(LocalDateTime.now());
         content.setLastInteraction(LocalDateTime.now());
 
-        return contentRepository.save(content);
+        // TmdbService ya persistió la entidad; Hibernate dirty-checking persiste los cambios al hacer commit
+        return content;
     }
 
     @Async

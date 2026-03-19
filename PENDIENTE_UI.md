@@ -1,6 +1,6 @@
 # MovieMate — Mejoras y bugs pendientes de UI/UX
 
-Registradas el 2026-03-12. Marcar con ✅ conforme se vayan completando.
+Registradas el 2026-03-12. Última actualización: 2026-03-18. Marcar con ✅ conforme se vayan completando.
 
 ---
 
@@ -52,19 +52,40 @@ Registradas el 2026-03-12. Marcar con ✅ conforme se vayan completando.
 | M23 | ✅ | **Admin: resolver reporte no borraba el contenido ni notificaba** — "Resolver" solo cambiaba el estado. Ahora obtiene el autor del contenido antes de borrarlo, lo elimina, y envía notificación `CONTENT_REMOVED` con el motivo en español. | `service/ContentReportService.java`, `service/NotificationService.java` |
 | M24 | ✅ | **Admin: no se podía ver el contenido de un reporte** — el panel solo mostraba el ID del objeto denunciado. Ahora cada fila de reporte tiene un botón ▼ que despliega la valoración (estrellas, texto, título del contenido) o el comentario (autor, texto). Carga lazy al expandir. | `features/admin/AdminPage.tsx`, `controller/AdminController.java` |
 | M25 | ✅ | **Botón de mostrar/ocultar contraseña mostraba emoji** — se usaba 👁️/🙈. Reemplazado por iconos SVG estilo Heroicons (ojo y ojo tachado) con `text-white/60 hover:text-white`. | `LoginPage.tsx`, `RegisterPage.tsx` |
+| M26 | ✅ | **ActivityPage sin tipos RATING_UPDATED / LIST_UPDATED** — ActivityService no distinguía entre nueva valoración y edición. Ahora detecta `updatedAt > createdAt + 1min` y emite el tipo correspondiente con `updatedAt` como timestamp. | `service/ActivityService.java` |
+| M27 | ✅ | **Usuarios sugeridos en HomePage** — sección "Cinéfilos que quizás conozcas" al final del home (solo autenticados). Muestra hasta 5 sugerencias con avatar, username y bio. | `features/home/HomePage.tsx` |
+| M28 | ✅ | **Subida real de avatar (multipart)** — en Settings, el avatar ya no requiere pegar una URL: hay un botón de subir archivo que acepta JPG/PNG/WebP (≤5MB), muestra preview inmediato con `URL.createObjectURL` y sube al backend. Backend sirve los archivos desde `/uploads/avatars/**`. | `features/settings/SettingsPage.tsx`, `service/UserService.java`, `config/WebMvcConfig.java`, `config/SecurityConfig.java` |
+| M29 | ✅ | **Recomendaciones personalizadas en HomePage** — carrusel "Para ti ✨" (solo autenticados). El backend toma el top género del usuario y lanza un discover TMDB filtrando por ese género con nota mínima 7.0, devolviendo hasta 6 películas + 6 series. | `features/home/HomePage.tsx`, `controller/UserController.java` |
+| M30 | ✅ | **Insignias/gamificación** — sistema de 10 insignias: FIRST_REVIEW, CRITIC, CINEPHILE, FILM_BUFF, MOVIE_MARATHON, SERIES_BINGE, SOCIAL, POPULAR, LISTER, LIKED. Se otorgan automáticamente al actualizar stats. Se muestran como chips en el perfil (entre stats y películas favoritas). | `entity/UserBadge.java`, `service/BadgeService.java`, `features/profile/ProfilePage.tsx` |
+| M31 | ✅ | **Comentarios en listas** — sección de comentarios en ListDetailPage: textarea para publicar, lista con avatar + timeAgo + botón eliminar propio. Backend: nueva entidad `ListComment`, servicio y controller en `/api/lists/{id}/comments`. | `entity/ListComment.java`, `service/ListCommentService.java`, `features/lists/ListDetailPage.tsx` |
 
 ---
 
-## Orden de prioridad sugerido
+## Bugs descubiertos en sesiones posteriores (B13–B18)
 
-1. B1, B2, B3 — bugs visuales rápidos
-2. M7 — logo clicable (trivial)
-3. M3, M5, M6 — polish visual
-4. B4, B5 — DetailPage cleanup
-5. M1 — separar listas propias de exploración
-6. M2 — añadir contenido desde dentro de la lista
-7. M4 — seguidores/siguiendo clicables
-8. M8, M9 — más contenido en home y búsqueda mixta
+| # | Estado | Descripción | Archivo(s) afectado(s) |
+|---|--------|-------------|------------------------|
+| B13 | ✅ | **Sin botón volver en Login/Register** — añadido `BackButton` en ambas páginas. | `LoginPage.tsx`, `RegisterPage.tsx` |
+| B14 | ✅ | **NPE al ver perfil de usuario (unauthenticated)** — `getUserProfile` llamaba a `userDetails.getUser()` sin null-check. Perfiles públicos accedidos sin JWT fallaban con NPE → 400. | `controller/UserController.java` |
+| B15 | ✅ | **Películas favoritas se pisan en ProfilePage** — grids de posters migrados a `flex flex-wrap gap-3`. | `features/profile/ProfilePage.tsx` |
+| B16 | ✅ | **Error 400 al añadir contenido a una lista** — `ContentService.getOrFetch` usaba `/search/multi?query={id}` (búsqueda de texto con un ID numérico) para detectar el tipo de contenido. El ID nunca aparecía en resultados → `orElseThrow` → 400. Arreglado: ahora prueba MOVIE primero y luego TV usando los endpoints directos `/movie/{id}` y `/tv/{id}`. | `service/ContentService.java` |
+| B17 | ✅ | **Error 400 en recomendaciones y ratings** — dos fixes: (1) `UserStatsService.getFullStats` no era `@Transactional`, causando que `updateUserStats` via self-invocation se ejecutase sin transacción gestionada; (2) `fetchFromTmdb` podía NPE si TMDB devolvía `null`. | `service/UserStatsService.java`, `service/ContentService.java` |
+| B18 | ✅ | **Toggle privacidad en SettingsPage mal renderizado** — el switch de perfil privado no reflejaba el estado inicial correctamente. | `features/settings/SettingsPage.tsx` |
+| B19 | ✅ | **Error 400 persistente al añadir contenido a lista (doble save)** — `ContentService.fetchFromTmdb` llamaba a `contentRepository.save(content)` de forma redundante después de que `TmdbService` ya había persistido la entidad; Hibernate lanzaba excepción al intentar re-insertar un registro ya gestionado. Eliminada la llamada duplicada; el dirty-checking de Hibernate persiste los cambios al hacer commit. Además `GlobalExceptionHandler.handleRuntimeException` carecía de `@Slf4j`, por lo que la excepción real era invisible en los logs — añadido logging con `log.error(...)`. | `service/ContentService.java`, `exception/GlobalExceptionHandler.java` |
+
+## Mejoras (M32–M34)
+
+| # | Estado | Descripción | Archivo(s) afectado(s) |
+|---|--------|-------------|------------------------|
+| M32 | ✅ | **Botón volver atrás en todas las páginas** — `BackButton` añadido a: NotificationsPage, ActivityPage, ListsPage, SpecialListPage, SettingsPage, PersonPage, ProfilePage (solo perfiles ajenos). | Múltiples páginas |
+| M33 | ✅ | **Filtros en DiscoverPage para tipo ALL** — `useDiscover` ahora hace fetch de películas + series cuando `filter=ALL` y los interleaves. Filtros visibles para ALL cuando `hasActiveFilters`. | `hooks/useDiscover.ts`, `features/discover/DiscoverPage.tsx` |
+| M34 | ✅ | **Episodios marcados como vistos visibles en perfil** — nueva sección "Progreso de series" en StatsTab. Backend: `GET /episodes/watched/summary` (JPQL GROUP BY serie). Frontend: `SeriesProgressSection` con cards clickables. | `controller/EpisodeWatchController.java`, `service/EpisodeWatchService.java`, `components/profile/StatsTab.tsx` |
+
+---
+
+## Estado final
+
+**Todos los bugs (B1–B19) resueltos. Todas las mejoras (M1–M34) implementadas.**
 
 ---
 
@@ -74,3 +95,5 @@ Registradas el 2026-03-12. Marcar con ✅ conforme se vayan completando.
 - Para M9 (mezcla), el endpoint de TMDB `/trending/all/week` ya devuelve mix de movies y tv — se puede usar para M8 también.
 - Para M2, el `ListController` ya tiene `POST /api/lists/{listId}/content` — solo falta la UI de búsqueda.
 - Para M3, el diseño de referencia está en `ActivityPage.tsx` (sección `ActivityItem`).
+- Avatares subidos: se guardan en `uploads/avatars/` en el directorio de trabajo del backend. En Docker esto es efímero; para producción habría que montar un volumen o migrar a S3.
+- Insignias: se evalúan en `UserStatsService.updateUserStats()` — se otorgan de forma idempotente (no se duplican).

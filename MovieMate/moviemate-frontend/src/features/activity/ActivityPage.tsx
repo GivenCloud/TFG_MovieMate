@@ -5,6 +5,7 @@ import { activityApi } from '../../api/activity'
 import { useAuthStore } from '../../store/authStore'
 import { timeAgo, toSlug } from '../../lib/utils'
 import EmptyState from '../../components/shared/EmptyState'
+import BackButton from '../../components/shared/BackButton'
 import type { ActivityResponse } from '../../types'
 
 type Tab = 'personal' | 'global'
@@ -238,6 +239,11 @@ export default function ActivityPage() {
 
   return (
     <div className="pb-12">
+      {/* Botón volver */}
+      <div className="px-4 lg:px-6 pt-4 pb-1">
+        <BackButton to="/" label="Inicio" />
+      </div>
+
       {/* Cabecera */}
       <div className="px-4 lg:px-6 py-5 border-b border-white/[0.06]">
         <h1 className="font-display font-bold italic text-2xl">Actividad</h1>

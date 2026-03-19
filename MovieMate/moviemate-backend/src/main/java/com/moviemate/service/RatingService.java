@@ -28,6 +28,7 @@ public class RatingService {
     private final UserRepository userRepository;
     private final ReviewLikeRepository reviewLikeRepository;
 
+    @Transactional(readOnly = true)
     public List<RatingResponse> getRatingsByContent(User currentUser, Long contentId) {
         Content content = contentRepository.findById(contentId)
                 .orElseThrow(() -> new RuntimeException("Contenido no encontrado"));
@@ -58,6 +59,7 @@ public class RatingService {
         rating.setEmotionalTag(request.getEmotionalTag());
         rating.setStatus(request.getStatus());
         rating.setWatchedDate(request.getWatchedDate());
+        rating.setContainsSpoiler(request.isContainsSpoiler());
         
         Rating savedRating = ratingRepository.save(rating);
         
@@ -122,6 +124,7 @@ public class RatingService {
     @Transactional
     public List<RatingResponse> getUserRatings(User user) {
         return ratingRepository.findByUser(user).stream()
+            .filter(r -> r.getContent() != null && r.getUser() != null)
             .map(this::mapToRatingResponse)
             .collect(Collectors.toList());
     }
@@ -134,6 +137,7 @@ public class RatingService {
             .emotionalTag(rating.getEmotionalTag())
             .status(rating.getStatus())
             .watchedDate(rating.getWatchedDate())
+            .containsSpoiler(rating.isContainsSpoiler())
             .createdAt(rating.getCreatedAt())
             .user(UserResponse.builder()
                 .id(rating.getUser().getId())

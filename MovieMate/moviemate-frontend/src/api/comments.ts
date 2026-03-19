@@ -1,5 +1,5 @@
 import apiClient from '../lib/apiClient'
-import type { CommentResponse, CommentRequest } from '../types'
+import type { CommentResponse, CommentRequest, ListCommentResponse } from '../types'
 
 export const commentsApi = {
   getByRating: (ratingId: number) =>
@@ -10,4 +10,13 @@ export const commentsApi = {
 
   delete: (ratingId: number, commentId: number) =>
     apiClient.delete(`/ratings/${ratingId}/comments/${commentId}`),
+
+  getByList: (listId: number) =>
+    apiClient.get<ListCommentResponse[]>(`/lists/${listId}/comments`),
+
+  createForList: (listId: number, data: CommentRequest) =>
+    apiClient.post<ListCommentResponse>(`/lists/${listId}/comments`, data),
+
+  deleteFromList: (listId: number, commentId: number) =>
+    apiClient.delete(`/lists/${listId}/comments/${commentId}`),
 }

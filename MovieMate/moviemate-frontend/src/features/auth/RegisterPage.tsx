@@ -1,11 +1,12 @@
 import { useState } from 'react'
-import { Link, Navigate } from 'react-router-dom'
+import { Link, Navigate, useNavigate } from 'react-router-dom'
 import { useRegister } from '../../hooks/useAuth'
 import { useAuthStore } from '../../store/authStore'
 
 export default function RegisterPage() {
   const { isAuthenticated } = useAuthStore()
   const register = useRegister()
+  const navigate = useNavigate()
   const [form, setForm] = useState({ username: '', email: '', password: '', confirmPassword: '' })
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [showPassword, setShowPassword] = useState(false)
@@ -103,6 +104,16 @@ export default function RegisterPage() {
             <div className="w-9 h-9 bg-accent rounded-xl flex items-center justify-center">🎬</div>
             <span className="font-display font-bold italic text-xl">MovieMate</span>
           </div>
+
+          <button
+            onClick={() => navigate(-1)}
+            className="flex items-center gap-1.5 text-sm text-muted hover:text-white transition-colors mb-6"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+            </svg>
+            Continuar sin sesión
+          </button>
 
           <h1 className="font-display font-bold italic text-3xl mb-1 text-white">Crea tu cuenta</h1>
           <p className="text-sm text-muted mb-8">Únete a la comunidad cinéfila</p>

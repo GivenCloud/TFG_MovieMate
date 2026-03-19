@@ -4,51 +4,61 @@ Copia y pega esto al inicio de la siguiente conversación:
 
 ---
 
-Continuamos el desarrollo del TFG MovieMate. Lee MEMORY.md para el contexto completo.
+Continuamos el TFG MovieMate. Lee MEMORY.md para el contexto completo.
 
 **Resumen rápido del estado actual:**
 
 PROYECTO: Plataforma social de cine/series (IMDB + Letterboxd + Serializd).
 Stack: Spring Boot 3.3.4 + PostgreSQL 16 (backend) / React 19 + TypeScript + TanStack Query 5 + Tailwind CSS 4 (frontend).
-Rama activa: `feat/frontend-pages`
+Rama activa: `feat/frontend-pages` — **pipeline CI/CD verde (205/205 tests)**.
 
-**HECHO en las últimas sesiones (resumen):**
-- Todas las páginas implementadas y responsive (HomePage, DiscoverPage, DetailPage, ProfilePage, ListsPage, ListDetailPage, SpecialListPage, NotificationsPage, SettingsPage, ActivityPage)
-- #11: Perfil público — tabs Valoraciones y Listas muestran datos reales de perfiles ajenos
-- #1: Comentarios planos en valoraciones — CommentSection en ReviewList con toggle, form inline, delete propio
-- #2: Rol Admin + panel de moderación — AdminPage, AdminRoute, ReportDialog, botón 🚩, link Administración en Sidebar
-- #10: Búsqueda de usuarios en DiscoverPage — modo Contenido / Usuarios con UserCard y sugerencias
-- #12: Lista "Ya vistas" (WATCHED) — SpecialListPage, ruta /watched, Sidebar
-- #13: Cambio de contraseña — SettingsPage con sección Seguridad, endpoint PUT /api/users/me/password
-- WebSocket STOMP, paginación ReviewList, mejoras responsive M1-M19
+**EL PROYECTO ESTÁ FUNCIONALMENTE COMPLETO.**
+Todos los bugs (B1–B19) y mejoras (M1–M34) están implementados y resueltos.
 
-**DevOps — estado actual (ver `DEVOPS.md` para documentación completa):**
-- ✅ Paso 1: Dockerfile frontend multi-stage (node:22-alpine → nginx:1.27-alpine)
-- ✅ Paso 2: nginx.conf.template con envsubst para BACKEND_HOST en runtime
-- ✅ Paso 3: docker-compose.yml completo (postgres + backend + frontend)
-- ✅ Paso 4: GitHub Actions — ci.yml (tests en feat/*) + cd.yml (build+push GHCR en main)
-- ✅ Paso 4b: Helm chart completo en k8s/moviemate/ con subdirectorios backend/frontend/postgres
-- ✅ Paso 5: Minikube — desplegado y verificado en local con namespace moviemate
-- ✅ Decisión final: NO se despliega en cloud real — todos los proveedores gratuitos requieren método de pago
-  - El despliegue en Minikube es suficiente para demostrar la infraestructura en el TFG
-  - DEVOPS.md documenta cómo desplegar en producción si se dispone de un servidor
-  - El job `deploy` en cd.yml está preparado y comentado para activarse cuando haya cluster real
+---
 
-**Bugs/fixes aplicados en esta sesión que están en el código:**
-- `SecurityConfig.java`: CORS lee de env var `CORS_ALLOWED_ORIGINS` con `@Value`, soporta múltiples orígenes separados por coma
-- `k8s/moviemate/templates/postgres/postgres-statefulset.yaml`: probe pg_isready con args separados (no sh -c)
-- `k8s/moviemate/templates/ingress.yaml`: certManagerIssuer como campo limpio (antes usaba sintaxis inválida con '-')
-- 5 tests de servicios corregidos (constructores desincronizados): UserServiceTest, ActivityServiceTest, ListServiceTest, NotificationServiceTest, RatingServiceTest
+**HECHO en la última sesión (2026-03-26):**
 
-**Ficheros clave:**
-- `TFG_MovieMate/DEVOPS.md` — documentación completa del despliegue
-- `TFG_MovieMate/PENDIENTE.md` — funcionalidades pendientes con estado
-- `TFG_MovieMate/k8s/moviemate/` — Helm chart completo
-- `.github/workflows/ci.yml` y `cd.yml` — pipelines CI/CD
-- Backend: `MovieMate/moviemate-backend/src/main/java/com/moviemate/`
-- Frontend: `MovieMate/moviemate-frontend/src/`
+Memoria TFG:
+- Generado **`Memoria TFG_rev260320.docx`** (825 párrafos):
+  - §II Abstract extendido en inglés insertado (~1894 palabras, 7 secciones con headings en negrita).
+    Secciones: Context and Motivation, Objectives, Methodology, Back-End Architecture, Front-End Architecture, Testing and Deployment, Results and Conclusions.
+- Generado **`Memoria TFG_rev260321.docx`** (831 párrafos) ← **VERSIÓN MÁS RECIENTE**:
+  - Tabla de endpoints: 41 → 64 filas (+23 endpoints faltantes: recommendations, badges, avatar, trending, comments, listComments, episodeWatch, reports, admin).
+  - §4.2.1 ampliada con 3 párrafos sobre 7 entidades faltantes: Comment, ReviewLike, EpisodeWatch, ListComment, ContentReport, UserBadge.
+  - §4.3.1 ampliada con 3 párrafos sobre: WebSocket/STOMP, BadgeService/UserStatsService/CacheCleaner, SwaggerConfig/@RequirePublicProfile.
 
-**Próximo paso recomendado:**
-DevOps completado para el TFG. Continuar con features pendientes de PENDIENTE.md (prioridades MEDIAS: #3 perfiles actor/director, #4 stats avanzadas, #5 filtros Discover, etc.)
+**Scripts usados:**
+- `TFG_MovieMate/insert_abstract.py` → generó rev260320
+- `TFG_MovieMate/update_backend_docs.py` → generó rev260321
+
+**Últimos commits (rama `feat/frontend-pages`):**
+1. `@fix: eliminar doble save en ContentService y añadir logging a GlobalExceptionHandler`
+2. `@fix: actualizar ContentServiceTest tras eliminar doble save en fetchFromTmdb` ← ÚLTIMO
+
+---
+
+**Archivos clave de la memoria:**
+- `TFG_MovieMate/Memoria TFG_rev260321.docx` ← versión más reciente
+- `TFG_MovieMate/update_backend_docs.py` ← último script python-docx ejecutado
+
+---
+
+**Tareas manuales pendientes en Word** (no automatizables fácilmente):
+- Términos en inglés en cursiva (React, Spring Boot, JWT, endpoint, etc.)
+- Nombres de entidades/clases en Courier New
+- Colores en filas de la tabla de endpoints
+- Insertar capturas de pantalla reales en las posiciones `[Figura 4.X: ...]`
+- Actualizar tabla de contenidos (F9 en Word)
+
+---
+
+**Posibles tareas para esta sesión:**
+
+1. **Revisar o ampliar secciones de la memoria** — si el tutor pide más detalle en algún punto
+2. **Capturas de pantalla** — planificar qué capturas hacer y dónde insertarlas
+3. **Preparar la defensa oral** — esquema de presentación, posibles preguntas del tribunal, slides
+4. **Correcciones de formato** — automatizar cursivas, Courier New u otros ajustes en el .docx
+5. **Ajustes de código de última hora** — si surge algún bug antes de la entrega
 
 Pregunta al usuario qué quiere hacer a continuación.
