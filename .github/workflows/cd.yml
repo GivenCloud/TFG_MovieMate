@@ -97,12 +97,9 @@ jobs:
   # ── Deploy a Minikube (self-hosted runner en máquina local) ───
   # Requiere:
   #   1. Self-hosted runner registrado en este repo (Settings → Actions → Runners)
-  #   2. Secret de Kubernetes para GHCR:
-  #      kubectl create secret docker-registry ghcr-secret \
-  #        --docker-server=ghcr.io \
-  #        --docker-username=<github-user> \
-  #        --docker-password=<PAT-read:packages> \
-  #        --namespace moviemate
+  #   2. Secrets del repositorio para autenticarse contra GHCR:
+  #      - GHCR_USERNAME
+  #      - GHCR_PAT (scope: read:packages; para repos privados suele requerir repo)
   deploy:
     name: Deploy to Minikube
     runs-on: self-hosted
@@ -111,6 +108,21 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+
+      - name: Ensure namespace and GHCR pull secret
+        run: |
+          if [ -z "${{ secrets.GHCR_USERNAME }}" ] || [ -z "${{ secrets.GHCR_PAT }}" ]; then
+            echo "Faltan secrets GHCR_USERNAME o GHCR_PAT en GitHub Actions." >&2
+            exit 1
+          fi
+
+          kubectl create namespace moviemate --dry-run=client -o yaml | kubectl apply -f -
+
+          kubectl -n moviemate create secret docker-registry ghcr-secret \
+            --docker-server=${{ env.REGISTRY }} \
+            --docker-username=${{ secrets.GHCR_USERNAME }} \
+            --docker-password=${{ secrets.GHCR_PAT }} \
+            --dry-run=client -o yaml | kubectl apply -f -
 
       - name: Deploy with Helm
         run: |
@@ -125,7 +137,7 @@ jobs:
             --set frontend.image.tag=${{ needs.build-and-push.outputs.image-tag }} \
             --set frontend.image.pullPolicy=Always \
             --set "imagePullSecrets[0].name=ghcr-secret" \
-            --wait --timeout 5m
+            --wait --timeout 15m
 
       - name: Verify rollout
         run: |
