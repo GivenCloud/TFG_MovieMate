@@ -116,6 +116,7 @@ jobs:
         run: |
           helm upgrade --install moviemate ./k8s/moviemate \
             --namespace moviemate \
+            --create-namespace \
             --reuse-values \
             --set backend.image.repository=${{ env.BACKEND_IMAGE }} \
             --set backend.image.tag=${{ needs.build-and-push.outputs.image-tag }} \
