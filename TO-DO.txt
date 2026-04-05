@@ -1,5 +1,17 @@
-Backend: 
-- Que se pueda actualizar una valoración
+Que cuando le das a descubrir salgan solo 20 (eso ya está bien hecho) y cuando llegas abajo de esas 20 cargue 20 mas.
+Que cuando vayas a eliminar una lista, una valoracion, etc, te pida confirmacion?
 
+Usuario no registrado/no ha iniciado sesión:
+- Si no estas registrado o no has iniciado sesion no se ven las peliculas y series mejor valoradas en el Home.
+- Da 403 cuadno intenta consultar perfiles de usuarios publicos
+- Tampoco puede consultar listas personalizadas publicas
+- Que no le salgan opciones que no puede usar sin registrarse/iniciar sesion? Por ejemplo, consultar notificaciones, etc
 
-Frontend:
+Usuarios registrados
+
+Interacción social:
+- No funcionan comentar una valoración.
+
+Valoraciones y reseñas:
+- Que el icono para seleccionar la fecha de la valoracion sea blanco (actualmente es negro y se ve poco).
+- Cuando editas una valoracion te deja ponerle una nota sobre 10 y deberia de ser sobre 5 y con estrellas, como cuando la creas.
