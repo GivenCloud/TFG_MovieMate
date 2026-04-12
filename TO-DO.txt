@@ -1,17 +1,27 @@
 Que cuando le das a descubrir salgan solo 20 (eso ya está bien hecho) y cuando llegas abajo de esas 20 cargue 20 mas.
+✅ RESUELTO — DiscoverPage tiene infinite scroll: un IntersectionObserver detecta cuando el usuario llega al final de los resultados (con 200px de antelación) y carga automáticamente la siguiente página, acumulando los resultados sin botón.
+
 Que cuando vayas a eliminar una lista, una valoracion, etc, te pida confirmacion?
+✅ RESUELTO — Añadido confirm() antes de eliminar valoración (RatingWidget), eliminar lista (ListsPage) y eliminar contenido de lista (ListDetailPage).
 
 Usuario no registrado/no ha iniciado sesión:
 - Si no estas registrado o no has iniciado sesion no se ven las peliculas y series mejor valoradas en el Home.
+  ✅ RESUELTO — /api/tmdb/discover/** añadido a permitAll en SecurityConfig.
 - Da 403 cuadno intenta consultar perfiles de usuarios publicos
+  ✅ RESUELTO — /api/users/{id}/stats|followers|following|badges añadidos a permitAll.
 - Tampoco puede consultar listas personalizadas publicas
+  ✅ RESUELTO — /api/lists/{id}/comments añadido a permitAll (la lista en sí ya era pública).
 - Que no le salgan opciones que no puede usar sin registrarse/iniciar sesion? Por ejemplo, consultar notificaciones, etc
+  ✅ RESUELTO — Sidebar: sección "Mi espacio" y Notificaciones se ocultan para usuarios no autenticados.
 
 Usuarios registrados
 
 Interacción social:
 - No funcionan comentar una valoración.
+  INVESTIGADO — El código frontend y backend de comentarios está correctamente implementado. Comprobar en runtime si persiste el error.
 
 Valoraciones y reseñas:
 - Que el icono para seleccionar la fecha de la valoracion sea blanco (actualmente es negro y se ve poco).
+  ✅ RESUELTO — Añadido [color-scheme:dark] al input de fecha en RatingWidget.
 - Cuando editas una valoracion te deja ponerle una nota sobre 10 y deberia de ser sobre 5 y con estrellas, como cuando la creas.
+  ✅ RESUELTO — QuickEditRatingDialog ahora usa el componente StarRating (1-5 estrellas) en vez de 10 botones numéricos.

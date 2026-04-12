@@ -26,7 +26,7 @@ public class Notification {
 
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
+    @Column(nullable = false, columnDefinition = "VARCHAR(50)")
     private NotificationType type;
 
     // ID del recurso relacionado (FollowRequest, Post, etc.)
@@ -49,6 +49,7 @@ public class Notification {
         FOLLOWER,
         REVIEW_LIKE,
         COMMENT_ON_RATING,
+        COMMENT_ON_LIST,
         CONTENT_REMOVED
     }
 }

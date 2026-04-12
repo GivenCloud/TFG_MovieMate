@@ -37,7 +37,12 @@ const TYPE_CONFIG: Record<
   COMMENT_ON_RATING: {
     icon: '💬',
     bg: 'rgba(96,165,250,0.15)',
-    text: (u) => `@${u} ha comentado tu reseña.`,
+    text: (u) => `@${u} ha comentado tu reseña de`,
+  },
+  COMMENT_ON_LIST: {
+    icon: '💬',
+    bg: 'rgba(96,165,250,0.15)',
+    text: (u) => `@${u} ha comentado en tu lista`,
   },
   CONTENT_REMOVED: {
     icon: '🚨',
@@ -167,7 +172,7 @@ export default function NotificationsPage() {
     <div className="pb-12">
       {/* Botón volver */}
       <div className="px-4 lg:px-6 pt-4 pb-1">
-        <BackButton to="/" label="Inicio" />
+        <BackButton />
       </div>
 
       {/* ── Topbar interno ───────────────────────────────── */}
@@ -264,6 +269,9 @@ export default function NotificationsPage() {
                             @{username}
                           </Link>{' '}
                           {cfg.text(username).slice(username.length + 2)}
+                          {notif.message && (notif.type === 'COMMENT_ON_RATING' || notif.type === 'COMMENT_ON_LIST') && (
+                            <span className="font-semibold text-white/90"> "{notif.message}".</span>
+                          )}
                         </>
                       )}
                     </p>

@@ -111,7 +111,7 @@ export default function ListDetailPage() {
     <div className="pb-12">
       {/* Botón volver */}
       <div className="px-4 lg:px-6 pt-4 pb-1">
-        <BackButton to="/lists" label="Mis listas" />
+        <BackButton />
       </div>
 
       {/* Cabecera */}
@@ -170,7 +170,10 @@ export default function ListDetailPage() {
                 <PosterCard content={content} />
                 {isOwner && (
                   <button
-                    onClick={() => removeContent(content.tmdbId)}
+                    onClick={() => {
+                      if (!confirm(`¿Eliminar "${content.title}" de esta lista?`)) return
+                      removeContent(content.tmdbId)
+                    }}
                     disabled={isRemoving}
                     className="absolute top-1.5 right-1.5 z-10 w-6 h-6 bg-red-500/80 hover:bg-red-500 rounded-full flex items-center justify-center text-white text-sm font-bold opacity-0 group-hover:opacity-100 transition-opacity disabled:opacity-50"
                     title="Eliminar de la lista"

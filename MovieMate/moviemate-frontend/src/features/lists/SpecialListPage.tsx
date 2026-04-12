@@ -89,7 +89,7 @@ export default function SpecialListPage({ listType }: { listType: SpecialListTyp
     <div className="pb-12">
       {/* Botón volver */}
       <div className="px-4 lg:px-6 pt-4 pb-1">
-        <BackButton to="/" label="Inicio" />
+        <BackButton />
       </div>
 
       {/* Cabecera */}

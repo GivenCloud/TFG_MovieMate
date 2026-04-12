@@ -4,9 +4,10 @@ import java.util.List;
 
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.moviemate.dto.NotificationDto;
-import com.moviemate.entity.Comment;
 import com.moviemate.entity.ContentReport;
 import com.moviemate.entity.FollowRequest;
 import com.moviemate.entity.Follower;
@@ -15,16 +16,19 @@ import com.moviemate.entity.Notification.NotificationType;
 import com.moviemate.entity.ReviewLike;
 import com.moviemate.entity.User;
 import com.moviemate.repository.NotificationRepository;
+import com.moviemate.repository.UserRepository;
 
-import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class NotificationService {
 
     private final NotificationRepository notificationRepository;
     private final SimpMessagingTemplate messagingTemplate;
+    private final UserRepository userRepository;
 
     @Transactional
     public void notifyFollowRequest(User receiver, FollowRequest request) {
@@ -57,11 +61,15 @@ public class NotificationService {
         NotificationDto dto = toDto(notification);
 
         // tiempo real
-        messagingTemplate.convertAndSendToUser(
-            receiver.getUsername(),
-            "/queue/notifications",
-            dto
-        );
+        try {
+            messagingTemplate.convertAndSendToUser(
+                receiver.getUsername(),
+                "/queue/notifications",
+                dto
+            );
+        } catch (Exception e) {
+            log.warn("WebSocket push fallido (FOLLOW_REQUEST, receiver={}): {}", receiver.getId(), e.getMessage());
+        }
     }
 
     @Transactional
@@ -95,11 +103,15 @@ public class NotificationService {
         NotificationDto dto = toDto(notification);
 
         // tiempo real
-        messagingTemplate.convertAndSendToUser(
-            receiver.getUsername(),
-            "/queue/notifications",
-            dto
-        );
+        try {
+            messagingTemplate.convertAndSendToUser(
+                receiver.getUsername(),
+                "/queue/notifications",
+                dto
+            );
+        } catch (Exception e) {
+            log.warn("WebSocket push fallido (FOLLOWER, receiver={}): {}", receiver.getId(), e.getMessage());
+        }
     }
 
     @Transactional
@@ -132,11 +144,15 @@ public class NotificationService {
         NotificationDto dto = toDto(notification);
 
         // tiempo real
-        messagingTemplate.convertAndSendToUser(
-            receiver.getUsername(),
-            "/queue/notifications",
-            dto
-        );
+        try {
+            messagingTemplate.convertAndSendToUser(
+                receiver.getUsername(),
+                "/queue/notifications",
+                dto
+            );
+        } catch (Exception e) {
+            log.warn("WebSocket push fallido (FOLLOW_REQUEST_ACCEPTED, receiver={}): {}", receiver.getId(), e.getMessage());
+        }
     }
 
     @Transactional
@@ -169,11 +185,15 @@ public class NotificationService {
         NotificationDto dto = toDto(notification);
 
         // tiempo real
-        messagingTemplate.convertAndSendToUser(
-            receiver.getUsername(),
-            "/queue/notifications",
-            dto
-        );
+        try {
+            messagingTemplate.convertAndSendToUser(
+                receiver.getUsername(),
+                "/queue/notifications",
+                dto
+            );
+        } catch (Exception e) {
+            log.warn("WebSocket push fallido (REVIEW_LIKE, receiver={}): {}", receiver.getId(), e.getMessage());
+        }
     }
 
     @Transactional
@@ -199,32 +219,71 @@ public class NotificationService {
         notificationRepository.save(notification);
 
         NotificationDto dto = toDto(notification);
-        messagingTemplate.convertAndSendToUser(
-            receiver.getUsername(),
-            "/queue/notifications",
-            dto
-        );
+        try {
+            messagingTemplate.convertAndSendToUser(
+                receiver.getUsername(),
+                "/queue/notifications",
+                dto
+            );
+        } catch (Exception e) {
+            log.warn("WebSocket push fallido (CONTENT_REMOVED, receiver={}): {}", receiver.getId(), e.getMessage());
+        }
     }
 
-    @Transactional
-    public void notifyComment(User receiver, Comment comment) {
-        User sender = comment.getAuthor();
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public void notifyComment(Long receiverId, Long senderId, Long commentId, String contentTitle) {
+        User receiver = userRepository.findById(receiverId).orElse(null);
+        User sender   = userRepository.findById(senderId).orElse(null);
+        if (receiver == null || sender == null) return;
 
         Notification notification = new Notification();
         notification.setUser(receiver);
         notification.setSender(sender);
         notification.setType(NotificationType.COMMENT_ON_RATING);
-        notification.setReferenceId(comment.getId());
+        notification.setReferenceId(commentId);
+        notification.setMessage(contentTitle);
 
         notificationRepository.save(notification);
 
         NotificationDto dto = toDto(notification);
 
-        messagingTemplate.convertAndSendToUser(
-            receiver.getUsername(),
-            "/queue/notifications",
-            dto
-        );
+        try {
+            messagingTemplate.convertAndSendToUser(
+                receiver.getUsername(),
+                "/queue/notifications",
+                dto
+            );
+        } catch (Exception e) {
+            log.warn("WebSocket push fallido (COMMENT_ON_RATING, receiver={}): {}", receiverId, e.getMessage());
+        }
+    }
+
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public void notifyListComment(Long receiverId, Long senderId, Long commentId, String listName) {
+        User receiver = userRepository.findById(receiverId).orElse(null);
+        User sender   = userRepository.findById(senderId).orElse(null);
+        if (receiver == null || sender == null) return;
+
+        Notification notification = new Notification();
+        notification.setUser(receiver);
+        notification.setSender(sender);
+        notification.setType(NotificationType.COMMENT_ON_LIST);
+        notification.setReferenceId(commentId);
+        notification.setMessage(listName);
+
+        notificationRepository.save(notification);
+
+        NotificationDto dto = toDto(notification);
+
+        try {
+            messagingTemplate.convertAndSendToUser(
+                receiver.getUsername(),
+                "/queue/notifications",
+                dto
+            );
+        } catch (Exception e) {
+            log.warn("WebSocket push fallido (COMMENT_ON_LIST, receiver={}): {}", receiverId, e.getMessage());
+        }
     }
 
     @Transactional

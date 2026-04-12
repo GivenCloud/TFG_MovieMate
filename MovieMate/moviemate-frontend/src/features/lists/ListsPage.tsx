@@ -128,7 +128,7 @@ function EditListDialog({
 
   return (
     <Dialog open onOpenChange={(v) => !v && onClose()}>
-      <DialogContent className="bg-bg-1 border-white/[0.1] text-white max-w-md">
+      <DialogContent aria-describedby={undefined} className="bg-bg-1 border-white/[0.1] text-white max-w-md">
         <DialogHeader>
           <DialogTitle className="font-display font-bold italic text-xl">Editar lista</DialogTitle>
         </DialogHeader>
@@ -256,7 +256,12 @@ function MyListCard({ list }: { list: ListResponse }) {
           </button>
           {isCustom && (
             <button
-              onClick={(e) => { e.preventDefault(); e.stopPropagation(); deleteMutation.mutate() }}
+              onClick={(e) => {
+                e.preventDefault()
+                e.stopPropagation()
+                if (!confirm(`¿Eliminar la lista "${list.name}"? Esta acción no se puede deshacer.`)) return
+                deleteMutation.mutate()
+              }}
               disabled={deleteMutation.isPending}
               className="w-7 h-7 bg-bg-0/80 hover:bg-red-500 text-white rounded-lg flex items-center justify-center text-sm font-bold transition-colors disabled:opacity-50"
               title="Eliminar lista"
@@ -331,7 +336,7 @@ function CreateListDialog({
 
   return (
     <Dialog open={open} onOpenChange={(v) => !v && handleClose()}>
-      <DialogContent className="bg-bg-1 border-white/[0.1] text-white max-w-md">
+      <DialogContent aria-describedby={undefined} className="bg-bg-1 border-white/[0.1] text-white max-w-md">
         <DialogHeader>
           <DialogTitle className="font-display font-bold italic text-xl">Nueva lista</DialogTitle>
         </DialogHeader>
@@ -488,7 +493,7 @@ export default function ListsPage() {
     <div className="pb-12">
       {/* Botón volver */}
       <div className="px-4 lg:px-6 pt-4 pb-1">
-        <BackButton to="/" label="Inicio" />
+        <BackButton />
       </div>
 
       {/* ── Cabecera ─────────────────────────────────────── */}

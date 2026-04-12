@@ -88,7 +88,7 @@ export default function AddContentToListDialog({
 
   return (
     <Dialog open={open} onOpenChange={(v) => !v && handleClose()}>
-      <DialogContent className="bg-bg-1 border-white/[0.1] text-white max-w-lg">
+      <DialogContent aria-describedby={undefined} className="bg-bg-1 border-white/[0.1] text-white max-w-lg">
         <DialogHeader>
           <DialogTitle className="font-display font-bold italic text-xl">
             Añadir contenido

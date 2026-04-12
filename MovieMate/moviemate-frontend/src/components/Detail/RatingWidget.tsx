@@ -66,6 +66,7 @@ export default function RatingWidget({ content }: Props) {
 
   const handleDelete = () => {
     if (!existingRating) return
+    if (!confirm('¿Eliminar esta valoración? Esta acción no se puede deshacer.')) return
     deleteRating(existingRating.id, {
       onSuccess: () => {
         setOpen(false)
@@ -186,7 +187,7 @@ export default function RatingWidget({ content }: Props) {
           type="date"
           value={watchedDate}
           onChange={(e) => setWatchedDate(e.target.value)}
-          className="bg-bg-3 border border-white/[0.08] rounded-lg px-3 py-2 text-sm text-white outline-none focus:border-accent/50 transition-colors"
+          className="bg-bg-3 border border-white/[0.08] rounded-lg px-3 py-2 text-sm text-white outline-none focus:border-accent/50 transition-colors [color-scheme:dark]"
         />
       </div>
 

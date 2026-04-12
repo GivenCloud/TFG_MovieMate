@@ -3,6 +3,7 @@ import { toast } from 'sonner'
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
   DialogFooter,
@@ -50,9 +51,9 @@ export default function ReportDialog({ open, onClose, targetType, targetId }: Pr
           </DialogTitle>
         </DialogHeader>
 
-        <p className="text-sm text-muted mb-3">
+        <DialogDescription className="text-sm text-muted mb-3">
           Selecciona el motivo del reporte. Lo revisaremos y tomaremos las medidas necesarias.
-        </p>
+        </DialogDescription>
 
         <div className="space-y-2">
           {REASONS.map((r) => (

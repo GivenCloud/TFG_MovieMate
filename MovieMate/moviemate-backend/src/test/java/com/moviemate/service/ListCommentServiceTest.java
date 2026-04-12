@@ -21,13 +21,15 @@ class ListCommentServiceTest {
 
     private ListCommentRepository listCommentRepository;
     private ListRepository listRepository;
+    private NotificationService notificationService;
     private ListCommentService listCommentService;
 
     @BeforeEach
     void setUp() {
         listCommentRepository = mock(ListCommentRepository.class);
         listRepository = mock(ListRepository.class);
-        listCommentService = new ListCommentService(listCommentRepository, listRepository);
+        notificationService = mock(NotificationService.class);
+        listCommentService = new ListCommentService(listCommentRepository, listRepository, notificationService);
     }
 
     // ---------- getByList ----------

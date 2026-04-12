@@ -90,28 +90,34 @@ export default function Sidebar() {
 
       <nav className="flex-1 overflow-y-auto py-4 scrollbar-none">
         <SidebarSection label="Principal" items={NAV_MAIN} />
-        <SidebarSection label="Mi espacio" items={navPersonal} />
 
-        {/* Notificaciones con badge de no leídas */}
-        <div className="px-3 mt-1">
-          <NavLink
-            to="/notifications"
-            className={({ isActive }) => cn(
-              'flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm transition-all border-l-2',
-              isActive
-                ? 'text-accent bg-accent/[0.06] border-accent font-medium'
-                : 'text-muted hover:text-white hover:bg-bg-2 border-transparent'
-            )}
-          >
-            <span className="w-5 text-center text-[0.9rem]">🔔</span>
-            <span className="flex-1">Notificaciones</span>
-            {unreadCount && unreadCount > 0 && (
-              <span className="bg-red-500 text-white text-[0.6rem] font-bold px-1.5 py-0.5 rounded-full min-w-[18px] text-center">
-                {unreadCount > 99 ? '99+' : unreadCount}
-              </span>
-            )}
-          </NavLink>
-        </div>
+        {/* Sección personal y notificaciones — solo para usuarios autenticados */}
+        {isAuthenticated && (
+          <>
+            <SidebarSection label="Mi espacio" items={navPersonal} />
+
+            {/* Notificaciones con badge de no leídas */}
+            <div className="px-3 mt-1">
+              <NavLink
+                to="/notifications"
+                className={({ isActive }) => cn(
+                  'flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm transition-all border-l-2',
+                  isActive
+                    ? 'text-accent bg-accent/[0.06] border-accent font-medium'
+                    : 'text-muted hover:text-white hover:bg-bg-2 border-transparent'
+                )}
+              >
+                <span className="w-5 text-center text-[0.9rem]">🔔</span>
+                <span className="flex-1">Notificaciones</span>
+                {unreadCount && unreadCount > 0 && (
+                  <span className="bg-red-500 text-white text-[0.6rem] font-bold px-1.5 py-0.5 rounded-full min-w-[18px] text-center">
+                    {unreadCount > 99 ? '99+' : unreadCount}
+                  </span>
+                )}
+              </NavLink>
+            </div>
+          </>
+        )}
       </nav>
 
       {/* Link admin — solo visible si el usuario es ADMIN */}

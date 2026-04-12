@@ -18,6 +18,7 @@ import {
   useUpdateProfile,
 } from '../../hooks/useProfile'
 import { useCreateRating } from '../../hooks/useDetail'
+import StarRating from '../../components/shared/StarRating'
 import { ratingsApi } from '../../api/ratings'
 import { usersApi } from '../../api/users'
 import StatsTab from '../../components/profile/StatsTab'
@@ -116,7 +117,6 @@ const STATUS_OPTIONS: { value: Status; label: string }[] = [
 // ── Dialog: edición rápida de valoración ─────────────────────
 function QuickEditRatingDialog({ r, onClose }: { r: RatingResponse; onClose: () => void }) {
   const [rating, setRating] = useState(r.rating)
-  const [hovered, setHovered] = useState(0)
   const [reviewText, setReviewText] = useState(r.reviewText ?? '')
   const [emotionalTag, setEmotionalTag] = useState<EmotionalTag>(r.emotionalTag)
   const [status, setStatus] = useState<Status>(r.status)
@@ -135,7 +135,7 @@ function QuickEditRatingDialog({ r, onClose }: { r: RatingResponse; onClose: () 
 
   return (
     <Dialog open onOpenChange={(v) => !v && onClose()}>
-      <DialogContent className="bg-bg-1 border-white/[0.1] text-white max-w-md">
+      <DialogContent aria-describedby={undefined} className="bg-bg-1 border-white/[0.1] text-white max-w-md">
         <DialogHeader>
           <DialogTitle className="font-display font-bold italic text-xl">Editar valoración</DialogTitle>
           <p className="text-sm text-muted mt-0.5">{r.content.title}</p>
@@ -146,24 +146,7 @@ function QuickEditRatingDialog({ r, onClose }: { r: RatingResponse; onClose: () 
             <label className="block font-mono text-xs text-muted tracking-wider uppercase mb-2">
               Puntuación
             </label>
-            <div className="flex gap-1 flex-wrap">
-              {Array.from({ length: 10 }, (_, i) => i + 1).map((n) => (
-                <button
-                  key={n}
-                  type="button"
-                  onClick={() => setRating(n)}
-                  onMouseEnter={() => setHovered(n)}
-                  onMouseLeave={() => setHovered(0)}
-                  className={`w-8 h-8 rounded-lg text-sm font-bold transition-all
-                    ${n <= (hovered || rating)
-                      ? 'bg-accent text-bg-0'
-                      : 'bg-bg-3 text-muted hover:bg-bg-3/80'
-                    }`}
-                >
-                  {n}
-                </button>
-              ))}
-            </div>
+            <StarRating value={rating} onChange={setRating} size="lg" />
           </div>
 
           {/* Etiqueta emocional */}
@@ -221,7 +204,7 @@ function QuickEditRatingDialog({ r, onClose }: { r: RatingResponse; onClose: () 
               type="date"
               value={watchedDate}
               onChange={(e) => setWatchedDate(e.target.value)}
-              className="w-full bg-bg-2 border border-white/[0.1] rounded-xl px-3.5 py-2.5 text-sm text-white outline-none focus:border-accent/50 focus:ring-2 focus:ring-accent/10 transition-all"
+              className="w-full bg-bg-2 border border-white/[0.1] rounded-xl px-3.5 py-2.5 text-sm text-white outline-none focus:border-accent/50 focus:ring-2 focus:ring-accent/10 transition-all [color-scheme:dark]"
             />
           </div>
 
@@ -398,7 +381,7 @@ function EditProfileDialog({
 
   return (
     <Dialog open={open} onOpenChange={(v) => !v && onClose()}>
-      <DialogContent className="bg-bg-1 border-white/[0.1] text-white max-w-md">
+      <DialogContent aria-describedby={undefined} className="bg-bg-1 border-white/[0.1] text-white max-w-md">
         <DialogHeader>
           <DialogTitle className="font-display font-bold italic text-xl">Editar perfil</DialogTitle>
         </DialogHeader>
@@ -467,7 +450,7 @@ function FollowListDialog({
 }) {
   return (
     <Dialog open={open} onOpenChange={(v) => !v && onClose()}>
-      <DialogContent className="bg-bg-1 border-white/[0.1] text-white max-w-sm p-0 overflow-hidden">
+      <DialogContent aria-describedby={undefined} className="bg-bg-1 border-white/[0.1] text-white max-w-sm p-0 overflow-hidden">
         <DialogHeader className="px-5 pt-5 pb-3 border-b border-white/[0.06]">
           <DialogTitle className="font-display font-bold italic text-xl">{title}</DialogTitle>
         </DialogHeader>
@@ -782,9 +765,11 @@ export default function ProfilePage() {
               </div>
               {ratings.length > 0 ? (
                 <div className="flex gap-3 overflow-x-auto scrollbar-none pb-2">
-                  {ratings.slice(0, 8).map((r) => (
-                    <RatingPosterItem key={r.id} r={r} />
-                  ))}
+                  {ratings.slice(0, 8).map((r) =>
+                    isOwnProfile
+                      ? <RatingPosterItem key={r.id} r={r} />
+                      : <PosterCard key={r.id} content={r.content} userRating={r.rating} />
+                  )}
                 </div>
               ) : (
                 <EmptyState

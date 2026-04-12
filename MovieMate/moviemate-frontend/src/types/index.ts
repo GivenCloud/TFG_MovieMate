@@ -189,6 +189,7 @@ export type NotificationType =
   | 'FOLLOWER'
   | 'REVIEW_LIKE'
   | 'COMMENT_ON_RATING'
+  | 'COMMENT_ON_LIST'
   | 'CONTENT_REMOVED'
 
 export interface NotificationDto {

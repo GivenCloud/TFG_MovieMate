@@ -9,12 +9,14 @@ import com.moviemate.entity.User;
 import com.moviemate.repository.CommentRepository;
 import com.moviemate.repository.RatingRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.stream.Collectors;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class CommentService {
@@ -46,7 +48,11 @@ public class CommentService {
         // Notificar al autor de la valoración si no es el mismo que comenta
         User ratingAuthor = rating.getUser();
         if (!ratingAuthor.getId().equals(author.getId())) {
-            notificationService.notifyComment(ratingAuthor, saved);
+            try {
+                notificationService.notifyComment(ratingAuthor.getId(), author.getId(), saved.getId(), rating.getContent().getTitle());
+            } catch (Exception e) {
+                log.warn("No se pudo enviar notificación de comentario: {}", e.getMessage());
+            }
         }
 
         return mapToResponse(saved);

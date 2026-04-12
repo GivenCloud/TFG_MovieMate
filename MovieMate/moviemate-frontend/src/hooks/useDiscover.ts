@@ -1,3 +1,4 @@
+import { useMemo } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { tmdbApi } from '@/api/tmdb'
 import type { DiscoverParams } from '@/api/tmdb'
@@ -15,26 +16,26 @@ function interleave<T>(a: T[], b: T[]): T[] {
 }
 
 // Populares (sin búsqueda activa)
-export function usePopular(filter: ContentType | 'ALL') {
+export function usePopular(filter: ContentType | 'ALL', page = 1) {
   const trending = useQuery({
-    queryKey: queryKeys.tmdb.trending(),
-    queryFn: () => tmdbApi.getTrending(),
+    queryKey: [...queryKeys.tmdb.trending(), page],
+    queryFn: () => tmdbApi.getTrending(page),
     select: (res) => res.data,
     enabled: filter === 'ALL',
     staleTime: 1000 * 60 * 10,
   })
 
   const movies = useQuery({
-    queryKey: queryKeys.tmdb.popularMovies(),
-    queryFn: () => tmdbApi.getPopularMovies(),
+    queryKey: [...queryKeys.tmdb.popularMovies(), page],
+    queryFn: () => tmdbApi.getPopularMovies(page),
     select: (res) => res.data,
     enabled: filter === 'MOVIE',
     staleTime: 1000 * 60 * 10,
   })
 
   const tvShows = useQuery({
-    queryKey: queryKeys.tmdb.popularTv(),
-    queryFn: () => tmdbApi.getPopularTvShows(),
+    queryKey: [...queryKeys.tmdb.popularTv(), page],
+    queryFn: () => tmdbApi.getPopularTvShows(page),
     select: (res) => res.data,
     enabled: filter === 'TV',
     staleTime: 1000 * 60 * 10,
@@ -92,6 +93,13 @@ export function useDiscover(filter: ContentType | 'ALL', params: DiscoverParams,
     staleTime: 1000 * 60 * 5,
   })
 
+  // useMemo garantiza referencia estable: sin esto, interleave crea un array nuevo en cada
+  // render aunque los datos no hayan cambiado, causando loops infinitos en el efecto de acumulación.
+  const interleavedAll = useMemo(
+    () => interleave(movies.data ?? [], tv.data ?? []),
+    [movies.data, tv.data],
+  )
+
   let data: ContentResponse[]
   let isLoading: boolean
 
@@ -102,8 +110,7 @@ export function useDiscover(filter: ContentType | 'ALL', params: DiscoverParams,
     data = tv.data ?? []
     isLoading = tv.isLoading
   } else {
-    // ALL: interleave películas y series
-    data = interleave(movies.data ?? [], tv.data ?? [])
+    data = interleavedAll
     isLoading = movies.isLoading || tv.isLoading
   }
 
@@ -111,22 +118,27 @@ export function useDiscover(filter: ContentType | 'ALL', params: DiscoverParams,
 }
 
 // Resultados de búsqueda
-export function useSearch(query: string, filter: ContentType | 'ALL') {
+export function useSearch(query: string, filter: ContentType | 'ALL', page = 1) {
   const movies = useQuery({
-    queryKey: queryKeys.tmdb.searchMovies(query),
-    queryFn: () => tmdbApi.searchMovies(query),
+    queryKey: [...queryKeys.tmdb.searchMovies(query), page],
+    queryFn: () => tmdbApi.searchMovies(query, page),
     select: (res) => res.data,
     enabled: query.length >= 2 && filter !== 'TV',
     staleTime: 1000 * 60 * 5,
   })
 
   const tvShows = useQuery({
-    queryKey: queryKeys.tmdb.searchTv(query),
-    queryFn: () => tmdbApi.searchTvShows(query),
+    queryKey: [...queryKeys.tmdb.searchTv(query), page],
+    queryFn: () => tmdbApi.searchTvShows(query, page),
     select: (res) => res.data,
     enabled: query.length >= 2 && filter !== 'MOVIE',
     staleTime: 1000 * 60 * 5,
   })
+
+  const interleavedAll = useMemo(
+    () => interleave(movies.data ?? [], tvShows.data ?? []),
+    [movies.data, tvShows.data],
+  )
 
   let data: ContentResponse[]
   if (filter === 'MOVIE') {
@@ -134,8 +146,7 @@ export function useSearch(query: string, filter: ContentType | 'ALL') {
   } else if (filter === 'TV') {
     data = tvShows.data ?? []
   } else {
-    // ALL: interleave para mostrar mezcla de películas y series
-    data = interleave(movies.data ?? [], tvShows.data ?? [])
+    data = interleavedAll
   }
 
   return {

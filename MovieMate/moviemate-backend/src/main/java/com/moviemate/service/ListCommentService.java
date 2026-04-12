@@ -9,17 +9,20 @@ import com.moviemate.entity.User;
 import com.moviemate.repository.ListCommentRepository;
 import com.moviemate.repository.ListRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.stream.Collectors;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class ListCommentService {
 
     private final ListCommentRepository listCommentRepository;
     private final ListRepository listRepository;
+    private final NotificationService notificationService;
 
     @Transactional(readOnly = true)
     public java.util.List<ListCommentResponse> getByList(Long listId) {
@@ -39,7 +42,19 @@ public class ListCommentService {
         comment.setAuthor(author);
         comment.setList(list);
 
-        return mapToResponse(listCommentRepository.save(comment));
+        ListComment saved = listCommentRepository.save(comment);
+
+        // Notificar al dueño de la lista si no es el mismo que comenta
+        User listOwner = list.getUser();
+        if (!listOwner.getId().equals(author.getId())) {
+            try {
+                notificationService.notifyListComment(listOwner.getId(), author.getId(), saved.getId(), list.getName());
+            } catch (Exception e) {
+                log.warn("No se pudo enviar notificación de comentario en lista: {}", e.getMessage());
+            }
+        }
+
+        return mapToResponse(saved);
     }
 
     @Transactional

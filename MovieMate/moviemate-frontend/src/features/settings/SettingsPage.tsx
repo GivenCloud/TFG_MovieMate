@@ -158,7 +158,7 @@ export default function SettingsPage() {
     <div className="pb-12">
       {/* Botón volver */}
       <div className="px-4 lg:px-6 pt-4 pb-1">
-        <BackButton to={sessionUser ? `/profile/${sessionUser.username}` : '/'} label="Mi perfil" />
+        <BackButton />
       </div>
 
       {/* Cabecera */}

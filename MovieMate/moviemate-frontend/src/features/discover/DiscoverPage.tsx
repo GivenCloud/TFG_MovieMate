@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
 import { useSearchParams, Link } from 'react-router-dom'
 import BackButton from '@/components/shared/BackButton'
 import { useQuery } from '@tanstack/react-query'
@@ -10,7 +10,8 @@ import ContentGrid from '@/components/Discover/ContentGrid'
 import { usersApi } from '@/api/users'
 import { queryKeys } from '@/lib/queryKeys'
 import { cn } from '@/lib/utils'
-import type { ContentType, UserResponse } from '../../types'
+import { useAuthStore } from '@/store/authStore'
+import type { ContentType, UserResponse, ContentResponse } from '../../types'
 import type { DiscoverParams } from '@/api/tmdb'
 
 type Filter = ContentType | 'ALL'
@@ -74,10 +75,14 @@ function UserCardSkeleton() {
 
 // ── Página ──────────────────────────────────────────────────────
 export default function DiscoverPage() {
+  const { isAuthenticated } = useAuthStore()
   const [searchParams, setSearchParams] = useSearchParams()
   const [filter, setFilter] = useState<Filter>((searchParams.get('type') as Filter) ?? 'ALL')
   const [mode, setMode] = useState<Mode>('content')
   const [filtersOpen, setFiltersOpen] = useState(false)
+  const [page, setPage] = useState(1)
+  const [accumulatedItems, setAccumulatedItems] = useState<ContentResponse[]>([])
+  const observerRef = useRef<IntersectionObserver | null>(null)
 
   // Filtros avanzados (desde URL params)
   const [genreId, setGenreId] = useState<number | undefined>(
@@ -89,6 +94,22 @@ export default function DiscoverPage() {
 
   const urlQuery = searchParams.get('q') ?? ''
   const [inputValue, setInputValue] = useState(urlQuery)
+
+  const debouncedQuery = useDebounce(inputValue.trim(), 400)
+  const isSearching = debouncedQuery.length >= 2
+
+  // Resetear paginación cuando cambia la búsqueda efectiva o los filtros.
+  // Usamos debouncedQuery (no inputValue) para que el reset solo ocurra cuando la query real
+  // cambia, no en cada pulsación de teclado (evita bucles de reset → acumulación → sentinel).
+  const prevSearchKey = useRef('')
+  const currentSearchKey = `${debouncedQuery}|${filter}|${genreId}|${year}|${minRating}|${sortBy}`
+  useEffect(() => {
+    if (prevSearchKey.current !== currentSearchKey) {
+      setPage(1)
+      setAccumulatedItems([])
+      prevSearchKey.current = currentSearchKey
+    }
+  }, [currentSearchKey])
 
   // Sincronizar todos los filtros a URL params
   useEffect(() => {
@@ -104,9 +125,6 @@ export default function DiscoverPage() {
     }, 400)
     return () => clearTimeout(timeout)
   }, [inputValue, filter, genreId, year, minRating, sortBy])
-
-  const debouncedQuery = useDebounce(inputValue.trim(), 400)
-  const isSearching = debouncedQuery.length >= 2
 
   // Parámetros de discover (solo cuando no buscando)
   const discoverParams: DiscoverParams = {
@@ -129,9 +147,10 @@ export default function DiscoverPage() {
   // ── Contenido ──────────────────────────────────────────────
   // MOVIE/TV: siempre discover; ALL: discover solo si hay filtros activos; si no → popular/trending
   const useDiscoverMode = !isSearching && (filter !== 'ALL' || !!hasActiveFilters)
-  const popular = usePopular(filter)
-  const discover = useDiscover(filter, discoverParams, useDiscoverMode)
-  const search  = useSearch(debouncedQuery, filter)
+  const discoverParamsWithPage = { ...discoverParams, page }
+  const popular = usePopular(filter, page)
+  const discover = useDiscover(filter, discoverParamsWithPage, useDiscoverMode)
+  const search  = useSearch(debouncedQuery, filter, page)
 
   let contentQuery: { data: typeof popular.data; isLoading: boolean }
   if (isSearching) {
@@ -141,7 +160,46 @@ export default function DiscoverPage() {
   } else {
     contentQuery = popular
   }
-  const { data: contentData = [], isLoading: contentLoading } = contentQuery
+  const { data: pageData = [], isLoading: contentLoading } = contentQuery
+
+  // Acumular resultados de páginas anteriores
+  useEffect(() => {
+    if (pageData.length === 0) return
+    if (page === 1) {
+      setAccumulatedItems(pageData)
+    } else {
+      setAccumulatedItems((prev) => {
+        const existingIds = new Set(prev.map((i) => `${i.tmdbId}-${i.contentType}`))
+        const newItems = pageData.filter((i) => !existingIds.has(`${i.tmdbId}-${i.contentType}`))
+        return [...prev, ...newItems]
+      })
+    }
+  }, [pageData, page])
+
+  const contentData = accumulatedItems
+  const hasMorePages = pageData.length >= 20
+
+  // Callback ref: el observer se crea al montar el sentinel y se destruye al desmontarlo.
+  // El sentinel solo se renderiza cuando !contentLoading && hasMorePages && items > 0,
+  // lo que garantiza que no hay loop: al disparar setPage, contentLoading pasa a true,
+  // el sentinel desaparece del DOM, el observer se desconecta, y no puede volver a disparar
+  // hasta que la siguiente página termine de cargar.
+  const sentinelCallbackRef = useCallback((node: HTMLDivElement | null) => {
+    if (observerRef.current) {
+      observerRef.current.disconnect()
+      observerRef.current = null
+    }
+    if (!node) return
+    observerRef.current = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setPage((p) => p + 1)
+        }
+      },
+      { rootMargin: '200px' }
+    )
+    observerRef.current.observe(node)
+  }, [])
 
   // ── Géneros (cargados según el filtro activo) ──────────────
   const genres = useGenres(filter)
@@ -157,7 +215,7 @@ export default function DiscoverPage() {
   const { data: suggestions = [], isLoading: suggestionsLoading } = useQuery({
     queryKey: queryKeys.users.suggestions(),
     queryFn: () => usersApi.getSuggestions().then((r) => r.data),
-    enabled: mode === 'users' && !isSearching,
+    enabled: isAuthenticated && mode === 'users' && !isSearching,
     staleTime: 1000 * 60 * 5,
   })
 
@@ -181,11 +239,13 @@ export default function DiscoverPage() {
     setYear('')
     setMinRating('')
     setSortBy('popularity.desc')
+    setPage(1)
+    setAccumulatedItems([])
   }
 
   return (
     <div className="px-4 lg:px-8 py-6 lg:py-8 max-w-6xl mx-auto">
-      <BackButton to="/" label="Inicio" className="mb-5" />
+      <BackButton className="mb-5" />
 
       {/* Cabecera */}
       <div className="mb-8">
@@ -246,9 +306,9 @@ export default function DiscoverPage() {
                 </button>
               )}
 
-              {!contentLoading && contentData.length > 0 && (
+              {!contentLoading && accumulatedItems.length > 0 && (
                 <p className="text-xs text-muted font-mono">
-                  {contentData.length} resultado{contentData.length !== 1 ? 's' : ''}
+                  {accumulatedItems.length} resultado{accumulatedItems.length !== 1 ? 's' : ''}
                 </p>
               )}
             </div>
@@ -357,7 +417,14 @@ export default function DiscoverPage() {
               )}
             </div>
           ) : (
-            <ContentGrid items={contentData} isLoading={contentLoading} />
+            <>
+              <ContentGrid items={contentData} isLoading={contentLoading && page === 1} />
+              {/* Sentinel: solo existe cuando hay items, no estamos cargando y hay más páginas.
+                  Al disparar setPage, contentLoading=true → desmonta → observer desconectado → sin loop */}
+              {!contentLoading && accumulatedItems.length > 0 && hasMorePages && (
+                <div ref={sentinelCallbackRef} className="h-1" />
+              )}
+            </>
           )}
         </>
       )}
@@ -370,6 +437,14 @@ export default function DiscoverPage() {
           {usersLoading ? (
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               {Array.from({ length: 6 }).map((_, i) => <UserCardSkeleton key={i} />)}
+            </div>
+          ) : !isAuthenticated && !isSearching ? (
+            <div className="flex flex-col items-center justify-center py-24 text-center">
+              <span className="text-5xl mb-4">👥</span>
+              <h3 className="text-lg font-semibold text-white/80 mb-2">Inicia sesión para ver sugerencias</h3>
+              <p className="text-sm text-muted max-w-xs">
+                Puedes buscar usuarios por nombre sin estar registrado.
+              </p>
             </div>
           ) : users.length === 0 && isSearching ? (
             <div className="flex flex-col items-center justify-center py-24 text-center">

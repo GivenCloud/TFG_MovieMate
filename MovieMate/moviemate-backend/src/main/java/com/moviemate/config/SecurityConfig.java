@@ -96,6 +96,13 @@ public class SecurityConfig {
                                  "/api/tmdb/tv/**",
                                  "/api/tmdb/movies/**",
                                  "/api/tmdb/trending",
+                                 "/api/tmdb/discover/**",
+                                 "/api/tmdb/genres/**",
+                                 "/api/users/{userId:[0-9]+}/stats",
+                                 "/api/users/{userId:[0-9]+}/followers",
+                                 "/api/users/{userId:[0-9]+}/following",
+                                 "/api/users/{userId:[0-9]+}/badges",
+                                 "/api/lists/{listId:[0-9]+}/comments",
                                  "/uploads/**",
                                  "/ws/**"
                 ).permitAll()
