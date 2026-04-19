@@ -98,6 +98,7 @@ public class SecurityConfig {
                                  "/api/tmdb/trending",
                                  "/api/tmdb/discover/**",
                                  "/api/tmdb/genres/**",
+                                 "/api/tmdb/people/**",
                                  "/api/users/{userId:[0-9]+}/stats",
                                  "/api/users/{userId:[0-9]+}/followers",
                                  "/api/users/{userId:[0-9]+}/following",
