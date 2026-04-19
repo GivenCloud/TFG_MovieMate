@@ -11,6 +11,7 @@ import com.moviemate.repository.FollowRequestRepository;
 import com.moviemate.repository.FollowerRepository;
 import com.moviemate.repository.NotificationRepository;
 import com.moviemate.repository.ReviewLikeRepository;
+import com.moviemate.repository.UserRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
@@ -26,23 +27,24 @@ import static org.mockito.Mockito.*;
 class NotificationServiceTest {
 
     private NotificationRepository notificationRepository;
-    private FollowRequestRepository followRequestRepository;
     private FollowerRepository followerRepository;
     private ReviewLikeRepository reviewLikeRepository;
     private SimpMessagingTemplate messagingTemplate;
+    private UserRepository userRepository;
     private NotificationService notificationService;
 
     @BeforeEach
     void setUp() {
         notificationRepository = mock(NotificationRepository.class);
-        followRequestRepository = mock(FollowRequestRepository.class);
         followerRepository = mock(FollowerRepository.class);
         reviewLikeRepository = mock(ReviewLikeRepository.class);
         messagingTemplate = mock(SimpMessagingTemplate.class);
+        userRepository = mock(UserRepository.class);
         
         notificationService = new NotificationService(
             notificationRepository,
-            messagingTemplate
+            messagingTemplate,
+            userRepository
         );
     }
 
