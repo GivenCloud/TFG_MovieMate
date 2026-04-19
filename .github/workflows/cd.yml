@@ -76,7 +76,7 @@ jobs:
             ${{ env.BACKEND_IMAGE }}:latest
           cache-from: type=gha
           cache-to: type=gha,mode=max
-          platforms: linux/amd64,linux/arm64
+          platforms: linux/amd64
 
       # ── Frontend ──────────────────────────────────────────────
       - name: Build & push frontend
@@ -92,7 +92,7 @@ jobs:
             VITE_TMDB_IMAGE_BASE=https://image.tmdb.org/t/p
           cache-from: type=gha
           cache-to: type=gha,mode=max
-          platforms: linux/amd64,linux/arm64
+          platforms: linux/amd64
 
   # ── Deploy a Minikube (self-hosted runner en máquina local) ───
   # Requiere:
