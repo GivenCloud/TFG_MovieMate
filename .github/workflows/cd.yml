@@ -1,10 +1,12 @@
 name: CD — Build, Push & Deploy
 
-# Solo se ejecuta al hacer push a main (merge de PR o push directo)
+# En push a main hace test+build/push.
+# El deploy se lanza manualmente con "Run workflow".
 on:
   push:
     branches:
       - main
+  workflow_dispatch:
 
 env:
   REGISTRY:       ghcr.io
@@ -102,6 +104,7 @@ jobs:
   #      - GHCR_PAT (scope: read:packages; para repos privados suele requerir repo)
   deploy:
     name: Deploy to Minikube
+    if: ${{ github.event_name == 'workflow_dispatch' }}
     runs-on: self-hosted
     needs: build-and-push
 
