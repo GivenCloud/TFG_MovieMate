@@ -4,7 +4,7 @@ import { useReviews, useToggleLike } from '@/hooks/useDetail'
 import { useComments, useCreateComment, useDeleteComment } from '@/hooks/useComments'
 import { useAuthStore } from '@/store/authStore'
 import { formatDate } from '@/lib/utils'
-import ReportDialog from '@/features/moderation/ReportDialog'
+import ReportDialog from '@/pages/moderation/ReportDialog'
 import type { ContentResponse, RatingResponse } from '@/types'
 
 const PAGE_SIZE = 5
