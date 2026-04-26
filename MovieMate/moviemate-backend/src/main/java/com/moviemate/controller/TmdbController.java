@@ -2,7 +2,6 @@ package com.moviemate.controller;
 
 import com.moviemate.dto.CastMemberDto;
 import com.moviemate.dto.ContentResponse;
-import com.moviemate.dto.EpisodeDto;
 import com.moviemate.dto.GenreDto;
 import com.moviemate.dto.PersonDto;
 import com.moviemate.dto.SeasonDto;
