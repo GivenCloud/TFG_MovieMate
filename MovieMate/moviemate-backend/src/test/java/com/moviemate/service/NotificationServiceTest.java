@@ -7,7 +7,6 @@ import com.moviemate.entity.Notification;
 import com.moviemate.entity.ReviewLike;
 import com.moviemate.entity.Rating;
 import com.moviemate.entity.User;
-import com.moviemate.repository.FollowRequestRepository;
 import com.moviemate.repository.FollowerRepository;
 import com.moviemate.repository.NotificationRepository;
 import com.moviemate.repository.ReviewLikeRepository;
